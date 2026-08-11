@@ -1,0 +1,48 @@
+mysql:
+  dev:
+    host: "localhost"
+    port: 3306
+    user: "root"
+    password: "${ETC_QA_MYSQL_PASSWORD:123456}"
+    database: "etc_qa"
+    pool:
+      max_usage: 0
+      ping: 1
+  test:
+    host: "localhost"
+    port: 3306
+    user: "root"
+    password: "${ETC_QA_MYSQL_PASSWORD:123456}"
+    database: "etc_qa_test"
+    pool:
+      max_usage: 0
+      ping: 1
+  prod:
+    host: "${ETC_QA_MYSQL_HOST:mysql}"
+    port: 3306
+    user: "root"
+    password: "${ETC_QA_MYSQL_PASSWORD}"
+    database: "etc_qa"
+    pool:
+      max_usage: 100
+      ping: 1
+
+milvus:
+  dev:
+    db_path: "./data/milvus/milvus_etc_qa.db"
+    collection_name: "qa_vectors"
+  test:
+    db_path: "./data/milvus/milvus_etc_qa_test.db"
+    collection_name: "qa_vectors"
+  prod:
+    db_path: "/app/data/milvus/milvus_etc_qa.db"
+    collection_name: "qa_vectors"
+  index:
+    type: "HNSW"
+    M: 16
+    ef_construction: 256
+  search:
+    ef: 128
+    overfetch_ratio: 3
+  schema:
+    category_l1_max_length: 50

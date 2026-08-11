@@ -1,0 +1,51 @@
+# ETC客服QA智能检索系统 — 依赖清单
+# Python >= 3.10
+# 安装: pip install -r requirements.txt
+
+# Web框架
+fastapi>=0.104.0
+uvicorn>=0.24.0
+python-dotenv>=1.0.0
+
+# 数据模型
+pydantic>=2.0.0
+
+# 数据库
+pymysql>=1.1.0
+
+pymilvus==3.0.0
+milvus-lite>=3.0.0
+
+# Embedding & Reranker
+sentence-transformers>=2.2.0
+
+# BM25
+jieba>=0.42.1
+rank-bm25>=0.2.2
+
+# Agent (LangGraph + LLM)
+langgraph>=0.0.30
+langchain-openai>=0.0.5
+langsmith>=0.1.0
+jinja2>=3.1.0
+
+
+# ASR语音识别
+funasr>=1.0.0
+torchaudio>=2.0.0
+# vllm>=0.12.0  # 可选：vLLM推理加速，需GPU+Linux
+
+# 模型下载
+modelscope>=1.9.0
+
+# 测试
+pytest>=7.4.0
+httpx>=0.25.0
+pytest-cov>=4.1.0
+
+# 开发工具
+ruff>=0.8.0
+mypy>=1.7.0
+bandit>=1.7.0
+safety>=2.3.0
+pre-commit>=3.6.0

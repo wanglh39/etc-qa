@@ -1,0 +1,24 @@
+asr:
+  enabled: true
+  model: "FunAudioLLM/Fun-ASR-Nano-2512"
+  finetuned_path: ""
+  max_duration_ms: 30000
+  sample_rate: 16000
+  language: "zh"
+  device: "cuda"
+  use_vllm: false
+  tensor_parallel_size: 1
+  corrections:
+    "一体机": "ETC"
+    "一提西": "ETC"
+    "一体c": "ETC"
+    "欧比优": "OBU"
+    "欧布": "OBU"
+    "蓝呀": "蓝牙"
+    "兰牙": "蓝牙"
+    "解优": "解悠"
+    "捷悠": "解悠"
+    "九五零二二": "95022"
+    "四零零零五四三九八六": "4000-543-986"
+    "四零零六八九八八八八": "4006-898-888"
+    "九五七八七": "95787"

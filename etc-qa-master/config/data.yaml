@@ -1,0 +1,11 @@
+data:
+  qa_csv: "./data/processed/qa_filled.csv"
+  test_csv: "./data/eval/test_rag.csv"
+  test_rewrite_csv: "./data/eval/test_rewrite.csv"
+  work_order_csv: "./data/eval/work_orders_200.csv"
+  raw_qa_csv: "./data/raw/qa.csv"
+
+qa_statuses:
+  - "active"
+  - "deprecated"
+  - "archived"

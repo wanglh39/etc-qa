@@ -1,0 +1,63 @@
+# Embedding & Reranker 模型配置（各环境共用）
+models:
+  embed:
+    name: "bge-large-zh-v1.5"
+    path: "${MODEL_BASE_DIR:C:\\Users\\wlh19\\.cache\\modelscope\\hub}\\models\\BAAI\\bge-large-zh-v1___5"
+    dim: 1024
+  rerank:
+    name: "bge-reranker-large"
+    path: "${MODEL_BASE_DIR:C:\\Users\\wlh19\\.cache\\modelscope\\hub}\\models\\BAAI\\bge-reranker-large"
+  query_prefix: "为这个句子生成表示以用于检索相关文章："
+
+# LLM模型能力注册表
+# structured_method: json_schema / function_calling / none
+# 优先级：agent.yaml llm.structured_method 显式指定 > 本注册表 > 代码兜底(none)
+llm_registry:
+  deepseek-chat:
+    provider: deepseek
+    structured_method: function_calling
+    max_tokens_limit: 8192
+  deepseek-reasoner:
+    provider: deepseek
+    structured_method: none
+    max_tokens_limit: 8192
+  deepseek-v4-flash:
+    provider: deepseek
+    structured_method: none
+    max_tokens_limit: 8192
+  deepseek-v4-pro:
+    provider: deepseek
+    structured_method: function_calling
+    max_tokens_limit: 8192
+  gpt-4o:
+    provider: openai
+    structured_method: json_schema
+    max_tokens_limit: 16384
+  gpt-4o-mini:
+    provider: openai
+    structured_method: json_schema
+    max_tokens_limit: 16384
+  gpt-4-turbo:
+    provider: openai
+    structured_method: json_schema
+    max_tokens_limit: 128000
+  gpt-3.5-turbo:
+    provider: openai
+    structured_method: function_calling
+    max_tokens_limit: 16384
+  qwen-plus:
+    provider: aliyun
+    structured_method: function_calling
+    max_tokens_limit: 8192
+  qwen-turbo:
+    provider: aliyun
+    structured_method: function_calling
+    max_tokens_limit: 8192
+  glm-4-flash:
+    provider: zhipu
+    structured_method: none
+    max_tokens_limit: 8192
+  glm-4-plus:
+    provider: zhipu
+    structured_method: function_calling
+    max_tokens_limit: 8192

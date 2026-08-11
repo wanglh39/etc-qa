@@ -1,0 +1,177 @@
+[
+  {
+    "id": "G001",
+    "pipeline": "standardize_query",
+    "input": {"question": "我想问一下ETC注销的流程是什么呢"},
+    "expected": {"question": "ETC注销流程是什么", "need_rewrite": true, "rewrite_confidence_min": 0.5},
+    "tags": ["口语化", "填充词"]
+  },
+  {
+    "id": "G002",
+    "pipeline": "standardize_query",
+    "input": {"question": "ETC扣费异常怎么处理"},
+    "expected": {"question": "ETC扣费异常怎么处理", "need_rewrite": false, "rewrite_confidence_min": 0.9},
+    "tags": ["简洁标准"]
+  },
+  {
+    "id": "G003",
+    "pipeline": "standardize_query",
+    "input": {"question": "黑名单怎么解除"},
+    "expected": {"question": "黑名单怎么解除", "need_rewrite": false, "rewrite_confidence_min": 0.9},
+    "tags": ["简洁标准"]
+  },
+  {
+    "id": "G004",
+    "pipeline": "standardize_query",
+    "input": {"question": "客户张三反馈说他的ETC重复扣费了上个月在同一高速口扣了两次"},
+    "expected": {"question": "ETC同一高速口重复扣费", "need_rewrite": true, "rewrite_confidence_min": 0.5},
+    "tags": ["冗长", "背景描述"]
+  },
+  {
+    "id": "G005",
+    "pipeline": "standardize_query",
+    "input": {"question": "发票怎么申请"},
+    "expected": {"question": "发票怎么申请", "need_rewrite": false, "rewrite_confidence_min": 0.9},
+    "tags": ["简洁标准"]
+  },
+  {
+    "id": "G006",
+    "pipeline": "standardize_query",
+    "input": {"question": "请问一下就是那个ETC设备不亮了但是蓝牙能连上是怎么回事啊"},
+    "expected": {"question": "ETC设备不亮蓝牙能连上", "need_rewrite": true, "rewrite_confidence_min": 0.5},
+    "tags": ["口语化", "填充词", "冗长"]
+  },
+  {
+    "id": "G007",
+    "pipeline": "standardize_query",
+    "input": {"question": "ETC怎么注销"},
+    "expected": {"question": "ETC怎么注销", "need_rewrite": false, "rewrite_confidence_min": 0.9},
+    "tags": ["简洁标准"]
+  },
+  {
+    "id": "G008",
+    "pipeline": "standardize_query",
+    "input": {"question": "我上个月在同一个高速口被扣了两次费怎么办"},
+    "expected": {"question": "同一高速口重复扣费怎么办", "need_rewrite": true, "rewrite_confidence_min": 0.5},
+    "tags": ["口语化", "冗长"]
+  },
+  {
+    "id": "G009",
+    "pipeline": "standardize_query",
+    "input": {"question": "ETC余额查询"},
+    "expected": {"question": "ETC余额查询", "need_rewrite": false, "rewrite_confidence_min": 0.9},
+    "tags": ["简洁标准"]
+  },
+  {
+    "id": "G010",
+    "pipeline": "standardize_query",
+    "input": {"question": "那个就是我想问下ETC绑定的银行卡能不能换啊"},
+    "expected": {"question": "ETC绑定银行卡能不能换", "need_rewrite": true, "rewrite_confidence_min": 0.5},
+    "tags": ["口语化", "填充词"]
+  },
+  {
+    "id": "G011",
+    "pipeline": "hyde_rewrite",
+    "input": {"question": "ETC扣费异常如何处理", "answer": "核实扣费记录，确认重复扣费后3个工作日退款到原支付账户"},
+    "expected": {"hyde_count_min": 2, "must_preserve": ["ETC", "扣费"], "no_hallucination": true},
+    "tags": ["核心业务"]
+  },
+  {
+    "id": "G012",
+    "pipeline": "hyde_rewrite",
+    "input": {"question": "ETC怎么注销", "answer": "拨打客服热线95022申请注销，需提供车牌号和身份证号，7个工作日内处理完成"},
+    "expected": {"hyde_count_min": 2, "must_preserve": ["ETC", "注销"], "no_hallucination": true},
+    "tags": ["核心业务"]
+  },
+  {
+    "id": "G013",
+    "pipeline": "hyde_rewrite",
+    "input": {"question": "黑名单如何解除", "answer": "欠费补缴后自动解除，或联系客服95022人工处理，解除后24小时内恢复正常使用"},
+    "expected": {"hyde_count_min": 2, "must_preserve": ["黑名单"], "no_hallucination": true},
+    "tags": ["核心业务"]
+  },
+  {
+    "id": "G014",
+    "pipeline": "hyde_rewrite",
+    "input": {"question": "ETC设备故障怎么处理", "answer": "设备质保期2年，期内免费更换，拨打95022申请寄送新设备，收到后按指引激活"},
+    "expected": {"hyde_count_min": 2, "must_preserve": ["ETC", "设备"], "no_hallucination": true},
+    "tags": ["核心业务"]
+  },
+  {
+    "id": "G015",
+    "pipeline": "hyde_rewrite",
+    "input": {"question": "发票怎么申请", "answer": "登录ETC小程序或APP，进入我的-发票管理，选择通行记录申请电子发票，1-3个工作日发送到邮箱"},
+    "expected": {"hyde_count_min": 2, "must_preserve": ["发票"], "no_hallucination": true},
+    "tags": ["核心业务"]
+  },
+  {
+    "id": "G016",
+    "pipeline": "structure_ingest",
+    "input": {"question": "ETC重复扣费怎么退款", "answer": "核实扣费记录，确认重复扣费后3个工作日退款到原支付账户"},
+    "expected": {"category_l1": "扣费异常", "has_category": true, "confidence_min": 0.3},
+    "tags": ["入库"]
+  },
+  {
+    "id": "G017",
+    "pipeline": "structure_ingest",
+    "input": {"question": "ETC设备不亮了", "answer": "检查设备电量，如电量充足仍不亮则联系客服95022申请更换设备"},
+    "expected": {"category_l1": "设备故障", "has_category": true, "confidence_min": 0.3},
+    "tags": ["入库"]
+  },
+  {
+    "id": "G018",
+    "pipeline": "structure_ingest",
+    "input": {"question": "黑名单怎么解除", "answer": "欠费补缴后自动解除，或联系客服95022人工处理"},
+    "expected": {"category_l1": "账户问题", "has_category": true, "confidence_min": 0.3},
+    "tags": ["入库"]
+  },
+  {
+    "id": "G019",
+    "pipeline": "rag",
+    "input": {"question": "ETC扣费异常怎么处理"},
+    "expected": {"recall_at_1": true},
+    "tags": ["RAG核心"]
+  },
+  {
+    "id": "G020",
+    "pipeline": "rag",
+    "input": {"question": "黑名单如何解除"},
+    "expected": {"recall_at_1": true},
+    "tags": ["RAG核心"]
+  },
+  {
+    "id": "G021",
+    "pipeline": "rag",
+    "input": {"question": "发票怎么申请"},
+    "expected": {"recall_at_1": true},
+    "tags": ["RAG核心"]
+  },
+  {
+    "id": "G022",
+    "pipeline": "rag",
+    "input": {"question": "ETC设备不亮了但是蓝牙能连上"},
+    "expected": {"recall_at_3": true},
+    "tags": ["RAG口语化"]
+  },
+  {
+    "id": "G023",
+    "pipeline": "rag",
+    "input": {"question": "我上个月在同一个高速口被扣了两次费怎么办"},
+    "expected": {"recall_at_3": true},
+    "tags": ["RAG口语化"]
+  },
+  {
+    "id": "G024",
+    "pipeline": "rag",
+    "input": {"question": "ETC怎么注销"},
+    "expected": {"recall_at_1": true},
+    "tags": ["RAG核心"]
+  },
+  {
+    "id": "G025",
+    "pipeline": "rag",
+    "input": {"question": "ETC绑定的银行卡能不能换"},
+    "expected": {"recall_at_3": true},
+    "tags": ["RAG核心"]
+  }
+]

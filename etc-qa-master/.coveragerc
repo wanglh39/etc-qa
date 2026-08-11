@@ -1,0 +1,19 @@
+[run]
+source = .
+
+
+omit =
+    tests/*
+    scripts/*
+    asr/finetune/*
+    */__pycache__/*
+    config.py
+    conftest.py
+    tests/integration/_asr_isolated_runner.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__
+    pass
+    raise NotImplementedError

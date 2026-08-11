@@ -1,0 +1,10 @@
+server:
+  host: "0.0.0.0"
+  port: 8000
+  title: "ETC客服QA智能检索系统"
+  version: "1.0.0"
+  workers: 1
+
+cache:
+  active_ids_ttl: 30
+  config_ttl: 60

@@ -1,0 +1,168 @@
+# LLM配置
+# structured_method优先级：此处显式指定 > models.yaml注册表 > 代码兜底(none)
+llm:
+  enabled: true
+  provider: "deepseek"
+  api_key: "${DEEPSEEK_API_KEY}"
+  base_url: "https://api.deepseek.com"
+  model: "deepseek-v4-pro"
+  temperature: 0.1
+  max_tokens: 1024
+  # structured_method: "none"
+
+
+# HyDE配置
+hyde:
+  enabled: true
+  conditional: true
+  num_questions: 3
+  max_questions_per_qa: 3
+  max_rewrite_per_batch: 50
+  answer_summary_max_len: 150
+
+# 工单系统配置
+work_order:
+  use_mock: true
+
+# 提示词配置（业务规则，变化时改这里不用改代码）
+prompts:
+  enterprise_name: "ETC"
+  forbidden_new_kws:
+    - "实名认证"
+    - "更换"
+    - "黑名单"
+    - "注销"
+    - "激活"
+    - "挂失"
+    - "补办"
+  must_preserve_kws:
+    - "ETC"
+    - "etc"
+    - "扣费"
+    - "退款"
+    - "注销"
+    - "激活"
+    - "黑名单"
+    - "账单"
+    - "发票"
+    - "设备"
+    - "抬杆"
+    - "挂失"
+    - "补办"
+    - "充值"
+    - "逾期"
+    - "押金"
+    - "解悠"
+    - "车队"
+    - "权限"
+    - "实名"
+    - "对公"
+    - "扫码"
+    - "邮寄"
+    - "蓝牙"
+    - "变更"
+    - "套餐"
+    - "网点"
+    - "结清"
+    - "导出"
+  brand_keywords:
+    - "ETC"
+    - "etc"
+    - "速通"
+    - "解悠"
+    - "千方"
+    - "满帮"
+    - "普惠"
+    - "宝付"
+    - "狮桥"
+    - "9901"
+    - "1101"
+  subject_keywords:
+    - "黑名单"
+    - "扣费"
+    - "注销"
+    - "激活"
+    - "充值"
+    - "退款"
+    - "发票"
+    - "账单"
+    - "设备"
+    - "蓝牙"
+    - "实名"
+    - "报错"
+    - "通行"
+    - "逾期"
+    - "周卡"
+    - "抬杆"
+    - "挂失"
+    - "补办"
+    - "押金"
+    - "车队"
+    - "权限"
+    - "套餐"
+    - "网点"
+    - "结清"
+    - "导出"
+  question_words:
+    - "如何"
+    - "怎么"
+    - "什么"
+    - "哪些"
+    - "能否"
+    - "是否"
+    - "吗"
+    - "呢"
+    - "？"
+    - "?"
+    - "多少"
+    - "热线"
+    - "电话"
+    - "客服"
+  preserve_question_words:
+    - "能不能"
+    - "是否可以"
+    - "可以吗"
+    - "可不可以"
+    - "为什么"
+    - "怎么"
+    - "如何"
+    - "多少"
+    - "什么"
+  filler_patterns:
+    - "^(我想问一下|请问一下|问一下|帮我查一下|查一下|你好|您好|麻烦问下|麻烦问一下|想问下|想问一下|咨询一下)\\s*"
+    - "^(那个|就是)\\s*"
+    - "(谢谢|感谢|麻烦了|辛苦了|吧|呢|啊|嘛|哦|哈|呀|哎|喂)\\s*[？?！!。.]*$"
+  core_patterns:
+    - {pattern: "怎么办理", replacement: "如何办理"}
+    - {pattern: "怎么处理", replacement: "如何处理"}
+    - {pattern: "怎么解决", replacement: "如何解决"}
+    - {pattern: "怎么操作", replacement: "如何操作"}
+    - {pattern: "怎么查询", replacement: "如何查询"}
+    - {pattern: "怎么查看", replacement: "如何查看"}
+    - {pattern: "怎么找", replacement: "如何查找"}
+    - {pattern: "怎么退款", replacement: "如何退款"}
+    - {pattern: "怎么确认", replacement: "如何确认"}
+    - {pattern: "怎么判断", replacement: "如何判断"}
+    - {pattern: "怎么填写", replacement: "如何填写"}
+    - {pattern: "怎么获取", replacement: "如何获取"}
+    - {pattern: "怎么找回", replacement: "如何找回"}
+    - {pattern: "多少钱|什么价格|什么费用", replacement: "费用"}
+    - {pattern: "什么意思|啥意思", replacement: "含义"}
+    - {pattern: "咋整|咋办|咋搞", replacement: "如何处理"}
+  clean_rules:
+    - "客户.{0,10}?[（(].{2,30}?[）)]反馈[：:]"
+  reference_sample_count: 10
+  standardize:
+    min_length: 5
+    max_length: 30
+    rewrite_min_length: 3
+  judge_no_rewrite_examples: ""
+  judge_rewrite_examples: ""
+  classify_examples: ""
+  hyde_examples: ""
+  internal_process_keywords:
+    - "核实"
+    - "待"
+    - "安排"
+    - "引导"
+    - "手动"

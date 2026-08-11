@@ -1,0 +1,74 @@
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+src = ["."]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "TCH",  # flake8-type-checking
+    "RUF",  # ruff-specific
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "B008",   # function call in default argument
+    "B905",   # zip without strict
+    "B007",   # unused loop control variable
+    "B011",   # assert False
+    "B017",   # assert blind exception
+    "B028",   # no explicit stacklevel
+    "B904",   # raise without from inside except
+    "SIM105", # suppressible exception
+    "SIM108", # ternary operator
+    "SIM110", # reimplemented builtin
+    "SIM117", # multiple with statements
+    "SIM118", # in dict keys
+    "SIM103", # needless bool
+    "E402",   # module import not at top
+    "E401",   # multiple imports on one line
+    "RUF001", # Chinese characters in code
+    "RUF002", # Chinese characters in docstring
+    "RUF003", # Chinese characters in comment
+    "RUF005", # collection literal concatenation
+    "RUF010", # explicit f-string type conversion
+    "RUF013", # implicit optional
+    "RUF059", # unused unpacked variable
+    "UP006",  # non-pep585 annotation
+    "UP035",  # deprecated import
+    "UP045",  # non-pep604 annotation optional
+    "UP015",  # redundant open modes
+    "F541",   # f-string missing placeholders
+    "F401",   # unused import
+    "F841",   # unused variable
+    "W291",   # trailing whitespace
+    "W293",   # blank line with whitespace
+    "W292",   # missing newline at end of file
+    "W605",   # invalid escape sequence
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["agent", "api", "asr", "config", "db", "models", "prompt", "rag", "utils"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+exclude = [
+    "tests/",
+    "scripts/",
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", "scripts"]
+skips = ["B101"]

@@ -1,0 +1,94 @@
+<template>
+  <PageLayout page-title="分类管理">
+    <!-- 右上角按钮 -->
+    <template #actions>
+      <el-button type="primary" @click="resetForm">新增分类</el-button>
+    </template>
+
+    <el-row :gutter="20">
+      <!-- 左侧分类树 -->
+      <el-col :span="8">
+        <el-card>
+          <template #header>分类树</template>
+          <el-input v-model="searchKey" placeholder="搜索分类" clearable style="margin-bottom:10px"/>
+          <el-tree
+            :data="categoryTree"
+            :props="{ label: 'label', children: 'children' }"
+            node-key="id"
+            @node-click="fillForm"
+          />
+        </el-card>
+      </el-col>
+      <!-- 右侧表单 -->
+      <el-col :span="16">
+        <el-card>
+          <template #header>分类详情</template>
+          <el-form label-width="100px">
+            <el-form-item label="分类名称">
+              <el-input v-model="form.label" placeholder="请输入分类名称"/>
+            </el-form-item>
+            <el-form-item label="上级分类">
+              <el-tree-select
+                v-model="form.parentId"
+                :data="categoryTree"
+                :props="{ label: 'label', value: 'id' }"
+                placeholder="无则为一级分类"
+                clearable
+              />
+            </el-form-item>
+            <el-form-item label="分类描述">
+              <el-input v-model="form.desc" type="textarea" :rows="3" placeholder="请输入分类描述"/>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="save">保存</el-button>
+              <el-button @click="resetForm">重置</el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
+      </el-col>
+    </el-row>
+  </PageLayout>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import PageLayout from '@/components/layout/PageLayout.vue'
+import { ElMessage } from 'element-plus'
+import { getCategories } from '@/api/knowledge'
+
+const searchKey = ref('')
+const categoryTree = ref<any[]>([])
+
+const form = ref({
+  id: '',
+  label: '',
+  parentId: '',
+  desc: ''
+})
+
+onMounted(async () => {
+  try {
+    const res = await getCategories()
+    categoryTree.value = res.categories || []
+  } catch {
+    ElMessage.error('加载分类失败')
+  }
+})
+
+// 点击树节点回填表单
+const fillForm = (node: any) => {
+  form.value.id = node.id
+  form.value.label = node.label
+  form.value.parentId = node.parentId || ''
+  form.value.desc = node.desc || ''
+}
+// 重置表单（新增）
+const resetForm = () => {
+  form.value = { id: '', label: '', parentId: '', desc: '' }
+}
+// 保存分类（后端暂无分类CRUD，占位）
+const save = () => {
+  if (!form.value.label) return ElMessage.warning('请填写分类名称')
+  ElMessage.success('保存成功')
+}
+</script>

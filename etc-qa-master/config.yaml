@@ -1,0 +1,13 @@
+# ETC客服QA智能检索系统 — 配置入口
+# 运行环境：dev / test / prod
+env: "dev"
+
+# 领域配置文件（按顺序加载，后者覆盖前者同键）
+includes:
+  - "config/server.yaml"
+  - "config/database.yaml"
+  - "config/models.yaml"
+  - "config/rag.yaml"
+  - "config/agent.yaml"
+  - "config/asr.yaml"
+  - "config/data.yaml"

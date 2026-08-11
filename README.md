@@ -6,7 +6,7 @@
 
 ```
 etc-qa/
-├── etc-qa-master/          # 后端 (FastAPI + Python)
+├── backend/                # 后端 (FastAPI + Python)
 │   ├── api/                # API 路由 + 认证
 │   ├── agent/              # LangGraph Agent 流水线
 │   ├── asr/                # 语音识别服务
@@ -19,7 +19,7 @@ etc-qa/
 │   ├── tests/              # 单元测试 + 集成测试
 │   └── utils/              # JWT/配置/日志 工具
 │
-└── customer-work-front/    # 前端 (Vue3 + Element Plus + TypeScript)
+└── frontend/               # 前端 (Vue3 + Element Plus + TypeScript)
     └── src/
         ├── api/            # API 调用层 (auth/workbench/knowledge/dashboard/audit/system)
         ├── pages/          # 页面组件
@@ -59,7 +59,7 @@ etc-qa/
 ### 1. 后端
 
 ```bash
-cd etc-qa-master
+cd backend
 
 # 创建 conda 环境
 conda create -n etc_qa python=3.10 -y
@@ -86,7 +86,7 @@ python main.py
 ### 2. 前端
 
 ```bash
-cd customer-work-front
+cd frontend
 
 # 安装依赖
 npm install

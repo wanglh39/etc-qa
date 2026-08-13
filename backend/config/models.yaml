@@ -2,11 +2,11 @@
 models:
   embed:
     name: "bge-large-zh-v1.5"
-    path: "${MODEL_BASE_DIR:C:\\Users\\wlh19\\.cache\\modelscope\\hub}\\models\\BAAI\\bge-large-zh-v1___5"
+    path: "${MODEL_BASE_DIR:./models/hub}/models/BAAI--bge-large-zh-v1.5/snapshots/master"
     dim: 1024
   rerank:
     name: "bge-reranker-large"
-    path: "${MODEL_BASE_DIR:C:\\Users\\wlh19\\.cache\\modelscope\\hub}\\models\\BAAI\\bge-reranker-large"
+    path: "${MODEL_BASE_DIR:./models/hub}/models/BAAI--bge-reranker-large/snapshots/master"
   query_prefix: "为这个句子生成表示以用于检索相关文章："
 
 # LLM模型能力注册表

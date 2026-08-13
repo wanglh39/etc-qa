@@ -4,7 +4,7 @@ import random
 import tempfile
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, File, HTTPException, Query, Request, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 
 from agent.graph import ingest_agent
 from agent.state import AgentState
@@ -46,12 +46,13 @@ from models.schemas import (
 from prompt.shadow_recorder import get_shadow_records, get_shadow_stats
 from prompt.version_manager import get_version_manager
 from rag.service import QAService
+from utils.auth_middleware import get_current_user
 from utils.config_center import get_business_config, invalidate_cache
 from utils.logger import get_logger
 
 logger = get_logger("api.routes")
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_user)])
 service: QAService = None
 work_order_client: WorkOrderClient = None
 mysql_client: MySQLClient = None
@@ -206,11 +207,6 @@ def agent_process(req: AgentProcessRequest):
         current_step=result.get("current_step", ""),
         error=result.get("error"),
     )
-
-
-@router.get("/health")
-def health():
-    return {"status": "ok"}
 
 
 @router.put("/qa/status", response_model=UpdateStatusResponse)
@@ -370,12 +366,18 @@ def audit_history(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, l
 def stats_trend(days: int = Query(7, ge=1, le=90)):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
-    rows = mysql_client.get_trend(days)
-    counts_by_date = {str(r["d"]): r["cnt"] for r in rows["items"]}
     dates = [(datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
              for i in range(days - 1, -1, -1)]
-    counts = [counts_by_date.get(d, 0) for d in dates]
-    return TrendResponse(dates=dates, counts=counts)
+
+    wo_rows = mysql_client.get_trend(days)
+    wo_by_date = {str(r["d"]): r["cnt"] for r in wo_rows["items"]}
+    work_order_counts = [wo_by_date.get(d, 0) for d in dates]
+
+    qa_rows = mysql_client.get_qa_trend(days)
+    qa_by_date = {str(r["d"]): r["cnt"] for r in qa_rows["items"]}
+    qa_new_counts = [qa_by_date.get(d, 0) for d in dates]
+
+    return TrendResponse(dates=dates, work_order_counts=work_order_counts, qa_new_counts=qa_new_counts)
 
 
 @router.get("/work_orders", response_model=WorkOrderListResponse)

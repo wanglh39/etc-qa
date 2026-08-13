@@ -521,6 +521,23 @@ class MySQLClient:
             self._reset_conn()
             raise
 
+    def get_qa_trend(self, days: int = 7) -> dict:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            cursor.execute(
+                "SELECT DATE(created_at) as d, COUNT(*) as cnt FROM qa_pairs "
+                "WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL %s DAY) "
+                "GROUP BY DATE(created_at) ORDER BY d",
+                (days,),
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            return {"items": rows}
+        except Exception:
+            self._reset_conn()
+            raise
+
     def get_category_tree(self) -> dict:
         conn = self._get_conn()
         try:

@@ -76,18 +76,28 @@ let pieChart: echarts.ECharts | null = null
 const lineRef = ref<HTMLDivElement>()
 const pieRef = ref<HTMLDivElement>()
 
-const renderLine = (dates: string[] = [], counts: number[] = []) => {
+const renderLine = (dates: string[] = [], workOrderCounts: number[] = [], qaNewCounts: number[] = []) => {
   lineChart = echarts.init(lineRef.value!)
   lineChart.setOption({
+    tooltip: { trigger: 'axis' },
+    legend: { data: ['每日咨询量', 'QA新增'] },
     xAxis: { type: 'category', data: dates },
     yAxis: { type: 'value' },
-    series: [{
-      type: 'line',
-      name: '工单数',
-      data: counts,
-      smooth: true,
-      areaStyle: { opacity: 0.1 }
-    }]
+    series: [
+      {
+        type: 'line',
+        name: '每日咨询量',
+        data: workOrderCounts,
+        smooth: true,
+        areaStyle: { opacity: 0.1 }
+      },
+      {
+        type: 'line',
+        name: 'QA新增',
+        data: qaNewCounts,
+        smooth: true
+      }
+    ]
   })
 }
 
@@ -113,7 +123,7 @@ onMounted(async () => {
   renderPie()
   try {
     const trend = await getStatsTrend(7)
-    renderLine(trend.dates, trend.counts)
+    renderLine(trend.dates, trend.work_order_counts, trend.qa_new_counts)
   } catch {
     renderLine()
   }

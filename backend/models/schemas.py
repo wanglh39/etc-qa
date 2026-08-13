@@ -250,4 +250,5 @@ class CategoryUpdateRequest(BaseModel):
 
 class TrendResponse(BaseModel):
     dates: list[str]
-    counts: list[int]
+    work_order_counts: list[int]
+    qa_new_counts: list[int]

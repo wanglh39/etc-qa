@@ -17,7 +17,8 @@ export function getStats() {
 
 export interface TrendResponse {
   dates: string[]
-  counts: number[]
+  work_order_counts: number[]
+  qa_new_counts: number[]
 }
 
 export function getStatsTrend(days?: number) {

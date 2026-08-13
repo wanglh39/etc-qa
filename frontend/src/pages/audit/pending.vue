@@ -5,11 +5,11 @@
       <div class="card-body-inner">
         <h3>待审核新问题列表</h3>
         <div class="btn-group">
-          <el-button type="primary">批量入库</el-button>
-          <el-button type="danger">批量驳回</el-button>
+          <el-button type="primary" @click="batchApprove">批量入库</el-button>
+          <el-button type="danger" @click="batchReject">批量驳回</el-button>
         </div>
         <!-- 表格不设置固定高度，高度随内容自适应，无滚动条 -->
-        <el-table border :data="currentPageList">
+        <el-table border :data="currentPageList" @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="55" />
           <el-table-column prop="id" label="知识ID" width="80" />
           <el-table-column prop="question" label="用户问题" min-width="260" />
@@ -45,7 +45,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { getQAList, updateQAStatus, type QAListItem } from '@/api/knowledge'
 
 const router = useRouter()
@@ -54,6 +54,7 @@ const page = ref(1)
 const pageSize = ref(10)
 const tableAllData = ref<QAListItem[]>([])
 const total = ref(0)
+const selectedRows = ref<QAListItem[]>([])
 
 const currentPageList = computed(() => tableAllData.value)
 
@@ -96,11 +97,41 @@ const handleReject = async (qaId: number) => {
 }
 
 const batchApprove = async () => {
-  ElMessage.info('批量操作暂未实现，请逐条处理')
+  await batchUpdate('active', '入库')
 }
 
 const batchReject = async () => {
-  ElMessage.info('批量操作暂未实现，请逐条处理')
+  await batchUpdate('archived', '驳回')
+}
+
+const handleSelectionChange = (rows: QAListItem[]) => {
+  selectedRows.value = rows
+}
+
+const batchUpdate = async (status: string, actionName: string) => {
+  const ids = selectedRows.value.map((r) => r.id)
+  if (!ids.length) {
+    ElMessage.warning(`请先勾选要${actionName}的问题`)
+    return
+  }
+  try {
+    await ElMessageBox.confirm(
+      `确认${actionName}选中的 ${ids.length} 条问题？`,
+      `${actionName}确认`,
+      { type: 'warning', confirmButtonText: '确认', cancelButtonText: '取消' }
+    )
+  } catch {
+    return
+  }
+  try {
+    const results = await Promise.allSettled(ids.map((id) => updateQAStatus(id, status)))
+    const ok = results.filter((r) => r.status === 'fulfilled').length
+    const fail = results.length - ok
+    ElMessage.success(`${actionName}完成：成功 ${ok} 条${fail ? `，失败 ${fail} 条` : ''}`)
+    loadData()
+  } catch {
+    ElMessage.error('批量操作失败')
+  }
 }
 
 onMounted(() => {

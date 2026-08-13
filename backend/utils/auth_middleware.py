@@ -14,3 +14,12 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials | None = De
         return payload
     except Exception:
         raise HTTPException(status_code=401, detail="令牌无效或已过期")
+
+
+def require_role(*roles: str):
+    async def role_checker(user: dict = Depends(get_current_user)) -> dict:
+        if user.get("role") not in roles:
+            raise HTTPException(status_code=403, detail="权限不足")
+        return user
+
+    return role_checker

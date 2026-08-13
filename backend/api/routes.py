@@ -46,7 +46,7 @@ from models.schemas import (
 from prompt.shadow_recorder import get_shadow_records, get_shadow_stats
 from prompt.version_manager import get_version_manager
 from rag.service import QAService
-from utils.auth_middleware import get_current_user
+from utils.auth_middleware import get_current_user, require_role
 from utils.config_center import get_business_config, invalidate_cache
 from utils.logger import get_logger
 
@@ -174,7 +174,7 @@ def query_qa(req: QueryRequest):
     return result
 
 
-@router.post("/add", response_model=AddQAResponse)
+@router.post("/add", response_model=AddQAResponse, dependencies=[Depends(require_role("admin"))])
 def add_qa(req: AddQARequest):
     if service is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -209,7 +209,7 @@ def agent_process(req: AgentProcessRequest):
     )
 
 
-@router.put("/qa/status", response_model=UpdateStatusResponse)
+@router.put("/qa/status", response_model=UpdateStatusResponse, dependencies=[Depends(require_role("admin"))])
 def update_qa_status(req: UpdateStatusRequest, request: Request):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -231,7 +231,7 @@ def update_qa_status(req: UpdateStatusRequest, request: Request):
     return UpdateStatusResponse(qa_id=req.qa_id, status=req.status, message=f"状态已更新为{req.status}")
 
 
-@router.put("/config/{key}")
+@router.put("/config/{key}", dependencies=[Depends(require_role("admin"))])
 def update_config(key: str, value: dict):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -246,7 +246,7 @@ def get_config_value(key: str):
     return {"key": key, "value": result}
 
 
-@router.post("/config/reload")
+@router.post("/config/reload", dependencies=[Depends(require_role("admin"))])
 def reload_config():
     invalidate_cache()
     return {"message": "所有配置缓存已刷新，将从DB重新加载"}
@@ -274,7 +274,7 @@ def get_qa_detail(qa_id: int):
     return QADetailResponse(**_serialize_row(row))
 
 
-@router.delete("/qa/{qa_id}")
+@router.delete("/qa/{qa_id}", dependencies=[Depends(require_role("admin"))])
 def delete_qa(qa_id: int):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -298,7 +298,7 @@ def search_qa(req: QASearchRequest):
                             page=result["page"], page_size=result["page_size"])
 
 
-@router.get("/stats", response_model=StatsResponse)
+@router.get("/stats", response_model=StatsResponse, dependencies=[Depends(require_role("admin"))])
 def get_stats():
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -324,7 +324,7 @@ def get_categories():
     return {"categories": _build_category_tree()}
 
 
-@router.post("/categories")
+@router.post("/categories", dependencies=[Depends(require_role("admin"))])
 def create_category(req: CategoryCreateRequest):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -332,7 +332,7 @@ def create_category(req: CategoryCreateRequest):
     return {"id": cat_id, "message": "分类已创建"}
 
 
-@router.put("/categories/{cat_id}")
+@router.put("/categories/{cat_id}", dependencies=[Depends(require_role("admin"))])
 def update_category(cat_id: int, req: CategoryUpdateRequest):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -342,7 +342,7 @@ def update_category(cat_id: int, req: CategoryUpdateRequest):
     return {"id": cat_id, "message": "分类已更新"}
 
 
-@router.delete("/categories/{cat_id}")
+@router.delete("/categories/{cat_id}", dependencies=[Depends(require_role("admin"))])
 def delete_category(cat_id: int):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -352,7 +352,7 @@ def delete_category(cat_id: int):
     return {"id": cat_id, "message": "分类已删除"}
 
 
-@router.get("/audit/history", response_model=AuditLogListResponse)
+@router.get("/audit/history", response_model=AuditLogListResponse, dependencies=[Depends(require_role("admin"))])
 def audit_history(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100)):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -362,7 +362,7 @@ def audit_history(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, l
                                 page=result["page"], page_size=result["page_size"])
 
 
-@router.get("/stats/trend", response_model=TrendResponse)
+@router.get("/stats/trend", response_model=TrendResponse, dependencies=[Depends(require_role("admin"))])
 def stats_trend(days: int = Query(7, ge=1, le=90)):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -463,7 +463,7 @@ def asr_health():
     return asr_service.health()
 
 
-@router.get("/prompts", response_model=list[PromptKeySummary])
+@router.get("/prompts", response_model=list[PromptKeySummary], dependencies=[Depends(require_role("admin"))])
 def list_prompt_keys():
     vm = get_version_manager()
     keys = vm.list_all_keys()
@@ -475,7 +475,7 @@ def list_prompt_keys():
     ) for k in keys]
 
 
-@router.get("/prompts/{prompt_key}/versions", response_model=list[PromptVersionInfo])
+@router.get("/prompts/{prompt_key}/versions", response_model=list[PromptVersionInfo], dependencies=[Depends(require_role("admin"))])
 def list_prompt_versions(prompt_key: str):
     vm = get_version_manager()
     versions = vm.list_versions(prompt_key)
@@ -491,7 +491,7 @@ def list_prompt_versions(prompt_key: str):
     ) for v in versions]
 
 
-@router.get("/prompts/{prompt_key}/versions/{version}")
+@router.get("/prompts/{prompt_key}/versions/{version}", dependencies=[Depends(require_role("admin"))])
 def get_prompt_version(prompt_key: str, version: int):
     vm = get_version_manager()
     v = vm.get_version(prompt_key, version)
@@ -500,14 +500,14 @@ def get_prompt_version(prompt_key: str, version: int):
     return v
 
 
-@router.post("/prompts/publish")
+@router.post("/prompts/publish", dependencies=[Depends(require_role("admin"))])
 def publish_prompt(req: PromptPublishRequest):
     vm = get_version_manager()
     result = vm.publish(req.prompt_key, req.template_text, req.description)
     return result
 
 
-@router.post("/prompts/rollback")
+@router.post("/prompts/rollback", dependencies=[Depends(require_role("admin"))])
 def rollback_prompt(req: PromptRollbackRequest):
     vm = get_version_manager()
     result = vm.rollback(req.prompt_key, req.target_version)
@@ -516,7 +516,7 @@ def rollback_prompt(req: PromptRollbackRequest):
     return result
 
 
-@router.post("/prompts/shadow/start")
+@router.post("/prompts/shadow/start", dependencies=[Depends(require_role("admin"))])
 def start_shadow(req: PromptShadowRequest):
     vm = get_version_manager()
     result = vm.start_shadow(req.prompt_key, req.shadow_version)
@@ -525,17 +525,17 @@ def start_shadow(req: PromptShadowRequest):
     return result
 
 
-@router.post("/prompts/shadow/stop")
+@router.post("/prompts/shadow/stop", dependencies=[Depends(require_role("admin"))])
 def stop_shadow(req: PromptShadowRequest):
     vm = get_version_manager()
     return vm.stop_shadow(req.prompt_key, req.shadow_version)
 
 
-@router.get("/prompts/shadow/stats")
+@router.get("/prompts/shadow/stats", dependencies=[Depends(require_role("admin"))])
 def shadow_stats():
     return get_shadow_stats()
 
 
-@router.get("/prompts/shadow/records")
+@router.get("/prompts/shadow/records", dependencies=[Depends(require_role("admin"))])
 def shadow_records(prompt_key: str | None = None, diff_only: bool = False, limit: int = 50):
     return get_shadow_records(prompt_key=prompt_key, diff_only=diff_only, limit=limit)

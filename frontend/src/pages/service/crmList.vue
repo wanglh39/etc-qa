@@ -97,7 +97,7 @@ const parseRawText = (raw: string) => {
   if (!raw) return '-'
   try {
     const obj = JSON.parse(raw)
-    return obj.question || obj.title || obj.content || raw.substring(0, 100)
+    return obj.detail_desc || obj.question || obj.title || obj.content || raw.substring(0, 100)
   } catch {
     return raw.length > 100 ? raw.substring(0, 100) + '...' : raw
   }

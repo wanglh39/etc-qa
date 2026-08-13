@@ -37,10 +37,11 @@
       <!-- 客服指定：流转给哪个业务部门处理 -->
       <el-form-item label="转交处理部门" prop="nextDept">
         <el-select v-model="formData.nextDept" placeholder="选择需要处理的部门" style="width:100%">
-          <el-option label="售前咨询部" value="pre_sale"></el-option>
-          <el-option label="售后处理部" value="after_sale"></el-option>
-          <el-option label="技术运维部" value="tech"></el-option>
-          <el-option label="投诉专员部" value="complaint_dept"></el-option>
+          <el-option label="售后处理部" value="aftersale"></el-option>
+          <el-option label="技术运维部" value="ops"></el-option>
+          <el-option label="财务部" value="finance"></el-option>
+          <el-option label="市场部" value="market"></el-option>
+          <el-option label="人事部" value="human"></el-option>
         </el-select>
       </el-form-item>
 
@@ -48,10 +49,11 @@
       <el-form-item label="办结回流部门" prop="returnDept">
         <el-select v-model="formData.returnDept" placeholder="业务处理完毕退回部门" style="width:100%">
           <el-option label="客服接待部" value="service"></el-option>
-          <el-option label="售前咨询部" value="pre_sale"></el-option>
-          <el-option label="售后处理部" value="after_sale"></el-option>
-          <el-option label="技术运维部" value="tech"></el-option>
-          <el-option label="投诉专员部" value="complaint_dept"></el-option>
+          <el-option label="售后处理部" value="aftersale"></el-option>
+          <el-option label="技术运维部" value="ops"></el-option>
+          <el-option label="财务部" value="finance"></el-option>
+          <el-option label="市场部" value="market"></el-option>
+          <el-option label="人事部" value="human"></el-option>
         </el-select>
       </el-form-item>
 
@@ -73,7 +75,7 @@
       </el-form-item>
 
       <el-form-item>
-        <el-button type="primary" @click="submitWorkOrder">提交工单，转交对应部门处理</el-button>
+        <el-button type="primary" :loading="submitting" @click="submitWorkOrder">提交工单，转交对应部门处理</el-button>
         <el-button @click="resetWorkForm">重置表单</el-button>
       </el-form-item>
     </el-form>
@@ -84,9 +86,11 @@
 import { ref } from 'vue'
 import { ElMessage, ElForm } from 'element-plus'
 import { useRouter } from 'vue-router'
+import { createWorkOrder } from '@/api/workorder'
 
 const router = useRouter()
 const formRef = ref<InstanceType<typeof ElForm>>()
+const submitting = ref(false)
 
 // 客服发起工单完整数据
 const formData = ref({
@@ -118,21 +122,30 @@ const formRules = ref({
 // 客服提交工单：提交后跳转工单详情（给业务部门处理的页面）
 const submitWorkOrder = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((isPass: boolean) => {
-    if (isPass) {
-      console.log('客服发起工单数据', formData.value)
-      ElMessage.success('工单已提交，转交对应业务部门处理，即将跳转工单详情')
-      setTimeout(() => {
-        // 真实项目替换为后端接口返回的工单id，这里模拟id=1
-        const workOrderId = 1
-        // 修复：使用路由name跳转，自动匹配 /crm/detail
-        router.push({
-          name: 'CrmDetail',
-          query: { id: workOrderId }
-        })
-      }, 1100)
-    } else {
+  await formRef.value.validate(async (isPass: boolean) => {
+    if (!isPass) {
       ElMessage.warning('请完善全部必填信息后再提交')
+      return
+    }
+    submitting.value = true
+    try {
+      const res = await createWorkOrder({
+        service_id: formData.value.serviceId,
+        customer_name: formData.value.customerName,
+        phone: formData.value.phone,
+        problem_type: formData.value.problemType,
+        next_dept: formData.value.nextDept,
+        return_dept: formData.value.returnDept,
+        receive_user: formData.value.receiveUser,
+        priority: formData.value.priority,
+        detail_desc: formData.value.detailDesc
+      })
+      ElMessage.success('工单已提交，转交对应业务部门处理')
+      router.push({ name: 'CrmDetail', query: { id: res.id } })
+    } catch {
+      ElMessage.error('工单提交失败')
+    } finally {
+      submitting.value = false
     }
   })
 }

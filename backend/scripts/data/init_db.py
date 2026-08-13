@@ -152,6 +152,31 @@ def init_mysql():
     """)
     conn.commit()
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS categories (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            label VARCHAR(100) NOT NULL,
+            parent_id INT NULL,
+            description VARCHAR(500),
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """)
+    conn.commit()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS audit_log (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            qa_id INT,
+            question VARCHAR(500),
+            answer TEXT,
+            result VARCHAR(20),
+            operator VARCHAR(50),
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """)
+    conn.commit()
+
     cursor.close()
     conn.close()
     print(f"  数据库 {MYSQL_DB} 和表 qa_pairs 创建完成")
@@ -170,11 +195,20 @@ def init_work_orders_table():
             external_id VARCHAR(100),
             raw_data TEXT,
             status VARCHAR(20) NOT NULL DEFAULT 'submitted',
+            dept VARCHAR(50),
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """)
     conn.commit()
+
+    cursor.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME='work_orders'", (MYSQL_DB,))
+    wo_cols = {row[0] for row in cursor.fetchall()}
+    if "dept" not in wo_cols:
+        print("  work_orders表缺少dept列，执行迁移...")
+        cursor.execute("ALTER TABLE work_orders ADD COLUMN dept VARCHAR(50)")
+        conn.commit()
+
     cursor.close()
     conn.close()
 

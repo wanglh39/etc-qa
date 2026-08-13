@@ -14,3 +14,12 @@ export interface StatsResponse {
 export function getStats() {
   return request.get<StatsResponse>('/stats').then((r) => r.data)
 }
+
+export interface TrendResponse {
+  dates: string[]
+  counts: number[]
+}
+
+export function getStatsTrend(days?: number) {
+  return request.get<TrendResponse>('/stats/trend', { params: { days } }).then((r) => r.data)
+}

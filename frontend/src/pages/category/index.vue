@@ -42,6 +42,7 @@
             <el-form-item>
               <el-button type="primary" @click="save">保存</el-button>
               <el-button @click="resetForm">重置</el-button>
+              <el-button type="danger" @click="remove" :disabled="!form.id">删除</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -54,26 +55,28 @@
 import { ref, onMounted } from 'vue'
 import PageLayout from '@/components/layout/PageLayout.vue'
 import { ElMessage } from 'element-plus'
-import { getCategories } from '@/api/knowledge'
+import { getCategories, createCategory, updateCategory, deleteCategory } from '@/api/knowledge'
 
 const searchKey = ref('')
 const categoryTree = ref<any[]>([])
 
-const form = ref({
+const form = ref<{ id: number | ''; label: string; parentId: number | ''; desc: string }>({
   id: '',
   label: '',
   parentId: '',
   desc: ''
 })
 
-onMounted(async () => {
+const loadTree = async () => {
   try {
     const res = await getCategories()
     categoryTree.value = res.categories || []
   } catch {
     ElMessage.error('加载分类失败')
   }
-})
+}
+
+onMounted(loadTree)
 
 // 点击树节点回填表单
 const fillForm = (node: any) => {
@@ -86,9 +89,38 @@ const fillForm = (node: any) => {
 const resetForm = () => {
   form.value = { id: '', label: '', parentId: '', desc: '' }
 }
-// 保存分类（后端暂无分类CRUD，占位）
-const save = () => {
+// 保存分类（新增或更新）
+const save = async () => {
   if (!form.value.label) return ElMessage.warning('请填写分类名称')
-  ElMessage.success('保存成功')
+  const payload = {
+    label: form.value.label,
+    parent_id: form.value.parentId || null,
+    description: form.value.desc
+  }
+  try {
+    if (form.value.id) {
+      await updateCategory(form.value.id, payload)
+      ElMessage.success('分类已更新')
+    } else {
+      await createCategory(payload)
+      ElMessage.success('分类已创建')
+    }
+    resetForm()
+    loadTree()
+  } catch {
+    ElMessage.error('保存分类失败')
+  }
+}
+// 删除分类
+const remove = async () => {
+  if (!form.value.id) return ElMessage.warning('请先选择一个分类')
+  try {
+    await deleteCategory(form.value.id)
+    ElMessage.success('分类已删除')
+    resetForm()
+    loadTree()
+  } catch {
+    ElMessage.error('删除分类失败')
+  }
 }
 </script>

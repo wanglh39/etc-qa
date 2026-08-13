@@ -13,7 +13,9 @@ bandit-report.json
 output/
 data/milvus/
 
-models/
+# 忽略下载的模型权重，但保留 models/ 下的 Python 包源码 (schemas.py 等)
+models/*
+!models/*.py
 
 *.egg-info/
 dist/

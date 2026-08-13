@@ -44,10 +44,32 @@ export function getWorkOrders(params: {
   page?: number
   page_size?: number
   status?: string
+  dept?: string
 }) {
   return request.get<WorkOrderListResponse>('/work_orders', { params }).then((r) => r.data)
 }
 
 export function processAgent(data: AgentProcessRequest) {
   return request.post<AgentProcessResponse>('/agent/process', data).then((r) => r.data)
+}
+
+export interface AuditLogItem {
+  id: number
+  qa_id?: number
+  question: string
+  answer: string
+  result: string
+  operator: string
+  created_at?: string
+}
+
+export interface AuditLogListResponse {
+  items: AuditLogItem[]
+  total: number
+  page: number
+  page_size: number
+}
+
+export function getAuditHistory(params: { page?: number; page_size?: number }) {
+  return request.get<AuditLogListResponse>('/audit/history', { params }).then((r) => r.data)
 }

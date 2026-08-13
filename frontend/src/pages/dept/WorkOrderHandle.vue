@@ -14,13 +14,13 @@
         </el-form-item>
         <el-form-item label="工单状态">
           <el-select v-model="searchForm.status" placeholder="全部" clearable style="width: 150px;">
-            <el-option label="待处理" value="pending"></el-option>
-            <el-option label="处理中" value="handling"></el-option>
-            <el-option label="已完成" value="finish"></el-option>
+            <el-option label="待处理" value="submitted"></el-option>
+            <el-option label="已回复" value="answered"></el-option>
+            <el-option label="已办结" value="processed"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="getTableList">查询</el-button>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="resetSearch">重置</el-button>
         </el-form-item>
       </el-form>
@@ -28,26 +28,33 @@
       <!-- 表格区域：flex:1 让它自动占据中间所有剩余空间 -->
       <div class="table-wrapper">
         <el-table
-          :data="tableData"
+          :data="displayList"
           border
           stripe
           style="width: 100%; height: 100%;"
           height="100%"
+          v-loading="loading"
         >
           <el-table-column label="工单ID" prop="id" width="100" align="center"></el-table-column>
-          <el-table-column label="工单编号" prop="orderNo" min-width="180"></el-table-column>
-          <el-table-column label="提交时间" prop="createTime" min-width="180" align="center"></el-table-column>
+          <el-table-column label="工单编号" prop="external_id" min-width="180"></el-table-column>
+          <el-table-column label="提交时间" prop="created_at" min-width="180" align="center"></el-table-column>
           <el-table-column label="工单状态" prop="status" width="120" align="center">
             <template #default="scope">
-              <el-tag v-if="scope.row.status === 'pending'" type="warning" effect="light">待处理</el-tag>
-              <el-tag v-else-if="scope.row.status === 'handling'" type="primary" effect="light">处理中</el-tag>
-              <el-tag v-else-if="scope.row.status === 'finish'" type="success" effect="light">已完成</el-tag>
+              <el-tag v-if="scope.row.status === 'submitted'" type="warning" effect="light">待处理</el-tag>
+              <el-tag v-else-if="scope.row.status === 'answered'" type="primary" effect="light">已回复</el-tag>
+              <el-tag v-else-if="scope.row.status === 'processed'" type="success" effect="light">已办结</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="200" align="center">
             <template #default="scope">
               <el-button link type="primary" size="small" @click="openDetail(scope.row)">查看详情</el-button>
-              <el-button link type="success" size="small" @click="handleFinish(scope.row)">办结</el-button>
+              <el-button
+                link
+                type="success"
+                size="small"
+                :disabled="scope.row.status === 'processed'"
+                @click="handleFinish(scope.row)"
+              >办结</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -70,9 +77,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { getWorkOrders, type WorkOrderListItem } from '@/api/audit'
+import { replyWorkOrder } from '@/api/workorder'
 
 // 路由实例，获取当前部门编码
 const route = useRoute()
@@ -106,45 +115,39 @@ const page = ref({
 })
 
 // 表格工单数据
-const tableData = ref<any[]>([])
+const tableData = ref<WorkOrderListItem[]>([])
+const loading = ref(false)
 
-// 查询工单列表（按部门返回不同模拟数据）
+// 工单编号本地过滤（仅作用于当前页）
+const displayList = computed(() => {
+  const kw = searchForm.value.orderNo.trim()
+  if (!kw) return tableData.value
+  return tableData.value.filter((item) => (item.external_id || '').includes(kw))
+})
+
+// 查询工单列表（按部门 + 状态）
 const getTableList = async () => {
-  console.log('当前部门编码：', deptCode.value, '查询参数：', searchForm.value, page.value)
-  // 根据部门编码区分工单数据
-  const code = deptCode.value
-  if (code === 'aftersale') {
-    // 售后工单数据
-    tableData.value = [
-      { id: 1, orderNo: 'SA20260717001', createTime: '2026-07-17 10:20:00', status: 'pending' },
-      { id: 2, orderNo: 'SA20260717002', createTime: '2026-07-17 11:05:00', status: 'handling' }
-    ]
-  } else if (code === 'ops') {
-    // 运维工单数据
-    tableData.value = [
-      { id: 1, orderNo: 'OPS20260724001', createTime: '2026-07-23 08:30:00', status: 'pending' }
-    ]
-  } else if (code === 'finance') {
-    // 财务工单数据
-    tableData.value = [
-      { id: 1, orderNo: 'FIN20260722001', createTime: '2026-07-22 09:10:00', status: 'pending' },
-      { id: 2, orderNo: 'FIN20260722002', createTime: '2026-07-22 14:20:00', status: 'handling' }
-    ]
-  } else if (code === 'market') {
-    // 市场工单
-    tableData.value = [
-      { id: 1, orderNo: 'MKT20260720001', createTime: '2026-07-20 16:00:00', status: 'finish' }
-    ]
-  } else if (code === 'human') {
-    // 人事工单
-    tableData.value = [
-      { id: 1, orderNo: 'HR20260721001', createTime: '2026-07-21 11:20:00', status: 'pending' }
-    ]
-  } else {
-    // 默认兜底数据
-    tableData.value = []
+  loading.value = true
+  try {
+    const res = await getWorkOrders({
+      page: page.value.pageNum,
+      page_size: page.value.pageSize,
+      dept: deptCode.value,
+      status: searchForm.value.status || undefined
+    })
+    tableData.value = res.items
+    page.value.total = res.total
+  } catch {
+    ElMessage.error('加载工单列表失败')
+  } finally {
+    loading.value = false
   }
-  page.value.total = tableData.value.length
+}
+
+// 查询按钮：重置到第一页再加载
+const handleSearch = () => {
+  page.value.pageNum = 1
+  getTableList()
 }
 
 // 重置搜索条件
@@ -155,16 +158,21 @@ const resetSearch = () => {
 }
 
 // 打开工单详情页面，携带部门编码与工单ID
-const openDetail = (row: any) => {
+const openDetail = (row: WorkOrderListItem) => {
   router.push({
     path: `/dept/handle/${deptCode.value}/detail/${row.id}`
   })
 }
 
 // 办结工单操作
-const handleFinish = (row: any) => {
-  ElMessage.success(`工单${row.orderNo}已办结`)
-  getTableList()
+const handleFinish = async (row: WorkOrderListItem) => {
+  try {
+    await replyWorkOrder(row.id, { handle_remark: '快速办结', back_dept: '' })
+    ElMessage.success(`工单${row.external_id}已办结`)
+    getTableList()
+  } catch {
+    ElMessage.error('办结失败')
+  }
 }
 
 // 页面初始化加载数据

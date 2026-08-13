@@ -58,7 +58,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
 import { Message, Tickets, User, Document } from '@element-plus/icons-vue'
 import StatisticCard from '@/components/StatisticCard.vue'
-import { getStats, type StatsResponse } from '@/api/dashboard'
+import { getStats, getStatsTrend, type StatsResponse } from '@/api/dashboard'
 
 const stats = ref<StatsResponse>({
   qa_total: 0,
@@ -76,13 +76,18 @@ let pieChart: echarts.ECharts | null = null
 const lineRef = ref<HTMLDivElement>()
 const pieRef = ref<HTMLDivElement>()
 
-const renderLine = () => {
+const renderLine = (dates: string[] = [], counts: number[] = []) => {
   lineChart = echarts.init(lineRef.value!)
-  // TODO: 后端暂无时间维度统计，暂时保留 mock 趋势数据
   lineChart.setOption({
-    xAxis: { type: 'category', data: ['07-05', '07-06', '07-07', '07-08', '07-09', '07-10', '07-11'] },
+    xAxis: { type: 'category', data: dates },
     yAxis: { type: 'value' },
-    series: [{ type: 'line', data: [120, 145, 168, 190, 205, 198, 216], smooth: true }]
+    series: [{
+      type: 'line',
+      name: '工单数',
+      data: counts,
+      smooth: true,
+      areaStyle: { opacity: 0.1 }
+    }]
   })
 }
 
@@ -99,14 +104,18 @@ const renderPie = () => {
 }
 
 onMounted(async () => {
-  renderLine()
-  renderPie()
   try {
     const res = await getStats()
     stats.value = res
-    renderPie()
   } catch {
     // 加载失败时保持默认空饼图
+  }
+  renderPie()
+  try {
+    const trend = await getStatsTrend(7)
+    renderLine(trend.dates, trend.counts)
+  } catch {
+    renderLine()
   }
 })
 

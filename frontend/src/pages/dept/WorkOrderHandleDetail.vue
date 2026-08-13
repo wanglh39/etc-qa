@@ -14,24 +14,23 @@
       <!-- 工单基础信息 -->
       <el-descriptions border :column="2" style="margin-bottom:24px">
         <el-descriptions-item label="工单ID">{{ orderInfo.id }}</el-descriptions-item>
-        <el-descriptions-item label="工单编号">{{ orderInfo.orderNo }}</el-descriptions-item>
-        <el-descriptions-item label="提交时间">{{ orderInfo.createTime }}</el-descriptions-item>
+        <el-descriptions-item label="工单编号">{{ orderInfo.external_id }}</el-descriptions-item>
+        <el-descriptions-item label="提交时间">{{ orderInfo.created_at }}</el-descriptions-item>
         <el-descriptions-item label="工单状态">
-          <el-tag v-if="orderInfo.status === 'pending'" type="warning">待处理</el-tag>
-          <el-tag v-else-if="orderInfo.status === 'handling'" type="primary">处理中</el-tag>
-          <el-tag v-else-if="orderInfo.status === 'finish'" type="success">已完成</el-tag>
+          <el-tag v-if="orderInfo.status === 'submitted'" type="warning">待处理</el-tag>
+          <el-tag v-else-if="orderInfo.status === 'answered'" type="primary">已回复</el-tag>
+          <el-tag v-else-if="orderInfo.status === 'processed'" type="success">已办结</el-tag>
         </el-descriptions-item>
+        <el-descriptions-item label="客户名称">{{ orderInfo.customer_name || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="客户手机号">{{ orderInfo.phone || '-' }}</el-descriptions-item>
         <el-descriptions-item label="用户问题描述" :span="2">
-          {{ orderInfo.question }}
+          {{ orderInfo.detail_desc || '-' }}
         </el-descriptions-item>
       </el-descriptions>
 
       <!-- 处理备注区域 -->
       <div class="remark-area">
         <h4 style="margin:0 0 8px 0;">处理备注</h4>
-        
-        <!-- 【重点修复】这里使用了 :rows="5" 而不是 rows="5" -->
-        <!-- 加上冒号后，Vue会将 "5" 解析为数字类型，从而消除控制台警告 -->
         <el-input
           v-model="remarkText"
           type="textarea"
@@ -42,8 +41,7 @@
 
       <!-- 底部操作按钮 -->
       <div class="btn-box">
-        <el-button type="primary" @click="saveRemark">保存备注</el-button>
-        <el-button type="success" @click="handleFinish">办结工单</el-button>
+        <el-button type="success" :loading="submitting" @click="handleFinish">办结工单</el-button>
       </div>
     </el-card>
   </div>
@@ -53,6 +51,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { getWorkOrderDetail, replyWorkOrder, type WorkOrderDetail } from '@/api/workorder'
 
 const route = useRoute()
 const router = useRouter()
@@ -72,51 +71,61 @@ const orderId = computed(() => route.params.orderId as string)
 const deptName = computed(() => deptNameMap[deptCode.value] || '通用部门')
 
 // 工单详情数据
-const orderInfo = ref<any>({})
+const orderInfo = ref<WorkOrderDetail>({
+  id: 0,
+  external_id: '',
+  status: '',
+  dept: '',
+  service_id: '',
+  customer_name: '',
+  phone: '',
+  problem_type: '',
+  next_dept: '',
+  return_dept: '',
+  receive_user: '',
+  priority: '',
+  detail_desc: '',
+  handle_remark: ''
+})
 // 备注文本
 const remarkText = ref('')
+const submitting = ref(false)
 
 // 请求工单详情
 const getOrderDetail = async () => {
-  console.log('加载详情 部门编码:', deptCode.value, '工单ID:', orderId.value)
-  
-  // 模拟后端接口返回
-  // 实际开发中请替换为 axios.get(...)
-  orderInfo.value = {
-    id: orderId.value,
-    orderNo: `CR2026071700${orderId.value}`,
-    createTime: '2026-07-17 10:20:00',
-    status: 'handling',
-    question: '用户反馈更换手机号后收不到验证码，尝试多次依然失败，请协助处理。',
-    remark: '' // 假设初始没有备注
-  }
-  remarkText.value = orderInfo.value.remark
-}
-
-// 保存处理备注
-const saveRemark = () => {
-  if (!remarkText.value.trim()) {
-    ElMessage.warning('请输入备注内容')
+  const id = Number(orderId.value)
+  if (!id) {
+    ElMessage.error('缺少工单ID')
     return
   }
-  // 模拟保存接口
-  setTimeout(() => {
-    ElMessage.success('处理备注保存成功')
-  }, 300)
+  try {
+    const res = await getWorkOrderDetail(id)
+    orderInfo.value = res
+    remarkText.value = res.handle_remark || ''
+  } catch {
+    ElMessage.error('加载工单详情失败')
+  }
 }
 
 // 办结工单并返回列表
-const handleFinish = () => {
+const handleFinish = async () => {
   if (!remarkText.value.trim()) {
     ElMessage.warning('办结前请先填写处理备注')
     return
   }
-  
-  ElMessage.success('工单办结完成，自动返回列表页')
-  // 模拟办结请求...
-  setTimeout(() => {
+  submitting.value = true
+  try {
+    await replyWorkOrder(orderInfo.value.id, {
+      handle_remark: remarkText.value,
+      back_dept: orderInfo.value.return_dept
+    })
+    ElMessage.success('工单办结完成')
     router.back()
-  }, 500)
+  } catch {
+    ElMessage.error('办结失败')
+  } finally {
+    submitting.value = false
+  }
 }
 
 onMounted(() => {

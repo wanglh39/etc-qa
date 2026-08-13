@@ -326,23 +326,197 @@ class MySQLClient:
             raise
 
     def get_work_order_list(self, page: int = 1, page_size: int = 20,
-                            status: str | None = None) -> dict:
+                            status: str | None = None,
+                            dept: str | None = None) -> dict:
         conn = self._get_conn()
         try:
             cursor = conn.cursor(pymysql.cursors.DictCursor)
-            where = " WHERE status = %s" if status else ""
-            params = [status] if status else []
+            where_parts = []
+            params = []
+            if status:
+                where_parts.append("status = %s")
+                params.append(status)
+            if dept:
+                where_parts.append("dept = %s")
+                params.append(dept)
+            where = (" WHERE " + " AND ".join(where_parts)) if where_parts else ""
             cursor.execute(f"SELECT COUNT(*) as cnt FROM work_orders{where}", params)
             total = cursor.fetchone()["cnt"]
             offset = (page - 1) * page_size
             cursor.execute(
-                f"SELECT id, external_id, raw_data, status, created_at, updated_at "
+                f"SELECT id, external_id, raw_data, status, dept, created_at, updated_at "
                 f"FROM work_orders{where} ORDER BY created_at DESC LIMIT %s OFFSET %s",
                 params + [page_size, offset],
             )
             rows = cursor.fetchall()
             cursor.close()
             return {"items": rows, "total": total, "page": page, "page_size": page_size}
+        except Exception:
+            self._reset_conn()
+            raise
+
+    def insert_work_order_full(self, external_id: str, dept: str, raw_data: str) -> int:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO work_orders (external_id, raw_data, status, dept) "
+                "VALUES (%s, %s, 'submitted', %s)",
+                (external_id, raw_data, dept),
+            )
+            conn.commit()
+            wo_id = cursor.lastrowid
+            cursor.close()
+            return wo_id
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def get_work_order_detail(self, wo_id: int) -> dict | None:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            cursor.execute(
+                "SELECT id, external_id, raw_data, status, dept, created_at, updated_at "
+                "FROM work_orders WHERE id=%s",
+                (wo_id,),
+            )
+            row = cursor.fetchone()
+            cursor.close()
+            return row
+        except Exception:
+            self._reset_conn()
+            raise
+
+    def update_work_order_reply(self, wo_id: int, raw_data: str, status: str):
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE work_orders SET raw_data=%s, status=%s WHERE id=%s",
+                (raw_data, status, wo_id),
+            )
+            conn.commit()
+            cursor.close()
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def insert_audit_log(self, qa_id: int, question: str, answer: str,
+                         result: str, operator: str):
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO audit_log (qa_id, question, answer, result, operator) "
+                "VALUES (%s, %s, %s, %s, %s)",
+                (qa_id, question, answer, result, operator),
+            )
+            conn.commit()
+            cursor.close()
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def get_audit_history(self, page: int = 1, page_size: int = 20) -> dict:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            cursor.execute("SELECT COUNT(*) as cnt FROM audit_log")
+            total = cursor.fetchone()["cnt"]
+            offset = (page - 1) * page_size
+            cursor.execute(
+                "SELECT id, qa_id, question, answer, result, operator, created_at "
+                "FROM audit_log ORDER BY created_at DESC LIMIT %s OFFSET %s",
+                (page_size, offset),
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            return {"items": rows, "total": total, "page": page, "page_size": page_size}
+        except Exception:
+            self._reset_conn()
+            raise
+
+    def list_categories(self) -> list[dict]:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            cursor.execute(
+                "SELECT id, label, parent_id, description FROM categories ORDER BY id"
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            return rows
+        except Exception:
+            self._reset_conn()
+            raise
+
+    def create_category(self, label: str, parent_id: int | None,
+                        description: str = "") -> int:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO categories (label, parent_id, description) VALUES (%s, %s, %s)",
+                (label, parent_id, description),
+            )
+            conn.commit()
+            cat_id = cursor.lastrowid
+            cursor.close()
+            return cat_id
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def update_category(self, cat_id: int, label: str,
+                        parent_id: int | None, description: str = "") -> bool:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE categories SET label=%s, parent_id=%s, description=%s WHERE id=%s",
+                (label, parent_id, description, cat_id),
+            )
+            affected = cursor.rowcount
+            conn.commit()
+            cursor.close()
+            return affected > 0
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def delete_category(self, cat_id: int) -> bool:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM categories WHERE id=%s", (cat_id,))
+            affected = cursor.rowcount
+            conn.commit()
+            cursor.close()
+            return affected > 0
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def get_trend(self, days: int = 7) -> dict:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            cursor.execute(
+                "SELECT DATE(created_at) as d, COUNT(*) as cnt FROM work_orders "
+                "WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL %s DAY) "
+                "GROUP BY DATE(created_at) ORDER BY d",
+                (days,),
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            return {"items": rows}
         except Exception:
             self._reset_conn()
             raise

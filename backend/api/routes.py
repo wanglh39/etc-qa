@@ -1,8 +1,10 @@
+import json
 import os
+import random
 import tempfile
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from fastapi import APIRouter, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, File, HTTPException, Query, Request, UploadFile
 
 from agent.graph import ingest_agent
 from agent.state import AgentState
@@ -15,6 +17,10 @@ from models.schemas import (
     AddQAResponse,
     AgentProcessRequest,
     AgentProcessResponse,
+    AuditLogItem,
+    AuditLogListResponse,
+    CategoryCreateRequest,
+    CategoryUpdateRequest,
     PromptKeySummary,
     PromptPublishRequest,
     PromptRollbackRequest,
@@ -28,10 +34,14 @@ from models.schemas import (
     QueryRequest,
     QueryResponse,
     StatsResponse,
+    TrendResponse,
     UpdateStatusRequest,
     UpdateStatusResponse,
+    WorkOrderCreateRequest,
+    WorkOrderDetailResponse,
     WorkOrderListItem,
     WorkOrderListResponse,
+    WorkOrderReplyRequest,
 )
 from prompt.shadow_recorder import get_shadow_records, get_shadow_stats
 from prompt.version_manager import get_version_manager
@@ -70,6 +80,89 @@ def set_work_order_client(client: WorkOrderClient):
 def set_mysql_client(client: MySQLClient):
     global mysql_client
     mysql_client = client
+
+
+def _current_operator(request: Request) -> str:
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        try:
+            from utils.jwt_utils import verify_token
+            payload = verify_token(auth[7:])
+            return payload.get("sub", "admin")
+        except Exception:
+            pass
+    return "admin"
+
+
+def _parse_raw_data(raw_data: str | None) -> dict:
+    if not raw_data:
+        return {}
+    try:
+        parsed = json.loads(raw_data)
+        return parsed if isinstance(parsed, dict) else {}
+    except (json.JSONDecodeError, TypeError):
+        return {}
+
+
+def _fmt_dt(v) -> str | None:
+    if isinstance(v, datetime):
+        return v.strftime("%Y-%m-%d %H:%M:%S")
+    return str(v) if v else None
+
+
+def _work_order_to_detail(row: dict) -> WorkOrderDetailResponse:
+    data = _parse_raw_data(row.get("raw_data"))
+    return WorkOrderDetailResponse(
+        id=row["id"],
+        external_id=row.get("external_id", ""),
+        status=row.get("status", ""),
+        dept=row.get("dept", ""),
+        service_id=data.get("service_id", ""),
+        customer_name=data.get("customer_name", ""),
+        phone=data.get("phone", ""),
+        problem_type=data.get("problem_type", ""),
+        next_dept=data.get("next_dept", ""),
+        return_dept=data.get("return_dept", ""),
+        receive_user=data.get("receive_user", ""),
+        priority=data.get("priority", ""),
+        detail_desc=data.get("detail_desc", ""),
+        handle_remark=data.get("handle_remark", ""),
+        created_at=_fmt_dt(row.get("created_at")),
+        updated_at=_fmt_dt(row.get("updated_at")),
+    )
+
+
+def _build_category_tree() -> list[dict]:
+    nodes: list[dict] = []
+    rows = mysql_client.list_categories()
+    if rows:
+        for r in rows:
+            nodes.append({
+                "id": r["id"],
+                "label": r["label"],
+                "parentId": r.get("parent_id"),
+                "description": r.get("description") or "",
+            })
+    else:
+        derived = mysql_client.get_category_tree()
+        next_id = 1
+        for l1, l2_list in derived.items():
+            if not l1:
+                continue
+            parent_id = next_id
+            next_id += 1
+            nodes.append({"id": parent_id, "label": l1, "parentId": None, "description": ""})
+            for l2 in l2_list:
+                nodes.append({"id": next_id, "label": l2, "parentId": parent_id, "description": ""})
+                next_id += 1
+
+    children_map: dict = {}
+    for n in nodes:
+        n["children"] = []
+        children_map.setdefault(n["parentId"], []).append(n)
+    for n in nodes:
+        n["children"] = children_map.get(n["id"], [])
+    return [n for n in nodes if n["parentId"] is None]
 
 
 @router.post("/query", response_model=QueryResponse)
@@ -121,7 +214,7 @@ def health():
 
 
 @router.put("/qa/status", response_model=UpdateStatusResponse)
-def update_qa_status(req: UpdateStatusRequest):
+def update_qa_status(req: UpdateStatusRequest, request: Request):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
     valid_statuses = get_business_config("qa_statuses", ["active", "deprecated", "archived"])
@@ -130,6 +223,15 @@ def update_qa_status(req: UpdateStatusRequest):
     mysql_client.update_qa_status(req.qa_id, req.status)
     if service is not None:
         service.invalidate_active_ids_cache()
+    if req.status in ("active", "archived"):
+        detail = mysql_client.get_qa_detail(req.qa_id) or {}
+        mysql_client.insert_audit_log(
+            qa_id=req.qa_id,
+            question=detail.get("question", ""),
+            answer=detail.get("answer", ""),
+            result="pass" if req.status == "active" else "reject",
+            operator=_current_operator(request),
+        )
     return UpdateStatusResponse(qa_id=req.qa_id, status=req.status, message=f"状态已更新为{req.status}")
 
 
@@ -223,19 +325,108 @@ def get_stats():
 def get_categories():
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
-    tree = mysql_client.get_category_tree()
-    return {"categories": tree}
+    return {"categories": _build_category_tree()}
+
+
+@router.post("/categories")
+def create_category(req: CategoryCreateRequest):
+    if mysql_client is None:
+        raise HTTPException(status_code=500, detail="服务未初始化")
+    cat_id = mysql_client.create_category(req.label, req.parent_id, req.description)
+    return {"id": cat_id, "message": "分类已创建"}
+
+
+@router.put("/categories/{cat_id}")
+def update_category(cat_id: int, req: CategoryUpdateRequest):
+    if mysql_client is None:
+        raise HTTPException(status_code=500, detail="服务未初始化")
+    updated = mysql_client.update_category(cat_id, req.label, req.parent_id, req.description)
+    if not updated:
+        raise HTTPException(status_code=404, detail="分类不存在")
+    return {"id": cat_id, "message": "分类已更新"}
+
+
+@router.delete("/categories/{cat_id}")
+def delete_category(cat_id: int):
+    if mysql_client is None:
+        raise HTTPException(status_code=500, detail="服务未初始化")
+    deleted = mysql_client.delete_category(cat_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="分类不存在")
+    return {"id": cat_id, "message": "分类已删除"}
+
+
+@router.get("/audit/history", response_model=AuditLogListResponse)
+def audit_history(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100)):
+    if mysql_client is None:
+        raise HTTPException(status_code=500, detail="服务未初始化")
+    result = mysql_client.get_audit_history(page=page, page_size=page_size)
+    items = [AuditLogItem(**_serialize_row(row)) for row in result["items"]]
+    return AuditLogListResponse(items=items, total=result["total"],
+                                page=result["page"], page_size=result["page_size"])
+
+
+@router.get("/stats/trend", response_model=TrendResponse)
+def stats_trend(days: int = Query(7, ge=1, le=90)):
+    if mysql_client is None:
+        raise HTTPException(status_code=500, detail="服务未初始化")
+    rows = mysql_client.get_trend(days)
+    counts_by_date = {str(r["d"]): r["cnt"] for r in rows["items"]}
+    dates = [(datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
+             for i in range(days - 1, -1, -1)]
+    counts = [counts_by_date.get(d, 0) for d in dates]
+    return TrendResponse(dates=dates, counts=counts)
 
 
 @router.get("/work_orders", response_model=WorkOrderListResponse)
 def list_work_orders(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
-                     status: str | None = None):
+                     status: str | None = None, dept: str | None = None):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
-    result = mysql_client.get_work_order_list(page=page, page_size=page_size, status=status)
+    result = mysql_client.get_work_order_list(page=page, page_size=page_size,
+                                              status=status, dept=dept)
     items = [WorkOrderListItem(**_serialize_row(row)) for row in result["items"]]
     return WorkOrderListResponse(items=items, total=result["total"],
                                  page=result["page"], page_size=result["page_size"])
+
+
+@router.post("/work_orders", response_model=WorkOrderDetailResponse)
+def create_work_order(req: WorkOrderCreateRequest):
+    if mysql_client is None:
+        raise HTTPException(status_code=500, detail="服务未初始化")
+    external_id = f"WO-{datetime.now().strftime('%Y%m%d')}-{random.randint(1000, 9999)}"
+    raw_data = json.dumps(req.model_dump(), ensure_ascii=False)
+    wo_id = mysql_client.insert_work_order_full(external_id, req.next_dept, raw_data)
+    return _work_order_to_detail({
+        "id": wo_id, "external_id": external_id, "raw_data": raw_data,
+        "status": "submitted", "dept": req.next_dept,
+    })
+
+
+@router.get("/work_orders/{wo_id}", response_model=WorkOrderDetailResponse)
+def get_work_order(wo_id: int):
+    if mysql_client is None:
+        raise HTTPException(status_code=500, detail="服务未初始化")
+    row = mysql_client.get_work_order_detail(wo_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="工单不存在")
+    return _work_order_to_detail(row)
+
+
+@router.put("/work_orders/{wo_id}/reply", response_model=WorkOrderDetailResponse)
+def reply_work_order(wo_id: int, req: WorkOrderReplyRequest):
+    if mysql_client is None:
+        raise HTTPException(status_code=500, detail="服务未初始化")
+    row = mysql_client.get_work_order_detail(wo_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="工单不存在")
+    data = _parse_raw_data(row.get("raw_data"))
+    data["handle_remark"] = req.handle_remark
+    if req.back_dept:
+        data["back_dept"] = req.back_dept
+    mysql_client.update_work_order_reply(wo_id, json.dumps(data, ensure_ascii=False), "processed")
+    updated = mysql_client.get_work_order_detail(wo_id)
+    return _work_order_to_detail(updated)
 
 
 @router.post("/asr", response_model=ASRResponse)

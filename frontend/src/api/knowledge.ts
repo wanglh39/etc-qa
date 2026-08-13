@@ -80,3 +80,29 @@ export function deleteQA(qaId: number) {
 export function getCategories() {
   return request.get<{ categories: any }>('/categories').then((r) => r.data)
 }
+
+export interface CategoryNode {
+  id: number
+  label: string
+  parentId: number | null
+  description?: string
+  children?: CategoryNode[]
+}
+
+export interface CategoryPayload {
+  label: string
+  parent_id?: number | null
+  description?: string
+}
+
+export function createCategory(data: CategoryPayload) {
+  return request.post<{ id: number; message: string }>('/categories', data).then((r) => r.data)
+}
+
+export function updateCategory(id: number, data: CategoryPayload) {
+  return request.put<{ id: number; message: string }>(`/categories/${id}`, data).then((r) => r.data)
+}
+
+export function deleteCategory(id: number) {
+  return request.delete<{ id: number; message: string }>(`/categories/${id}`).then((r) => r.data)
+}

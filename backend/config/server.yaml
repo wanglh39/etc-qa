@@ -4,6 +4,10 @@ server:
   title: "ETC客服QA智能检索系统"
   version: "1.0.0"
   workers: 1
+  # 允许的跨域来源（生产可用 ETC_QA_CORS_ORIGINS 逗号分隔覆盖）
+  cors_origins:
+    - "http://localhost:5173"
+    - "http://127.0.0.1:5173"
 
 cache:
   active_ids_ttl: 30

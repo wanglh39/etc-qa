@@ -1,3 +1,5 @@
+import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -20,10 +22,15 @@ server_cfg = cfg.get("server", {})
 
 app = FastAPI(title=server_cfg.get("title", "ETC客服QA智能检索系统"), version=server_cfg.get("version", "1.0.0"))
 
+allow_origins = server_cfg.get("cors_origins", [])
+_env_origins = os.environ.get("ETC_QA_CORS_ORIGINS")
+if _env_origins:
+    allow_origins = [o.strip() for o in _env_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=allow_origins,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

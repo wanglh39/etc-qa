@@ -7,11 +7,11 @@ SECRET_KEY = os.environ.get("ETC_QA_JWT_SECRET", "etc-qa-jwt-secret-key-dev")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
 
-# 初始用户数据（后续可迁移到数据库或配置文件）
+# 初始用户数据：角色/部门为系统固定元数据，密码从环境变量（.env）注入
 USERS = {
-    "admin": {"password": "123456", "role": "admin", "dept": ""},
-    "service": {"password": "123456", "role": "service", "dept": ""},
-    "dept": {"password": "123456", "role": "dept", "dept": "aftersale"},
+    "admin": {"password": os.environ.get("ETC_QA_ADMIN_PASSWORD", "123456"), "role": "admin", "dept": ""},
+    "service": {"password": os.environ.get("ETC_QA_SERVICE_PASSWORD", "123456"), "role": "service", "dept": ""},
+    "dept": {"password": os.environ.get("ETC_QA_DEPT_PASSWORD", "123456"), "role": "dept", "dept": "aftersale"},
 }
 
 

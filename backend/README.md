@@ -1,127 +1,129 @@
-﻿# ETC客服QA智能检索系统
+﻿# ETC瀹㈡湇QA鏅鸿兘妫€绱㈢郴缁?
+鍩轰簬 Milvus 鍚戦噺鏁版嵁搴?+ MySQL + LangGraph Agent 鐨?ETC 瀹㈡湇 QA 鏅鸿兘妫€绱㈢郴缁熴€傚鏈嶈緭鍏ラ棶棰樺悗锛岄€氳繃鍚戦噺妫€绱?+ BM25 + Reranker 鎵惧埌鏈€鍖归厤鐨勭瓟妗堣瘽鏈紝鏂伴棶棰橀€氳繃 Agent 娴佹按绾挎爣鍑嗗寲鍚庡叆搴撱€?
+## 鎶€鏈爤
 
-基于 Milvus 向量数据库 + MySQL + LangGraph Agent 的 ETC 客服 QA 智能检索系统。客服输入问题后，通过向量检索 + BM25 + Reranker 找到最匹配的答案话术，新问题通过 Agent 流水线标准化后入库。
-
-## 技术栈
-
-| 层级 | 技术 | 版本/说明 |
+| 灞傜骇 | 鎶€鏈?| 鐗堟湰/璇存槑 |
 |------|------|----------|
-| 前端 | Vue3 + Element Plus + Pinia + ECharts | 待开发 |
-| 后端 | FastAPI + Uvicorn | Python 3.10 |
-| 向量数据库 | Milvus Lite | 本地文件，无需 Docker |
-| 关系数据库 | MySQL 8.x | :3306 |
-| Embedding | bge-large-zh-v1.5 | 1024 维 |
+| 鍚庣 | FastAPI + Uvicorn | Python 3.10 |
+| 鍚戦噺鏁版嵁搴?| Milvus Lite | 鏈湴鏂囦欢锛屾棤闇€鐙珛閮ㄧ讲 |
+| 鍏崇郴鏁版嵁搴?| MySQL 8.x | Docker 瀹瑰櫒 |
+| Embedding | bge-large-zh-v1.5 | 1024 缁?|
 | Reranker | bge-reranker-large | CrossEncoder |
-| LLM | DeepSeek Chat | 规整/分类/HyDE |
-| Agent | LangGraph | 状态图编排 |
-| BM25 | jieba + rank_bm25 | 关键词召回 |
-| 追踪 | LangSmith | 全链路追踪 |
+| LLM | DeepSeek API | 瑙勬暣/鍒嗙被/HyDE |
+| Agent | LangGraph | 鐘舵€佸浘缂栨帓 |
+| BM25 | jieba + rank_bm25 | 鍏抽敭璇嶅彫鍥?|
+| ASR | FunASR | 璇煶璇嗗埆 |
+| 杩借釜 | LangSmith | 鍏ㄩ摼璺拷韪?|
 
-## 环境要求
+## 鐜瑕佹眰
 
 - Python 3.10+
-- MySQL 8.x（端口 3306）
-- Anaconda/Miniconda（推荐）
-- 模型文件（bge-large-zh-v1.5 + bge-reranker-large，见下方路径配置）
-
-## 快速启动
-
-### 1. 创建 conda 环境
-
+- Docker Desktop锛堢敤浜庡惎鍔?MySQL锛?- DeepSeek API Key锛堝幓 https://platform.deepseek.com 娉ㄥ唽鑾峰彇锛?
+## 蹇€熷紑濮?
+### 鏂瑰紡涓€锛氫竴閿惌寤猴紙鎺ㄨ崘锛?
+Windows:
 ```bash
-conda create -n etc_qa python=3.10 -y
-conda activate etc_qa
+setup.bat
 ```
 
-### 2. 安装依赖
-
+Linux/Mac:
 ```bash
-cd etc_qa
+chmod +x setup.sh
+./setup.sh
+```
+
+鑴氭湰浼氳嚜鍔ㄥ畬鎴愶細瀹夎渚濊禆 -> 涓嬭浇妯″瀷 -> 鍚姩MySQL -> 鍒濆鍖栨暟鎹簱
+
+### 鏂瑰紡浜岋細鎵嬪姩鎼缓
+
+1. 瀹夎渚濊禆
+```bash
 pip install -r requirements.txt
 ```
 
-### 3. 配置环境变量
-
+2. 閰嶇疆鐜鍙橀噺
 ```bash
-cp .env.example .env
-# 编辑 .env，填入 DeepSeek API Key
+cp .env.template .env
+# 缂栬緫 .env锛屽～鍏?DeepSeek API Key
 ```
 
-### 4. 初始化数据库
-
-```bash
-# 建表 + 导入知识库数据（默认 test 环境）
-python scripts/data/init_db.py test
-
-# 初始化业务配置（关键词/规则导入 MySQL）
-python scripts/data/init_config.py test
+3. 涓嬭浇妯″瀷锛堢害5.6GB锛?```bash
+pip install modelscope
+python scripts/setup/download_models.py
 ```
 
-### 5. 启动服务
+| 妯″瀷 | 鐢ㄩ€?| 澶у皬 |
+|------|------|------|
+| bge-large-zh-v1.5 | Embedding鍚戦噺鍖?| ~1.3GB |
+| bge-reranker-large | Reranker绮炬帓 | ~2.2GB |
+| Fun-ASR-Nano-2512 | 璇煶璇嗗埆 | ~2.1GB |
 
+4. 鍚姩 MySQL + 鍒濆鍖栨暟鎹簱
 ```bash
-# 开发环境
+docker compose -f docker-compose.dev.yml up -d mysql
+python scripts/data/init_db.py dev
+```
+
+5. 鍚姩鏈嶅姟
+```bash
 python main.py
-
-# 或指定环境（Windows PowerShell）
-$env:ETC_QA_ENV='test'
-python main.py
 ```
 
-服务启动后访问：http://localhost:8000/api/v1/health
+璁块棶 API 鏂囨。: http://localhost:8000/docs
 
-### 6. 运行测试
+## Docker 鍚姩
 
 ```bash
-python -m pytest tests/ -q
+# 寮€鍙戠幆澧冿紙鐑洿鏂帮級
+docker compose -f docker-compose.dev.yml up -d
+
+# 鐢熶骇鐜
+docker compose up -d
 ```
 
-## 环境切换
-
-通过环境变量 `ETC_QA_ENV` 切换：
-
-| 环境 | 用途 | MySQL 库 | Milvus 库 |
-|------|------|----------|-----------|
-| dev | 日常开发 | etc_qa | milvus_etc_qa.db |
-| test | 测试召回率 | etc_qa_test | milvus_etc_qa_test.db |
-| prod | 生产 | etc_qa | milvus_etc_qa.db |
+## 娴嬭瘯
 
 ```bash
-# Windows
-$env:ETC_QA_ENV='test'
+# 鍗曞厓娴嬭瘯锛?64 passed, 96%瑕嗙洊鐜囷級
+python -m pytest tests/ -q --ignore=tests/integration
 
-# Linux/Mac
-export ETC_QA_ENV=test
+# 闆嗘垚娴嬭瘯锛?42 passed, 84%瑕嗙洊鐜囷級
+python -m pytest tests/integration/ -m integration -v
 ```
 
-## 模型路径配置
+## 鐜璇存槑
 
-默认模型路径在 `config.yaml` 中配置，支持通过环境变量覆盖：
+閫氳繃鐜鍙橀噺 ETC_QA_ENV 鍒囨崲锛?
+| 鐜 | 鐢ㄩ€?| MySQL 搴?| 鍚姩鏂瑰紡 |
+|------|------|----------|---------|
+| dev | 鏃ュ父寮€鍙?| etc_qa | python main.py |
+| test | 娴嬭瘯 | etc_qa_test | ETC_QA_ENV=test python main.py |
+| prod | 鐢熶骇 | etc_qa | docker compose up -d |
 
-```yaml
-models:
-  embed:
-    path: "${MODEL_BASE_DIR:C:\\Users\\wlh19\\.cache\\modelscope\\hub}\\models\\BAAI\\bge-large-zh-v1___5"
+## 椤圭洰缁撴瀯
+
+```
+etc_qa/
+鈹溾攢鈹€ agent/           # LangGraph Agent锛堥棶棰樿鏁?鍒嗙被/HyDE/鍏ュ簱鏀瑰啓锛?鈹溾攢鈹€ api/             # FastAPI 璺敱
+鈹溾攢鈹€ asr/             # 璇煶璇嗗埆
+鈹溾攢鈹€ config/          # 閰嶇疆鏂囦欢锛圷AML + Pydantic鏍￠獙锛?鈹溾攢鈹€ db/              # MySQL + Milvus 瀹㈡埛绔?鈹溾攢鈹€ models/          # 鏈湴妯″瀷鏂囦欢锛堜笉鍏it锛屼笉鍏ocker闀滃儚锛?鈹溾攢鈹€ rag/             # 鍙洖 + Reranker + 闃堝€煎垽瀹?鈹溾攢鈹€ prompt/          # 鎻愮ず璇嶇増鏈鐞?+ 褰卞瓙娴嬭瘯
+鈹溾攢鈹€ scripts/         # 鏁版嵁鍒濆鍖?璇勪及/缁存姢鑴氭湰
+鈹溾攢鈹€ tests/           # 鍗曞厓娴嬭瘯 + 闆嗘垚娴嬭瘯
+鈹溾攢鈹€ docs/            # 鏂囨。
+鈹溾攢鈹€ docker-compose.dev.yml  # 寮€鍙戠幆澧?鈹溾攢鈹€ docker-compose.yml      # 鐢熶骇鐜
+鈹溾攢鈹€ setup.bat / setup.sh    # 涓€閿惌寤鸿剼鏈?鈹斺攢鈹€ .env.template           # 鐜鍙橀噺妯℃澘
 ```
 
-如果模型在其他位置，设置环境变量：
+## 鏂囨。
 
-```bash
-$env:MODEL_BASE_DIR='D:\models'
-```
-
-## 项目结构
-
-详见 [目录结构.md](目录结构.md) 和 [架构图.md](架构图.md)
-
-## 文档索引
-
-| 文档 | 说明 |
+| 鏂囨。 | 璇存槑 |
 |------|------|
-| [架构图.md](架构图.md) | 系统架构、两条核心链路、配置分层、并发架构 |
-| [目录结构.md](目录结构.md) | 目录结构 + 代码调用关系 + 测试对应表 |
-| [API接口文档.md](API接口文档.md) | 所有 REST API 详细说明（前后端对接用） |
-| [数据库设计文档.md](数据库设计文档.md) | 所有表结构 + 字段说明 |
-| [开发规范.md](开发规范.md) | 代码规范、提交规范、分支规范 |
-| [交接清单.md](交接清单.md) | 已完成/待开发/注意事项 |
-| [高并发演进路线.md](高并发演进路线.md) | 低→中→高三阶段演进方案 |
+| [寮€鍙戠幆澧冩惌寤?md](docs/寮€鍙戠幆澧冩惌寤?md) | 闃熷弸涓婃墜鎸囧崡 |
+| [Git浣跨敤鏁欑▼.md](docs/Git浣跨敤鏁欑▼.md) | Git 鍥惧舰鐣岄潰 + 鍛戒护琛?|
+| [Docker浣跨敤鏁欑▼.md](docs/Docker浣跨敤鏁欑▼.md) | Docker 浣跨敤鎸囧崡 |
+| [鏋舵瀯鍥?md](docs/鏋舵瀯鍥?md) | 绯荤粺鏋舵瀯銆佹牳蹇冮摼璺?|
+| [鐩綍缁撴瀯.md](docs/鐩綍缁撴瀯.md) | 鐩綍缁撴瀯 + 浠ｇ爜璋冪敤鍏崇郴 |
+| [API鎺ュ彛鏂囨。.md](docs/API鎺ュ彛鏂囨。.md) | REST API 璇存槑 |
+| [鏁版嵁搴撹璁℃枃妗?md](docs/鏁版嵁搴撹璁℃枃妗?md) | 琛ㄧ粨鏋?+ 瀛楁璇存槑 |
+| [寮€鍙戣鑼?md](docs/寮€鍙戣鑼?md) | 浠ｇ爜瑙勮寖銆佹彁浜よ鑼?|
+| [浜ゆ帴娓呭崟.md](docs/浜ゆ帴娓呭崟.md) | 宸插畬鎴?寰呭紑鍙?娉ㄦ剰浜嬮」 |

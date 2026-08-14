@@ -1,4 +1,4 @@
-import os
+﻿import os
 import time
 
 import pytest
@@ -7,6 +7,12 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["ETC_QA_ENV"] = "test"
+
+try:
+    import utils.config as _cfg_mod
+    _cfg_mod._CONFIG = None
+except Exception:
+    pass
 
 import pymysql
 
@@ -28,7 +34,7 @@ def wait_for_mysql(host="localhost", port=3306, user="root", password="123456",
 @pytest.fixture(scope="session")
 def mysql_conn():
     if not wait_for_mysql():
-        pytest.skip("MySQL不可用，跳过集成测试")
+        pytest.skip("MySQL涓嶅彲鐢紝璺宠繃闆嗘垚娴嬭瘯")
     from db.mysql_client import MySQLClient
     mysql = MySQLClient()
     yield mysql
@@ -129,9 +135,33 @@ def real_client(real_app):
 
 
 def pytest_collection_modifyitems(config, items):
-    marker = config.getoption("-m", default="")
-    if not marker or "integration" not in marker:
-        skip_integration = pytest.mark.skip(reason="需要 -m integration 才运行集成测试")
-        for item in items:
-            if "integration" in str(item.fspath):
-                item.add_marker(skip_integration)
+    pass
+
+
+_TEST_PROMPT_KEYS = [
+    "test_int_prompt", "test_api_prompt", "test_int_tpl",
+    "test_pe_key", "test_pe_shadow", "test_pe_syntax",
+    "test_pe_cache", "test_pe_noshadow", "test_cc_ptpl", "test_cc_prompt",
+]
+
+
+@pytest.fixture(autouse=True, scope="class")
+def _cleanup_test_data():
+    try:
+        conn = pymysql.connect(host="localhost", port=3306, user="root",
+                               password="123456", database="etc_qa_test")
+        cursor = conn.cursor()
+        for key in _TEST_PROMPT_KEYS:
+            cursor.execute("DELETE FROM prompt_templates WHERE prompt_key=%s", (key,))
+        cursor.execute("DELETE FROM system_config WHERE config_key='test_int_cfg'")
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception:
+        pass
+    try:
+        from utils.config_center import invalidate_cache
+        invalidate_cache()
+    except Exception:
+        pass
+    yield

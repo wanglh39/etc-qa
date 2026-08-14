@@ -1,6 +1,11 @@
+﻿from concurrent.futures import ThreadPoolExecutor
+
 from db.milvus_client import MilvusQA
 from rag.bm25_index import BM25Index
 from utils.config import get_config
+from utils.logger import get_logger
+
+logger = get_logger("rag.recall")
 
 try:
     from langsmith import traceable
@@ -12,6 +17,8 @@ except ImportError:
 
 
 class RecallEngine:
+    _executor = ThreadPoolExecutor(max_workers=2)
+
     def __init__(self, embed_model, milvus: MilvusQA, bm25: BM25Index):
         self.embed_model = embed_model
         self.milvus = milvus
@@ -63,8 +70,15 @@ class RecallEngine:
         if query_vector is None:
             query_vector = self.encode_query(query_text)
 
-        vec_results = self.vector_recall(query_vector, use_hyde=use_hyde, active_qa_ids=active_qa_ids)
-        bm25_results = self.bm25_recall(query_text, active_qa_ids=active_qa_ids)
+        vec_future = self._executor.submit(
+            self.vector_recall, query_vector, use_hyde=use_hyde, active_qa_ids=active_qa_ids
+        )
+        bm25_future = self._executor.submit(
+            self.bm25_recall, query_text, active_qa_ids=active_qa_ids
+        )
+        vec_results = vec_future.result()
+        bm25_results = bm25_future.result()
+        logger.info(f"骞惰鍙洖瀹屾垚: vector={len(vec_results)}鏉?bm25={len(bm25_results)}鏉?query='{query_text[:30]}'")
 
         if self.merge_method == "weighted_rrf":
             return self.weighted_rrf_merge(vec_results, bm25_results)

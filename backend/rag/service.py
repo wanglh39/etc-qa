@@ -1,4 +1,4 @@
-import time
+﻿import time
 
 from agent.graph import preprocess_agent
 from agent.state import AgentState
@@ -10,10 +10,20 @@ from rag.threshold import ThresholdJudge
 from utils.config import get_config
 from utils.logger import get_logger
 
+try:
+    from langsmith import traceable
+except ImportError:
+    def traceable(name=None, run_type=None):
+        def decorator(func):
+            return func
+        return decorator
+
 logger = get_logger("rag.service")
 
 
 class QAService:
+    _STANDARDIZE_CACHE_SIZE = 500
+
     def __init__(self, recall: RecallEngine, threshold: ThresholdJudge,
                  reranker: Reranker, mysql: MySQLClient):
         self.recall = recall
@@ -23,6 +33,7 @@ class QAService:
         self._active_ids_cache = None
         self._active_ids_ts = 0
         self._active_ids_ttl = get_config().get("cache", {}).get("active_ids_ttl", 30)
+        self._standardize_cache = {}
 
     def _get_active_ids(self) -> list[int]:
         now = time.time()
@@ -53,10 +64,24 @@ class QAService:
         return qa_id
 
     def _standardize(self, raw_question: str) -> str:
-        state = AgentState(raw_question=raw_question)
-        result = preprocess_agent.invoke(state.model_dump())
-        return result.get("question", raw_question) or raw_question
+        if raw_question in self._standardize_cache:
+            return self._standardize_cache[raw_question]
 
+        try:
+            state = AgentState(raw_question=raw_question)
+            result = preprocess_agent.invoke(state.model_dump())
+            standardized = result.get("question", raw_question) or raw_question
+        except Exception as e:
+            logger.warning(f"LLM鏍囧噯鍖栧け璐ワ紝闄嶇骇鐢ㄥ師闂: {e}")
+            standardized = raw_question
+
+        if len(self._standardize_cache) >= self._STANDARDIZE_CACHE_SIZE:
+            oldest_key = next(iter(self._standardize_cache))
+            del self._standardize_cache[oldest_key]
+        self._standardize_cache[raw_question] = standardized
+        return standardized
+
+    @traceable(name="rag_query", run_type="chain")
     def query(self, question: str, category_l1: str | None = None) -> QueryResponse:
         standardized = self._standardize(question)
         logger.info(f"query: '{question}' -> standardized: '{standardized}'")

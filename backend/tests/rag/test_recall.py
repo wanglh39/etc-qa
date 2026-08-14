@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+﻿from unittest.mock import MagicMock
 
 from rag.recall import RecallEngine
 
@@ -14,7 +14,7 @@ class TestRecallEngine:
                 "merge_method": "rrf", "rrf_k": 60,
                 "vector_weight": 0.7, "bm25_weight": 0.3,
             },
-            "models": {"query_prefix": "为这个句子生成表示以用于检索相关文章："},
+            "models": {"query_prefix": "涓鸿繖涓彞瀛愮敓鎴愯〃绀轰互鐢ㄤ簬妫€绱㈢浉鍏虫枃绔狅細"},
         }
         import utils.config as cfg_module
         self._original_get = getattr(cfg_module, "get_config", None)
@@ -28,9 +28,9 @@ class TestRecallEngine:
 
     def test_encode_query_adds_prefix(self):
         self.mock_embed.encode.return_value = MagicMock(tolist=lambda: [[0.1] * 1024])
-        self.engine.encode_query("ETC扣费异常")
+        self.engine.encode_query("ETC鎵ｈ垂寮傚父")
         call_args = self.mock_embed.encode.call_args[0][0]
-        assert call_args[0].startswith("为这个句子生成表示以用于检索相关文章：")
+        assert call_args[0].startswith("涓鸿繖涓彞瀛愮敓鎴愯〃绀轰互鐢ㄤ簬妫€绱㈢浉鍏虫枃绔狅細")
 
     def test_vector_recall(self):
         self.mock_milvus.search.return_value = [(1, 0.9), (2, 0.8), (3, 0.7)]
@@ -39,8 +39,8 @@ class TestRecallEngine:
 
     def test_bm25_recall(self):
         self.mock_bm25.search.return_value = [(1, 5.0), (3, 3.0), (5, 1.0)]
-        self.engine.bm25_recall("ETC扣费异常", top_k=5)
-        self.mock_bm25.search.assert_called_once_with("ETC扣费异常", top_k=5, active_qa_ids=None)
+        self.engine.bm25_recall("ETC鎵ｈ垂寮傚父", top_k=5)
+        self.mock_bm25.search.assert_called_once_with("ETC鎵ｈ垂寮傚父", top_k=5, active_qa_ids=None)
 
     def test_rrf_merge_combines_scores(self):
         vec = [(1, 0.9), (2, 0.8), (3, 0.7)]
@@ -94,6 +94,61 @@ class TestRecallEngine:
         self.mock_embed.encode.return_value = MagicMock(tolist=lambda: [[0.1] * 1024])
         self.mock_milvus.search.return_value = [(1, 0.9), (2, 0.8)]
         self.mock_bm25.search.return_value = [(3, 5.0), (4, 3.0)]
-        self.engine.recall("ETC扣费异常")
+        self.engine.recall("ETC鎵ｈ垂寮傚父")
+        self.mock_milvus.search.assert_called_once()
+        self.mock_bm25.search.assert_called_once()
+
+    def test_parallel_recall(self):
+        self.mock_embed.encode.return_value = MagicMock(tolist=lambda: [[0.1] * 1024])
+        self.mock_milvus.search.return_value = [(1, 0.9), (2, 0.8)]
+        self.mock_bm25.search.return_value = [(3, 5.0), (4, 3.0)]
+        result = self.engine.recall("ETC鎵ｈ垂寮傚父")
+        self.mock_milvus.search.assert_called_once()
+        self.mock_bm25.search.assert_called_once()
+        ids = [qid for qid, _ in result]
+        assert 1 in ids
+        assert 2 in ids
+        assert 3 in ids
+        assert 4 in ids
+        assert len(ids) == len(set(ids))
+
+    def test_parallel_recall_merges_overlapping_ids(self):
+        self.mock_embed.encode.return_value = MagicMock(tolist=lambda: [[0.1] * 1024])
+        self.mock_milvus.search.return_value = [(1, 0.9), (2, 0.8), (3, 0.7)]
+        self.mock_bm25.search.return_value = [(3, 5.0), (4, 3.0), (5, 1.0)]
+        result = self.engine.recall("ETC鎵ｈ垂寮傚父")
+        ids = [qid for qid, _ in result]
+        assert len(ids) == len(set(ids))
+        result_dict = dict(result)
+        assert result_dict[3] > result_dict[1]
+
+    def test_parallel_recall_with_weighted_rrf(self):
+        self.engine.merge_method = "weighted_rrf"
+        self.mock_embed.encode.return_value = MagicMock(tolist=lambda: [[0.1] * 1024])
+        self.mock_milvus.search.return_value = [(1, 0.9), (2, 0.8)]
+        self.mock_bm25.search.return_value = [(3, 5.0), (4, 3.0)]
+        result = self.engine.recall("ETC鎵ｈ垂寮傚父")
+        ids = [qid for qid, _ in result]
+        assert 1 in ids
+        assert 3 in ids
+        assert len(ids) == len(set(ids))
+
+    def test_parallel_recall_with_active_qa_ids(self):
+        active_ids = ["qa_1", "qa_2"]
+        self.mock_embed.encode.return_value = MagicMock(tolist=lambda: [[0.1] * 1024])
+        self.mock_milvus.search.return_value = [(1, 0.9)]
+        self.mock_bm25.search.return_value = [(2, 5.0)]
+        self.engine.recall("ETC鎵ｈ垂寮傚父", active_qa_ids=active_ids)
+        milvus_kwargs = self.mock_milvus.search.call_args[1]
+        bm25_kwargs = self.mock_bm25.search.call_args[1]
+        assert milvus_kwargs["active_qa_ids"] == active_ids
+        assert bm25_kwargs["active_qa_ids"] == active_ids
+
+    def test_parallel_recall_uses_provided_query_vector(self):
+        custom_vector = [0.5] * 1024
+        self.mock_milvus.search.return_value = [(1, 0.9)]
+        self.mock_bm25.search.return_value = [(2, 5.0)]
+        self.engine.recall("ETC鎵ｈ垂寮傚父", query_vector=custom_vector)
+        self.mock_embed.encode.assert_not_called()
         self.mock_milvus.search.assert_called_once()
         self.mock_bm25.search.assert_called_once()

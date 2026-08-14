@@ -252,3 +252,17 @@ class TrendResponse(BaseModel):
     dates: list[str]
     work_order_counts: list[int]
     qa_new_counts: list[int]
+
+
+class ASRQueryResponse(BaseModel):
+    asr_text: str
+    asr_confidence: float = 1.0
+    asr_duration_ms: int = 0
+    asr_model: str = ""
+    asr_language: str | None = None
+    asr_segments: list[dict] = []
+    query: str = ""
+    standardized_query: str = ""
+    confidence: str = ""
+    candidates: list[CandidateResult] = []
+    total_candidates: int = 0

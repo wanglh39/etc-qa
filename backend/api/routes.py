@@ -17,6 +17,7 @@ from models.schemas import (
     AddQAResponse,
     AgentProcessRequest,
     AgentProcessResponse,
+    ASRQueryResponse,
     AuditLogItem,
     AuditLogListResponse,
     CategoryCreateRequest,
@@ -487,6 +488,59 @@ async def asr_transcribe(file: UploadFile = File(...)):
 def asr_health():
     asr_service = get_asr_service()
     return asr_service.health()
+
+
+@router.post("/asr/query", response_model=ASRQueryResponse)
+async def asr_query(file: UploadFile = File(...), category_l1: str | None = None):
+    asr_service = get_asr_service()
+    if not asr_service._enabled:
+        raise HTTPException(status_code=503, detail="ASR未启用")
+    if service is None:
+        raise HTTPException(status_code=500, detail="RAG服务未初始化")
+
+    suffix = os.path.splitext(file.filename)[1] or ".wav"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        content = await file.read()
+        tmp.write(content)
+        tmp_path = tmp.name
+
+    try:
+        asr_result = asr_service.transcribe(tmp_path)
+
+        if not asr_result.text.strip():
+            return ASRQueryResponse(
+                asr_text="",
+                asr_confidence=asr_result.confidence,
+                asr_duration_ms=asr_result.duration_ms,
+                asr_model=asr_result.model,
+                asr_language=asr_result.language,
+                asr_segments=[s.model_dump() for s in asr_result.segments],
+            )
+
+        rag_result = service.query(asr_result.text, category_l1)
+
+        return ASRQueryResponse(
+            asr_text=asr_result.text,
+            asr_confidence=asr_result.confidence,
+            asr_duration_ms=asr_result.duration_ms,
+            asr_model=asr_result.model,
+            asr_language=asr_result.language,
+            asr_segments=[s.model_dump() for s in asr_result.segments],
+            query=rag_result.query,
+            standardized_query=rag_result.standardized_query,
+            confidence=rag_result.confidence,
+            candidates=rag_result.candidates,
+            total_candidates=rag_result.total_candidates,
+        )
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        logger.error(f"ASR+检索失败: {e}")
+        raise HTTPException(status_code=500, detail=f"ASR+检索失败: {e!s}")
+    finally:
+        os.unlink(tmp_path)
 
 
 @router.get("/prompts", response_model=list[PromptKeySummary], dependencies=[Depends(require_role("admin"))])

@@ -1,3 +1,5 @@
+﻿from unittest.mock import MagicMock, patch
+
 import pytest
 
 
@@ -7,7 +9,7 @@ class TestL3ProcessorsWithLLM:
         from agent.processors.standardize_query import standardize_query
         from agent.state import AgentState
 
-        state = AgentState(raw_question="我想问一下ETC扣费扣多了怎么办啊，上个月在高速口被多扣了")
+        state = AgentState(raw_question="鎴戞兂闂竴涓婨TC鎵ｈ垂鎵ｅ浜嗘€庝箞鍔炲晩锛屼笂涓湀鍦ㄩ珮閫熷彛琚鎵ｄ簡")
         result = standardize_query(state)
         assert "question" in result
         assert result["question"] != ""
@@ -17,10 +19,10 @@ class TestL3ProcessorsWithLLM:
         from agent.processors.standardize_query import standardize_query
         from agent.state import AgentState
 
-        state = AgentState(raw_question="ETC扣费异常怎么处理")
+        state = AgentState(raw_question="ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊")
         result = standardize_query(state)
         assert "ETC" in result["question"]
-        assert "扣费异常" in result["question"]
+        assert "鎵ｈ垂寮傚父" in result["question"]
 
     def test_standardize_very_short(self):
         from agent.processors.standardize_query import standardize_query
@@ -35,7 +37,7 @@ class TestL3ProcessorsWithLLM:
         from agent.state import AgentState
 
         state = AgentState(
-            raw_question="客户打电话来说他上个月在同一个高速出口被ETC扣了两次费想知道这个多扣的钱什么时候能退回来啊"
+            raw_question="瀹㈡埛鎵撶數璇濇潵璇翠粬涓婁釜鏈堝湪鍚屼竴涓珮閫熷嚭鍙ｈETC鎵ｄ簡涓ゆ璐规兂鐭ラ亾杩欎釜澶氭墸鐨勯挶浠€涔堟椂鍊欒兘閫€鍥炴潵鍟?
         )
         result = standardize_query(state)
         assert "question" in result
@@ -48,7 +50,7 @@ class TestL3ProcessorsWithLLM:
         from agent.state import AgentState
 
         state = AgentState(
-            raw_question="我想问一下重复扣费了怎么申请退款啊这个钱能退回来吗"
+            raw_question="鎴戞兂闂竴涓嬮噸澶嶆墸璐逛簡鎬庝箞鐢宠閫€娆惧晩杩欎釜閽辫兘閫€鍥炴潵鍚?
         )
         result = standardize_query(state)
         assert "question" in result
@@ -60,8 +62,8 @@ class TestL3ProcessorsWithLLM:
 
         invalidate_category_cache()
         state = AgentState(
-            raw_question="ETC重复扣费怎么退款",
-            raw_answer="核实扣费记录后3个工作日退款到原支付账户",
+            raw_question="ETC閲嶅鎵ｈ垂鎬庝箞閫€娆?,
+            raw_answer="鏍稿疄鎵ｈ垂璁板綍鍚?涓伐浣滄棩閫€娆惧埌鍘熸敮浠樿处鎴?,
         )
         result = structure_ingest(state)
         assert "question" in result
@@ -75,8 +77,8 @@ class TestL3ProcessorsWithLLM:
 
         invalidate_category_cache()
         state = AgentState(
-            raw_question="我上个月在同一个高速口被扣了两次费怎么办啊，多扣的那次能退吗",
-            raw_answer="经核实确属重复扣费，将在3个工作日内将多扣款项退回原支付账户，请关注账户变动",
+            raw_question="鎴戜笂涓湀鍦ㄥ悓涓€涓珮閫熷彛琚墸浜嗕袱娆¤垂鎬庝箞鍔炲晩锛屽鎵ｇ殑閭ｆ鑳介€€鍚?,
+            raw_answer="缁忔牳瀹炵‘灞為噸澶嶆墸璐癸紝灏嗗湪3涓伐浣滄棩鍐呭皢澶氭墸娆鹃」閫€鍥炲師鏀粯璐︽埛锛岃鍏虫敞璐︽埛鍙樺姩",
         )
         result = structure_ingest(state)
         assert "question" in result
@@ -88,9 +90,9 @@ class TestL3ProcessorsWithLLM:
 
         invalidate_category_cache()
         state = AgentState(
-            raw_question="ETC设备OBU显示异常",
-            raw_answer="更换OBU设备，费用50元",
-            work_order_context="流转至设备运维部处理",
+            raw_question="ETC璁惧OBU鏄剧ず寮傚父",
+            raw_answer="鏇存崲OBU璁惧锛岃垂鐢?0鍏?,
+            work_order_context="娴佽浆鑷宠澶囪繍缁撮儴澶勭悊",
         )
         result = structure_ingest(state)
         assert "question" in result
@@ -102,8 +104,8 @@ class TestL3ProcessorsWithLLM:
 
         invalidate_category_cache()
         state = AgentState(
-            raw_question="这个不知道怎么弄",
-            raw_answer="已处理",
+            raw_question="杩欎釜涓嶇煡閬撴€庝箞寮?,
+            raw_answer="宸插鐞?,
         )
         result = structure_ingest(state)
         assert "question" in result
@@ -114,8 +116,8 @@ class TestL3ProcessorsWithLLM:
         from agent.state import AgentState
 
         state = AgentState(
-            raw_question="客户打电话来说他上个月在同一个高速出口被ETC扣了两次费想知道这个多扣的钱什么时候能退回来啊",
-            raw_answer="核实扣费记录后3个工作日退款到原支付账户，如需帮助请拨打95022",
+            raw_question="瀹㈡埛鎵撶數璇濇潵璇翠粬涓婁釜鏈堝湪鍚屼竴涓珮閫熷嚭鍙ｈETC鎵ｄ簡涓ゆ璐规兂鐭ラ亾杩欎釜澶氭墸鐨勯挶浠€涔堟椂鍊欒兘閫€鍥炴潵鍟?,
+            raw_answer="鏍稿疄鎵ｈ垂璁板綍鍚?涓伐浣滄棩閫€娆惧埌鍘熸敮浠樿处鎴凤紝濡傞渶甯姪璇锋嫧鎵?5022",
         )
         result = hyde_rewrite(state)
         assert "hyde_questions" in result
@@ -126,8 +128,8 @@ class TestL3ProcessorsWithLLM:
         from agent.state import AgentState
 
         state = AgentState(
-            raw_question="ETC扣费异常怎么处理",
-            raw_answer="请检查扣费记录，如确认异常可申请退款",
+            raw_question="ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊",
+            raw_answer="璇锋鏌ユ墸璐硅褰曪紝濡傜‘璁ゅ紓甯稿彲鐢宠閫€娆?,
         )
         result = hyde_rewrite(state)
         assert "hyde_questions" in result
@@ -137,7 +139,7 @@ class TestL3ProcessorsWithLLM:
         from agent.processors.hyde_rewrite import hyde_rewrite
         from agent.state import AgentState
 
-        state = AgentState(raw_question="ETC扣费异常", raw_answer="")
+        state = AgentState(raw_question="ETC鎵ｈ垂寮傚父", raw_answer="")
         result = hyde_rewrite(state)
         assert result["hyde_questions"] == []
 
@@ -146,8 +148,8 @@ class TestL3ProcessorsWithLLM:
         from agent.state import AgentState
 
         state = AgentState(
-            raw_question="重复扣费了怎么申请退款这个钱能退回来吗什么时候到账呢",
-            raw_answer="核实后3个工作日退款到原支付账户",
+            raw_question="閲嶅鎵ｈ垂浜嗘€庝箞鐢宠閫€娆捐繖涓挶鑳介€€鍥炴潵鍚椾粈涔堟椂鍊欏埌璐﹀憿",
+            raw_answer="鏍稿疄鍚?涓伐浣滄棩閫€娆惧埌鍘熸敮浠樿处鎴?,
         )
         result = hyde_rewrite(state)
         assert "hyde_questions" in result
@@ -178,42 +180,42 @@ class TestL3ProcessorsWithLLM:
     def test_validate_rewrite(self):
         from agent.processors.structure_ingest import _validate_rewrite
 
-        hallucination, lost = _validate_rewrite("ETC扣费异常", "ETC扣费异常怎么处理")
+        hallucination, lost = _validate_rewrite("ETC鎵ｈ垂寮傚父", "ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊")
         assert isinstance(hallucination, list)
         assert isinstance(lost, list)
 
     def test_apply_confidence_action(self):
         from agent.processors.structure_ingest import _apply_confidence_action
 
-        l1, l2, needs = _apply_confidence_action(0.9, "售后业务", "扣费异常", "售后业务", "扣费异常", [])
+        l1, l2, needs = _apply_confidence_action(0.9, "鍞悗涓氬姟", "鎵ｈ垂寮傚父", "鍞悗涓氬姟", "鎵ｈ垂寮傚父", [])
         assert needs is False
 
-        l1, l2, needs = _apply_confidence_action(0.6, "售后业务", "扣费异常", "售后业务", "扣费异常", [])
+        l1, l2, needs = _apply_confidence_action(0.6, "鍞悗涓氬姟", "鎵ｈ垂寮傚父", "鍞悗涓氬姟", "鎵ｈ垂寮傚父", [])
         assert needs is True
 
-        l1, l2, needs = _apply_confidence_action(0.2, "售后业务", "扣费异常", "售后业务", "扣费异常", [])
+        l1, l2, needs = _apply_confidence_action(0.2, "鍞悗涓氬姟", "鎵ｈ垂寮傚父", "鍞悗涓氬姟", "鎵ｈ垂寮傚父", [])
         assert needs is True
-        assert l1 == "售后业务"
+        assert l1 == "鍞悗涓氬姟"
 
     def test_apply_confidence_action_highlight(self):
         from agent.processors.structure_ingest import _apply_confidence_action
 
         highlights = []
-        l1, l2, needs = _apply_confidence_action(0.35, "售后业务", "扣费异常", "售后业务", "扣费异常", highlights)
+        l1, l2, needs = _apply_confidence_action(0.35, "鍞悗涓氬姟", "鎵ｈ垂寮傚父", "鍞悗涓氬姟", "鎵ｈ垂寮傚父", highlights)
         assert needs is True
         assert len(highlights) > 0
 
     def test_category_tree_with_empty_l2(self, mysql_conn):
         from agent.processors.structure_ingest import get_category_tree, invalidate_category_cache
 
-        qa_id = mysql_conn.insert_qa(question="集成测试空l2分类", answer="答案", category_l1="测试分类L1", category_l2="")
+        qa_id = mysql_conn.insert_qa(question="闆嗘垚娴嬭瘯绌簂2鍒嗙被", answer="绛旀", category_l1="娴嬭瘯鍒嗙被L1", category_l2="")
         mysql_conn.update_qa_status(qa_id, "active")
         invalidate_category_cache()
         tree = get_category_tree()
-        assert "测试分类L1" in tree
+        assert "娴嬭瘯鍒嗙被L1" in tree
         mysql_conn.delete_qa(qa_id)
         invalidate_category_cache()
-        assert "测试分类L1" in tree
+        assert "娴嬭瘯鍒嗙被L1" in tree
         mysql_conn.delete_qa(qa_id)
         invalidate_category_cache()
 
@@ -230,17 +232,17 @@ class TestL3ProcessorsWithLLM:
         default_l1 = next(iter(tree)) if tree else ""
         default_l2 = tree[default_l1][0] if tree and tree.get(default_l1) else ""
 
-        state = AgentState(raw_question="测试", raw_answer="答案")
+        state = AgentState(raw_question="娴嬭瘯", raw_answer="绛旀")
         parsed = {
-            "question": "ETC测试问题",
-            "answer": "测试答案",
-            "category_l1": "不存在的分类",
-            "category_l2": "不存在的子分类",
+            "question": "ETC娴嬭瘯闂",
+            "answer": "娴嬭瘯绛旀",
+            "category_l1": "涓嶅瓨鍦ㄧ殑鍒嗙被",
+            "category_l2": "涓嶅瓨鍦ㄧ殑瀛愬垎绫?,
             "category_confidence": 0.8,
             "internal_process": "",
             "feedback_dept": "",
         }
-        result = _process_parsed_result(parsed, "测试", "答案", tree, default_l1, default_l2, state)
+        result = _process_parsed_result(parsed, "娴嬭瘯", "绛旀", tree, default_l1, default_l2, state)
         assert result["category_l1"] == default_l1
 
     def test_process_parsed_result_short_rewrite(self, mysql_conn):
@@ -256,17 +258,17 @@ class TestL3ProcessorsWithLLM:
         default_l1 = next(iter(tree)) if tree else ""
         default_l2 = tree[default_l1][0] if tree and tree.get(default_l1) else ""
 
-        state = AgentState(raw_question="ETC扣费异常怎么处理", raw_answer="答案")
+        state = AgentState(raw_question="ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊", raw_answer="绛旀")
         parsed = {
             "question": "E",
-            "answer": "测试答案",
+            "answer": "娴嬭瘯绛旀",
             "category_l1": default_l1,
             "category_l2": default_l2,
             "category_confidence": 0.9,
             "internal_process": "",
             "feedback_dept": "",
         }
-        result = _process_parsed_result(parsed, "ETC扣费异常怎么处理", "答案", tree, default_l1, default_l2, state)
+        result = _process_parsed_result(parsed, "ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊", "绛旀", tree, default_l1, default_l2, state)
         assert result["needs_review"] is True
 
     def test_process_parsed_result_hallucination(self, mysql_conn):
@@ -282,17 +284,17 @@ class TestL3ProcessorsWithLLM:
         default_l1 = next(iter(tree)) if tree else ""
         default_l2 = tree[default_l1][0] if tree and tree.get(default_l1) else ""
 
-        state = AgentState(raw_question="ETC扣费异常", raw_answer="答案")
+        state = AgentState(raw_question="ETC鎵ｈ垂寮傚父", raw_answer="绛旀")
         parsed = {
-            "question": "信用卡盗刷怎么处理",
-            "answer": "测试答案",
+            "question": "淇＄敤鍗＄洍鍒锋€庝箞澶勭悊",
+            "answer": "娴嬭瘯绛旀",
             "category_l1": default_l1,
             "category_l2": default_l2,
             "category_confidence": 0.9,
             "internal_process": "",
             "feedback_dept": "",
         }
-        result = _process_parsed_result(parsed, "ETC扣费异常", "答案", tree, default_l1, default_l2, state)
+        result = _process_parsed_result(parsed, "ETC鎵ｈ垂寮傚父", "绛旀", tree, default_l1, default_l2, state)
         assert "question" in result
 
     def test_parse_json_valid(self):
@@ -314,19 +316,19 @@ class TestL3ProcessorsWithLLM:
 
     def test_parse_json_structure_ingest(self):
         from agent.processors.structure_ingest import _parse_json
-        result = _parse_json('{"question": "ETC扣费", "category_l1": "售后"}')
+        result = _parse_json('{"question": "ETC鎵ｈ垂", "category_l1": "鍞悗"}')
         assert result is not None
-        assert result["question"] == "ETC扣费"
+        assert result["question"] == "ETC鎵ｈ垂"
 
     def test_parse_json_standardize(self):
         from agent.processors.standardize_query import _parse_json
-        result = _parse_json('{"need_rewrite": true, "rewritten": "ETC退款"}')
+        result = _parse_json('{"need_rewrite": true, "rewritten": "ETC閫€娆?}')
         assert result is not None
 
     def test_preserves_keywords(self):
         from agent.processors.standardize_query import _preserves_keywords
-        assert _preserves_keywords("ETC扣费异常", "ETC扣费异常怎么处理") is True
-        assert _preserves_keywords("ETC扣费异常", "扣费异常怎么处理") is False
+        assert _preserves_keywords("ETC鎵ｈ垂寮傚父", "ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊") is True
+        assert _preserves_keywords("ETC鎵ｈ垂寮傚父", "鎵ｈ垂寮傚父鎬庝箞澶勭悊") is False
 
     def test_parse_json_nested_failure(self):
         from agent.processors.structure_ingest import _parse_json
@@ -356,17 +358,17 @@ class TestL3ProcessorsWithLLM:
         default_l1 = next(iter(tree)) if tree else ""
         default_l2 = tree[default_l1][0] if tree and tree.get(default_l1) else ""
 
-        state = AgentState(raw_question="ETC扣费异常", raw_answer="答案")
+        state = AgentState(raw_question="ETC鎵ｈ垂寮傚父", raw_answer="绛旀")
         parsed = {
-            "question": "扣费异常怎么处理",
-            "answer": "测试答案",
+            "question": "鎵ｈ垂寮傚父鎬庝箞澶勭悊",
+            "answer": "娴嬭瘯绛旀",
             "category_l1": default_l1,
             "category_l2": default_l2,
             "category_confidence": 0.9,
             "internal_process": "",
             "feedback_dept": "",
         }
-        result = _process_parsed_result(parsed, "ETC扣费异常", "答案", tree, default_l1, default_l2, state)
+        result = _process_parsed_result(parsed, "ETC鎵ｈ垂寮傚父", "绛旀", tree, default_l1, default_l2, state)
         assert result["needs_review"] is True
 
     def test_process_parsed_result_invalid_confidence(self, mysql_conn):
@@ -382,17 +384,17 @@ class TestL3ProcessorsWithLLM:
         default_l1 = next(iter(tree)) if tree else ""
         default_l2 = tree[default_l1][0] if tree and tree.get(default_l1) else ""
 
-        state = AgentState(raw_question="ETC测试", raw_answer="答案")
+        state = AgentState(raw_question="ETC娴嬭瘯", raw_answer="绛旀")
         parsed = {
-            "question": "ETC测试问题",
-            "answer": "测试答案",
+            "question": "ETC娴嬭瘯闂",
+            "answer": "娴嬭瘯绛旀",
             "category_l1": default_l1,
             "category_l2": default_l2,
             "category_confidence": "not_a_number",
             "internal_process": "",
             "feedback_dept": "",
         }
-        result = _process_parsed_result(parsed, "ETC测试", "答案", tree, default_l1, default_l2, state)
+        result = _process_parsed_result(parsed, "ETC娴嬭瘯", "绛旀", tree, default_l1, default_l2, state)
         assert "category_confidence" in result
 
     def test_process_parsed_result_invalid_l2(self, mysql_conn):
@@ -408,15 +410,140 @@ class TestL3ProcessorsWithLLM:
         default_l1 = next(iter(tree)) if tree else ""
         default_l2 = tree[default_l1][0] if tree and tree.get(default_l1) else ""
 
-        state = AgentState(raw_question="ETC测试", raw_answer="答案")
+        state = AgentState(raw_question="ETC娴嬭瘯", raw_answer="绛旀")
         parsed = {
-            "question": "ETC测试问题",
-            "answer": "测试答案",
+            "question": "ETC娴嬭瘯闂",
+            "answer": "娴嬭瘯绛旀",
             "category_l1": default_l1,
-            "category_l2": "不存在的子分类",
+            "category_l2": "涓嶅瓨鍦ㄧ殑瀛愬垎绫?,
             "category_confidence": 0.9,
             "internal_process": "",
             "feedback_dept": "",
         }
-        result = _process_parsed_result(parsed, "ETC测试", "答案", tree, default_l1, default_l2, state)
+        result = _process_parsed_result(parsed, "ETC娴嬭瘯", "绛旀", tree, default_l1, default_l2, state)
         assert "category_l2" in result
+
+
+@pytest.mark.integration
+class TestL2StructureIngestStructuredResult:
+    def test_process_structured_result_invalid_l1(self):
+        from agent.output_schemas import StructureIngestOutput
+        from agent.processors.structure_ingest import _process_structured_result
+        from agent.state import AgentState
+
+        mock_result = StructureIngestOutput(
+            question="ETC璁惧鏁呴殰",
+            answer="璇锋鏌BU璁惧",
+            category_l1="涓嶅瓨鍦ㄧ殑鍒嗙被",
+            category_l2="瀛愬垎绫?,
+            category_confidence=0.8,
+            internal_process="妫€鏌ヨ澶?,
+            feedback_dept="杩愮淮閮?,
+        )
+        state = AgentState(raw_question="ETC璁惧鏁呴殰", raw_answer="璇锋鏌BU璁惧")
+        tree = {"鍞悗涓氬姟": ["璁惧寮傚父", "璐﹀崟闂"]}
+        result = _process_structured_result(mock_result, "ETC璁惧鏁呴殰", "璇锋鏌BU璁惧", tree, "鍞悗涓氬姟", "璁惧寮傚父", state)
+        assert result["category_l1"] == "鍞悗涓氬姟"
+        assert result["category_l2"] == "璁惧寮傚父"
+
+    def test_process_structured_result_invalid_l2(self):
+        from agent.output_schemas import StructureIngestOutput
+        from agent.processors.structure_ingest import _process_structured_result
+        from agent.state import AgentState
+
+        mock_result = StructureIngestOutput(
+            question="ETC鎵ｈ垂寮傚父",
+            answer="璇锋煡鐪嬭处鍗?,
+            category_l1="鍞悗涓氬姟",
+            category_l2="涓嶅瓨鍦ㄧ殑瀛愬垎绫?,
+            category_confidence=0.8,
+            internal_process="鏌ョ湅璐﹀崟",
+            feedback_dept="瀹㈡湇閮?,
+        )
+        state = AgentState(raw_question="ETC鎵ｈ垂寮傚父", raw_answer="璇锋煡鐪嬭处鍗?)
+        tree = {"鍞悗涓氬姟": ["璁惧寮傚父", "璐﹀崟闂"]}
+        result = _process_structured_result(mock_result, "ETC鎵ｈ垂寮傚父", "璇锋煡鐪嬭处鍗?, tree, "鍞悗涓氬姟", "璁惧寮傚父", state)
+        assert result["category_l1"] == "鍞悗涓氬姟"
+        assert result["category_l2"] == "璁惧寮傚父"
+
+    def test_process_structured_result_hallucination(self):
+        from agent.output_schemas import StructureIngestOutput
+        from agent.processors.structure_ingest import _process_structured_result
+        from agent.state import AgentState
+
+        mock_result = StructureIngestOutput(
+            question="ETC璁惧鏁呴殰閾惰鍗￠€€娆?,
+            answer="璇锋鏌BU璁惧",
+            category_l1="鍞悗涓氬姟",
+            category_l2="璁惧寮傚父",
+            category_confidence=0.8,
+            internal_process="妫€鏌ヨ澶?,
+            feedback_dept="杩愮淮閮?,
+        )
+        state = AgentState(raw_question="ETC璁惧鏁呴殰", raw_answer="璇锋鏌BU璁惧")
+        tree = {"鍞悗涓氬姟": ["璁惧寮傚父"]}
+        with patch('agent.processors.structure_ingest._get_kw_lists', return_value=(["閾惰鍗?, "閫€娆?], ["ETC"])):
+            result = _process_structured_result(mock_result, "ETC璁惧鏁呴殰", "璇锋鏌BU璁惧", tree, "鍞悗涓氬姟", "璁惧寮傚父", state)
+        assert result["question"] == "ETC璁惧鏁呴殰"
+        assert result["needs_review"] is True
+
+    def test_process_structured_result_lost_keywords(self):
+        from agent.output_schemas import StructureIngestOutput
+        from agent.processors.structure_ingest import _process_structured_result
+        from agent.state import AgentState
+
+        mock_result = StructureIngestOutput(
+            question="璁惧鏁呴殰",
+            answer="璇锋鏌BU璁惧",
+            category_l1="鍞悗涓氬姟",
+            category_l2="璁惧寮傚父",
+            category_confidence=0.8,
+            internal_process="妫€鏌ヨ澶?,
+            feedback_dept="杩愮淮閮?,
+        )
+        state = AgentState(raw_question="ETC璁惧鏁呴殰", raw_answer="璇锋鏌BU璁惧")
+        tree = {"鍞悗涓氬姟": ["璁惧寮傚父"]}
+        with patch('agent.processors.structure_ingest._get_kw_lists', return_value=(["閾惰鍗?], ["ETC"])):
+            result = _process_structured_result(mock_result, "ETC璁惧鏁呴殰", "璇锋鏌BU璁惧", tree, "鍞悗涓氬姟", "璁惧寮傚父", state)
+        assert result["needs_review"] is True
+
+    def test_process_structured_result_short_rewrite(self):
+        from agent.output_schemas import StructureIngestOutput
+        from agent.processors.structure_ingest import _process_structured_result
+        from agent.state import AgentState
+
+        mock_result = StructureIngestOutput(
+            question="E",
+            answer="璇锋鏌BU璁惧",
+            category_l1="鍞悗涓氬姟",
+            category_l2="璁惧寮傚父",
+            category_confidence=0.8,
+            internal_process="妫€鏌ヨ澶?,
+            feedback_dept="杩愮淮閮?,
+        )
+        state = AgentState(raw_question="ETC璁惧鏁呴殰", raw_answer="璇锋鏌BU璁惧")
+        tree = {"鍞悗涓氬姟": ["璁惧寮傚父"]}
+        with patch('agent.processors.structure_ingest._get_kw_lists', return_value=(["閾惰鍗?], ["ETC"])):
+            result = _process_structured_result(mock_result, "ETC璁惧鏁呴殰", "璇锋鏌BU璁惧", tree, "鍞悗涓氬姟", "璁惧寮傚父", state)
+        assert result["question"] == "ETC璁惧鏁呴殰"
+        assert result["needs_review"] is True
+
+    def test_process_structured_result_low_confidence(self):
+        from agent.output_schemas import StructureIngestOutput
+        from agent.processors.structure_ingest import _process_structured_result
+        from agent.state import AgentState
+
+        mock_result = StructureIngestOutput(
+            question="ETC璁惧鏁呴殰",
+            answer="璇锋鏌BU璁惧",
+            category_l1="鍞悗涓氬姟",
+            category_l2="璁惧寮傚父",
+            category_confidence=0.2,
+            internal_process="妫€鏌ヨ澶?,
+            feedback_dept="杩愮淮閮?,
+        )
+        state = AgentState(raw_question="ETC璁惧鏁呴殰", raw_answer="璇锋鏌BU璁惧")
+        tree = {"鍞悗涓氬姟": ["璁惧寮傚父"]}
+        with patch('agent.processors.structure_ingest._get_kw_lists', return_value=(["閾惰鍗?], ["ETC"])):
+            result = _process_structured_result(mock_result, "ETC璁惧鏁呴殰", "璇锋鏌BU璁惧", tree, "鍞悗涓氬姟", "璁惧寮傚父", state)
+        assert result["needs_review"] is True

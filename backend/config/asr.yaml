@@ -1,4 +1,4 @@
-asr:
+﻿asr:
   enabled: true
   model: "FunAudioLLM/Fun-ASR-Nano-2512"
   finetuned_path: ""
@@ -8,17 +8,101 @@ asr:
   device: "cuda"
   use_vllm: false
   tensor_parallel_size: 1
+  hotwords:
+    - "ETC"
+    - "OBU"
+    - "钃濈墮"
+    - "瑙ｆ偁"
+    - "95022"
+    - "4000-543-986"
+    - "4006-898-888"
+    - "95787"
+    - "鎵ｈ垂"
+    - "閫€娆?
+    - "娉ㄩ攢"
+    - "婵€娲?
+    - "鍏呭€?
+    - "鍙戠エ"
+    - "榛戝悕鍗?
+    - "閫氳璐?
+  preprocess:
+    vad_enabled: false
+    denoise_enabled: false
+    sample_rate: 16000
+    min_speech_duration: 0.5
+    min_silence_duration: 0.3
+    speech_pad_ms: 200
+    denoise_strength: 0.03
+  diarize:
+    enabled: ${ASR_DIARIZE_ENABLED:false}
+    model: "pyannote/speaker-diarization-community-1"
+    hf_token: ${HUGGINGFACE_TOKEN:}
+    device: "cuda"
+    num_speakers: null
+    min_speakers: null
+    max_speakers: null
+  streaming:
+    enabled: ${ASR_STREAMING_ENABLED:false}
+    mode: ${ASR_STREAMING_MODE:pseudo}
+    device: "cuda"
+    local_model: "C:\\Users\\wlh19\\.cache\\modelscope\\hub\\models\\shuai1618\\paraformer-zh-streaming"
+    auto_query: ${ASR_STREAMING_AUTO_QUERY:false}
+    min_query_length: 4
+    filter_greeting: true
+    speaker_filter: ""
+    speaker_mode: "none"
+    channel_customer_side: "left"
+    accumulate_mode: "sentence"
+    accumulate_max_sentences: 3
+    accumulate_silence_timeout: 2.0
+    dedup_enabled: true
+    dedup_similarity: 0.8
+    dedup_min_interval: 5.0
+    correction_enabled: true
+    coreference_enabled: true
+    context_window_size: 3
+    vad_trigger_enabled: false
+    silence_threshold: 0.01
+    silence_duration_ms: 500
+    min_utterance_ms: 300
+    vad_silence_threshold: 2.0
+    diarize_trigger_enabled: false
+    diarize_audio_window: 5.0
+    diarize_default_customer: "SPEAKER_00"
+    hotwords:
+      - "ETC"
+      - "OBU"
+      - "钃濈墮"
+      - "瑙ｆ偁"
+      - "95022"
+      - "鎵ｈ垂"
+      - "閫€娆?
+      - "娉ㄩ攢"
+      - "婵€娲?
+    alicloud:
+      app_key: ${ALICLOUD_ASR_APP_KEY:}
+      access_key_id: ${ALICLOUD_ASR_ACCESS_KEY_ID:}
+      access_key_secret: ${ALICLOUD_ASR_ACCESS_KEY_SECRET:}
+      sample_rate: 16000
+      format: "pcm"
   corrections:
-    "一体机": "ETC"
-    "一提西": "ETC"
-    "一体c": "ETC"
-    "欧比优": "OBU"
-    "欧布": "OBU"
-    "蓝呀": "蓝牙"
-    "兰牙": "蓝牙"
-    "解优": "解悠"
-    "捷悠": "解悠"
-    "九五零二二": "95022"
-    "四零零零五四三九八六": "4000-543-986"
-    "四零零六八九八八八八": "4006-898-888"
-    "九五七八七": "95787"
+    "涓€浣撴満": "ETC"
+    "涓€鎻愯タ": "ETC"
+    "涓€浣揷": "ETC"
+    "娆ф瘮浼?: "OBU"
+    "娆у竷": "OBU"
+    "钃濆憖": "钃濈墮"
+    "鍏扮墮": "钃濈墮"
+    "瑙ｄ紭": "瑙ｆ偁"
+    "鎹锋偁": "瑙ｆ偁"
+    "涔濅簲闆朵簩浜?: "95022"
+    "鍥涢浂闆堕浂浜斿洓涓変節鍏叚": "4000-543-986"
+    "鍥涢浂闆跺叚鍏節鍏叓鍏叓": "4006-898-888"
+    "涔濅簲涓冨叓涓?: "95787"
+    "E T C": "ETC"
+    "e t c": "ETC"
+    "O B U": "OBU"
+    "o b u": "OBU"
+    "A P P": "APP"
+    "9 5 0 2 2": "95022"
+    "4 0 0 0": "4000"

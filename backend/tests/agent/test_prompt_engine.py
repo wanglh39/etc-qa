@@ -1,4 +1,4 @@
-import time
+﻿import time
 from unittest.mock import MagicMock, patch
 
 from agent.prompt_engine import PromptEngine, _template_cache, get_prompt_engine
@@ -26,23 +26,23 @@ class TestPromptEngineRender:
         mock_mysql_cls.return_value = mock_mysql
 
         engine = PromptEngine()
-        fallback = "你好{{enterprise_name}}，品牌:{{brand_keywords_str}}"
+        fallback = "浣犲ソ{{enterprise_name}}锛屽搧鐗?{{brand_keywords_str}}"
         result = engine.render("test_key", fallback)
 
         assert "ETC" in result
-        assert "品牌:ETC" in result
+        assert "鍝佺墝:ETC" in result
 
     @patch("agent.prompt_engine.get_business_config")
     @patch("agent.prompt_engine.MySQLClient")
     def test_db_template_takes_priority(self, mock_mysql_cls, mock_cfg):
         mock_cfg.side_effect = lambda key, default=None: "ETC" if key == "enterprise_name" else default
         mock_mysql = MagicMock()
-        mock_mysql.get_prompt_template.return_value = "DB模板: {{enterprise_name}}"
+        mock_mysql.get_prompt_template.return_value = "DB妯℃澘: {{enterprise_name}}"
         mock_mysql_cls.return_value = mock_mysql
 
         engine = PromptEngine()
         result = engine.render("test_key", "fallback: {{enterprise_name}}")
-        assert result == "DB模板: ETC"
+        assert result == "DB妯℃澘: ETC"
 
     @patch("agent.prompt_engine.get_business_config")
     @patch("agent.prompt_engine.MySQLClient")
@@ -55,7 +55,7 @@ class TestPromptEngineRender:
         engine = PromptEngine()
         try:
             engine.render("no_exist", "")
-            assert False, "应抛ValueError"
+            assert False, "搴旀姏ValueError"
         except ValueError:
             pass
 
@@ -68,15 +68,15 @@ class TestPromptEngineRender:
         mock_mysql_cls.return_value = mock_mysql
 
         engine = PromptEngine()
-        result = engine.render("key", "问题:{{question}}", question="我的ETC坏了")
-        assert "问题:我的ETC坏了" in result
+        result = engine.render("key", "闂:{{question}}", question="鎴戠殑ETC鍧忎簡")
+        assert "闂:鎴戠殑ETC鍧忎簡" in result
 
     @patch("agent.prompt_engine.get_business_config")
     @patch("agent.prompt_engine.MySQLClient")
     def test_template_cache_hit(self, mock_mysql_cls, mock_cfg):
         mock_cfg.side_effect = lambda key, default=None: "ETC" if key == "enterprise_name" else default
         mock_mysql = MagicMock()
-        mock_mysql.get_prompt_template.return_value = "缓存模板: {{enterprise_name}}"
+        mock_mysql.get_prompt_template.return_value = "缂撳瓨妯℃澘: {{enterprise_name}}"
         mock_mysql_cls.return_value = mock_mysql
 
         engine = PromptEngine()
@@ -89,7 +89,7 @@ class TestPromptEngineRender:
     def test_invalidate_cache_forces_reload(self, mock_mysql_cls, mock_cfg):
         mock_cfg.side_effect = lambda key, default=None: "ETC" if key == "enterprise_name" else default
         mock_mysql = MagicMock()
-        mock_mysql.get_prompt_template.return_value = "模板: {{enterprise_name}}"
+        mock_mysql.get_prompt_template.return_value = "妯℃澘: {{enterprise_name}}"
         mock_mysql_cls.return_value = mock_mysql
 
         engine = PromptEngine()
@@ -103,7 +103,7 @@ class TestPromptEngineRender:
     def test_invalidate_all_cache(self, mock_mysql_cls, mock_cfg):
         mock_cfg.side_effect = lambda key, default=None: "ETC" if key == "enterprise_name" else default
         mock_mysql = MagicMock()
-        mock_mysql.get_prompt_template.return_value = "模板: {{enterprise_name}}"
+        mock_mysql.get_prompt_template.return_value = "妯℃澘: {{enterprise_name}}"
         mock_mysql_cls.return_value = mock_mysql
 
         engine = PromptEngine()
@@ -172,8 +172,8 @@ class TestPromptEngineShadowAndEdgeCases:
         mock_template = MagicMock()
         mock_template.render.side_effect = Exception("render crash")
         with patch.object(engine._env, "from_string", return_value=mock_template):
-            result = engine.render("err_key", "问题: {question}", question="测试")
-        assert "测试" in result
+            result = engine.render("err_key", "闂: {question}", question="娴嬭瘯")
+        assert "娴嬭瘯" in result
 
     @patch("agent.prompt_engine.get_business_config")
     @patch("agent.prompt_engine.MySQLClient")
@@ -195,8 +195,8 @@ class TestPromptEngineShadowAndEdgeCases:
              patch("prompt.shadow_recorder.record_shadow") as mock_record:
             engine = PromptEngine()
             engine.enable_shadow(True)
-            result = engine.render("shadow_key", "主模板: {{enterprise_name}}")
-            assert result == "主模板: ETC"
+            result = engine.render("shadow_key", "涓绘ā鏉? {{enterprise_name}}")
+            assert result == "涓绘ā鏉? ETC"
             mock_record.assert_called_once()
 
     @patch("agent.prompt_engine.get_business_config")
@@ -219,8 +219,8 @@ class TestPromptEngineShadowAndEdgeCases:
              patch("prompt.shadow_recorder.record_shadow") as mock_record:
             engine = PromptEngine()
             engine.enable_shadow(True)
-            result = engine.render("no_shadow_key", "主模板: {{enterprise_name}}")
-            assert result == "主模板: ETC"
+            result = engine.render("no_shadow_key", "涓绘ā鏉? {{enterprise_name}}")
+            assert result == "涓绘ā鏉? ETC"
             mock_record.assert_not_called()
 
     @patch("agent.prompt_engine.get_business_config")
@@ -243,8 +243,8 @@ class TestPromptEngineShadowAndEdgeCases:
         with patch("prompt.version_manager.get_version_manager", return_value=mock_vm):
             engine = PromptEngine()
             engine.enable_shadow(True)
-            result = engine.render("err_shadow_key", "主模板: {{enterprise_name}}")
-            assert result == "主模板: ETC"
+            result = engine.render("err_shadow_key", "涓绘ā鏉? {{enterprise_name}}")
+            assert result == "涓绘ā鏉? ETC"
 
     @patch("agent.prompt_engine.get_business_config")
     @patch("agent.prompt_engine.MySQLClient")
@@ -266,7 +266,7 @@ class TestPromptEngineShadowAndEdgeCases:
     def test_cache_expired_reloads(self, mock_mysql_cls, mock_cfg):
         mock_cfg.side_effect = lambda key, default=None: "ETC" if key == "enterprise_name" else default
         mock_mysql = MagicMock()
-        mock_mysql.get_prompt_template.return_value = "模板: {{enterprise_name}}"
+        mock_mysql.get_prompt_template.return_value = "妯℃澘: {{enterprise_name}}"
         mock_mysql_cls.return_value = mock_mysql
 
         engine = PromptEngine()
@@ -286,6 +286,136 @@ class TestPromptEngineShadowAndEdgeCases:
         engine = PromptEngine()
         result = engine.render("empty_db_key", "fallback: {{enterprise_name}}")
         assert result == "fallback: ETC"
+
+
+class TestPromptEngineFileTemplate:
+    def setup_method(self):
+        _clear_cache()
+
+    @patch("agent.prompt_engine.get_business_config")
+    @patch("agent.prompt_engine.MySQLClient")
+    def test_load_file_template_success(self, mock_mysql_cls, mock_cfg):
+        mock_cfg.side_effect = lambda key, default=None: "ETC" if key == "enterprise_name" else default
+        mock_mysql = MagicMock()
+        mock_mysql_cls.return_value = mock_mysql
+
+        engine = PromptEngine()
+        text = engine._load_file_template("judge")
+        assert text != ""
+        assert "{{enterprise_name}}" in text
+        assert "{{question}}" in text
+
+    @patch("agent.prompt_engine.get_business_config")
+    @patch("agent.prompt_engine.MySQLClient")
+    def test_load_file_template_not_found(self, mock_mysql_cls, mock_cfg):
+        mock_cfg.side_effect = lambda key, default=None: "ETC" if key == "enterprise_name" else default
+        mock_mysql = MagicMock()
+        mock_mysql_cls.return_value = mock_mysql
+
+        engine = PromptEngine()
+        text = engine._load_file_template("nonexistent_key_xyz")
+        assert text == ""
+
+    @patch("agent.prompt_engine.get_business_config")
+    @patch("agent.prompt_engine.MySQLClient")
+    def test_file_template_takes_priority_over_db(self, mock_mysql_cls, mock_cfg):
+        mock_cfg.side_effect = lambda key, default=None: "ETC" if key == "enterprise_name" else default
+        mock_mysql = MagicMock()
+        mock_mysql.get_prompt_template.return_value = "DB妯℃澘: {{enterprise_name}}"
+        mock_mysql_cls.return_value = mock_mysql
+
+        engine = PromptEngine()
+        result = engine.render("judge", "fallback: {{enterprise_name}}")
+        assert "DB妯℃澘" not in result
+        assert "瀹㈡湇闂鏍囧噯鍖栧姪鎵? in result
+        assert mock_mysql.get_prompt_template.call_count == 0
+
+    @patch("agent.prompt_engine.get_business_config")
+    @patch("agent.prompt_engine.MySQLClient")
+    def test_file_template_takes_priority_over_fallback(self, mock_mysql_cls, mock_cfg):
+        mock_cfg.side_effect = lambda key, default=None: "ETC" if key == "enterprise_name" else default
+        mock_mysql = MagicMock()
+        mock_mysql.get_prompt_template.return_value = ""
+        mock_mysql_cls.return_value = mock_mysql
+
+        engine = PromptEngine()
+        result = engine.render("judge", "fallback: {{enterprise_name}}")
+        assert "瀹㈡湇闂鏍囧噯鍖栧姪鎵? in result
+        assert "fallback" not in result
+
+    @patch("agent.prompt_engine.get_business_config")
+    @patch("agent.prompt_engine.MySQLClient")
+    def test_db_used_when_file_not_found(self, mock_mysql_cls, mock_cfg):
+        mock_cfg.side_effect = lambda key, default=None: "ETC" if key == "enterprise_name" else default
+        mock_mysql = MagicMock()
+        mock_mysql.get_prompt_template.return_value = "DB妯℃澘: {{enterprise_name}}"
+        mock_mysql_cls.return_value = mock_mysql
+
+        engine = PromptEngine()
+        result = engine.render("custom_key_no_file", "fallback: {{enterprise_name}}")
+        assert result == "DB妯℃澘: ETC"
+
+    @patch("agent.prompt_engine.get_business_config")
+    @patch("agent.prompt_engine.MySQLClient")
+    def test_fallback_used_when_neither_file_nor_db(self, mock_mysql_cls, mock_cfg):
+        mock_cfg.side_effect = lambda key, default=None: "ETC" if key == "enterprise_name" else default
+        mock_mysql = MagicMock()
+        mock_mysql.get_prompt_template.return_value = ""
+        mock_mysql_cls.return_value = mock_mysql
+
+        engine = PromptEngine()
+        result = engine.render("no_file_no_db", "fallback: {{enterprise_name}}")
+        assert result == "fallback: ETC"
+
+    @patch("agent.prompt_engine.get_business_config")
+    @patch("agent.prompt_engine.MySQLClient")
+    def test_file_template_renders_with_variables(self, mock_mysql_cls, mock_cfg):
+        mock_cfg.side_effect = lambda key, default=None: {
+            "enterprise_name": "ETC",
+            "brand_keywords": ["ETC", "etc"],
+            "must_preserve_kws": [],
+            "forbidden_new_kws": [],
+        }.get(key, default)
+        mock_mysql = MagicMock()
+        mock_mysql.get_prompt_template.return_value = ""
+        mock_mysql_cls.return_value = mock_mysql
+
+        engine = PromptEngine()
+        result = engine.render(
+            "judge", "fallback",
+            question="鎴戠殑ETC鍧忎簡",
+            min_length=5, max_length=30,
+            judge_no_rewrite_examples="绀轰緥",
+            judge_rewrite_examples="绀轰緥",
+        )
+        assert "ETC" in result
+        assert "鎴戠殑ETC鍧忎簡" in result
+
+    @patch("agent.prompt_engine.get_business_config")
+    @patch("agent.prompt_engine.MySQLClient")
+    def test_file_template_cached_no_db_call(self, mock_mysql_cls, mock_cfg):
+        mock_cfg.side_effect = lambda key, default=None: "ETC" if key == "enterprise_name" else default
+        mock_mysql = MagicMock()
+        mock_mysql.get_prompt_template.return_value = ""
+        mock_mysql_cls.return_value = mock_mysql
+
+        engine = PromptEngine()
+        engine.render("judge", "fallback")
+        engine.render("judge", "fallback")
+        assert mock_mysql.get_prompt_template.call_count == 0
+
+    @patch("agent.prompt_engine.get_business_config")
+    @patch("agent.prompt_engine.MySQLClient")
+    def test_all_four_templates_loadable(self, mock_mysql_cls, mock_cfg):
+        mock_cfg.side_effect = lambda key, default=None: "ETC" if key == "enterprise_name" else default
+        mock_mysql = MagicMock()
+        mock_mysql_cls.return_value = mock_mysql
+
+        engine = PromptEngine()
+        for key in ("judge", "hyde_judge", "hyde", "structure_ingest"):
+            text = engine._load_file_template(key)
+            assert text != "", f"{key}.j2搴斿瓨鍦ㄤ笖闈炵┖"
+            assert "{{enterprise_name}}" in text, f"{key}.j2搴斿寘鍚玡nterprise_name鍙橀噺"
 
 
 class TestGetPromptEngine:

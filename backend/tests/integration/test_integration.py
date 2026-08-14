@@ -1,4 +1,5 @@
-import os
+﻿import os
+from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
@@ -32,16 +33,16 @@ class TestL1MySQLConnection:
 
     def test_insert_and_query(self, mysql_conn):
         qa_id = mysql_conn.insert_qa(
-            question="集成测试问题_L1",
-            answer="集成测试答案",
-            category_l1="测试",
-            category_l2="集成",
+            question="闆嗘垚娴嬭瘯闂_L1",
+            answer="闆嗘垚娴嬭瘯绛旀",
+            category_l1="娴嬭瘯",
+            category_l2="闆嗘垚",
         )
         assert qa_id > 0
 
         record = mysql_conn.get_qa_detail(qa_id)
         assert record is not None
-        assert record["question"] == "集成测试问题_L1"
+        assert record["question"] == "闆嗘垚娴嬭瘯闂_L1"
 
         mysql_conn.update_qa_status(qa_id, "deprecated")
         ids = mysql_conn.get_active_ids()
@@ -59,7 +60,7 @@ class TestL1MySQLConnection:
         assert "active" in counts
 
     def test_config_read_write(self, mysql_conn):
-        mysql_conn.set_config("test_int_key", {"val": "test_value"}, "集成测试")
+        mysql_conn.set_config("test_int_key", {"val": "test_value"}, "闆嗘垚娴嬭瘯")
         result = mysql_conn.get_config("test_int_key")
         assert result is not None
 
@@ -74,33 +75,33 @@ class TestL1MySQLConnection:
         assert "total" in result
 
     def test_qa_list_with_category(self, mysql_conn):
-        result = mysql_conn.get_qa_list(page=1, page_size=5, category_l1="售后业务")
+        result = mysql_conn.get_qa_list(page=1, page_size=5, category_l1="鍞悗涓氬姟")
         assert "items" in result
 
     def test_qa_detail(self, mysql_conn):
         qa_id = mysql_conn.insert_qa(
-            question="集成测试详情查询",
-            answer="详情答案",
-            category_l1="测试",
+            question="闆嗘垚娴嬭瘯璇︽儏鏌ヨ",
+            answer="璇︽儏绛旀",
+            category_l1="娴嬭瘯",
         )
         detail = mysql_conn.get_qa_detail(qa_id)
         assert detail is not None
-        assert detail["question"] == "集成测试详情查询"
+        assert detail["question"] == "闆嗘垚娴嬭瘯璇︽儏鏌ヨ"
         mysql_conn.delete_qa(qa_id)
 
     def test_delete_qa(self, mysql_conn):
         qa_id = mysql_conn.insert_qa(
-            question="集成测试删除",
-            answer="待删除",
+            question="闆嗘垚娴嬭瘯鍒犻櫎",
+            answer="寰呭垹闄?,
         )
         assert mysql_conn.delete_qa(qa_id) is True
         assert mysql_conn.delete_qa(999999) is False
 
     def test_work_order_crud(self, mysql_conn):
-        wo_id = mysql_conn.insert_work_order("WO_INT_001", "工单集成测试")
+        wo_id = mysql_conn.insert_work_order("WO_INT_001", "宸ュ崟闆嗘垚娴嬭瘯")
         assert wo_id > 0
 
-        mysql_conn.update_work_order("WO_INT_001", "已处理", "processed")
+        mysql_conn.update_work_order("WO_INT_001", "宸插鐞?, "processed")
         by_status = mysql_conn.get_work_orders_by_status("processed")
         assert any(wo["external_id"] == "WO_INT_001" for wo in by_status)
 
@@ -109,23 +110,23 @@ class TestL1MySQLConnection:
     def test_get_by_ids(self, mysql_conn):
         ids = mysql_conn.get_active_ids()
         if not ids:
-            pytest.skip("无活跃QA数据")
+            pytest.skip("鏃犳椿璺僎A鏁版嵁")
         results = mysql_conn.get_by_ids(ids[:3])
         assert isinstance(results, list)
 
     def test_get_by_id(self, mysql_conn):
-        qa_id = mysql_conn.insert_qa(question="集成测试get_by_id", answer="答案")
+        qa_id = mysql_conn.insert_qa(question="闆嗘垚娴嬭瘯get_by_id", answer="绛旀")
         result = mysql_conn.get_by_id(qa_id)
         assert result is not None
         assert result["id"] == qa_id
         mysql_conn.delete_qa(qa_id)
 
     def test_search_qa_with_filters(self, mysql_conn):
-        result = mysql_conn.search_qa(keyword="ETC", category_l1="售后业务", page=1, page_size=5)
+        result = mysql_conn.search_qa(keyword="ETC", category_l1="鍞悗涓氬姟", page=1, page_size=5)
         assert "items" in result
 
     def test_config_set_and_get(self, mysql_conn):
-        mysql_conn.set_config("test_int_config", {"val": 42}, "集成测试")
+        mysql_conn.set_config("test_int_config", {"val": 42}, "闆嗘垚娴嬭瘯")
         result = mysql_conn.get_config("test_int_config")
         assert result is not None
 
@@ -140,7 +141,7 @@ class TestL1MySQLConnection:
             mysql_conn._reset_conn()
 
     def test_prompt_template_crud(self, mysql_conn):
-        mysql_conn.set_prompt_template("test_int_tpl", "模板内容 {{q}}", "集成测试模板")
+        mysql_conn.set_prompt_template("test_int_tpl", "妯℃澘鍐呭 {{q}}", "闆嗘垚娴嬭瘯妯℃澘")
         result = mysql_conn.get_prompt_template("test_int_tpl")
         assert result != ""
         assert "{{q}}" in result
@@ -160,7 +161,7 @@ class TestL1MySQLConnection:
         assert result == []
 
     def test_get_by_ids_inactive(self, mysql_conn):
-        qa_id = mysql_conn.insert_qa(question="集成测试inactive", answer="答案")
+        qa_id = mysql_conn.insert_qa(question="闆嗘垚娴嬭瘯inactive", answer="绛旀")
         mysql_conn.update_qa_status(qa_id, "deprecated")
         result = mysql_conn.get_by_ids([qa_id], only_active=False)
         assert isinstance(result, list)
@@ -201,7 +202,7 @@ class TestL1MySQLConnection:
 
     def test_set_config_string_value(self, mysql_conn):
         import json
-        mysql_conn.set_config("test_str_cfg", json.dumps("字符串值"), "字符串配置测试")
+        mysql_conn.set_config("test_str_cfg", json.dumps("瀛楃涓插€?), "瀛楃涓查厤缃祴璇?)
         result = mysql_conn.get_config("test_str_cfg")
         assert result is not None
         conn = mysql_conn._get_conn()
@@ -230,8 +231,8 @@ class TestL1MilvusConnection:
         cfg = get_config()
         dim = cfg["models"]["embed"]["dim"]
 
-        vector = embed_model.encode(["ETC集成测试问题"], normalize_embeddings=True).tolist()[0]
-        milvus_conn.insert(999999, vector, category_l1="测试")
+        vector = embed_model.encode(["ETC闆嗘垚娴嬭瘯闂"], normalize_embeddings=True).tolist()[0]
+        milvus_conn.insert(999999, vector, category_l1="娴嬭瘯")
 
         results = milvus_conn.search(vector, top_k=3)
         assert isinstance(results, list)
@@ -245,10 +246,10 @@ class TestL1MilvusConnection:
             pass
 
     def test_insert_with_hyde_vectors(self, milvus_conn, embed_model):
-        vector = embed_model.encode(["ETC HyDE测试"], normalize_embeddings=True).tolist()[0]
-        hyde_vec1 = embed_model.encode(["假设性问题1"], normalize_embeddings=True).tolist()[0]
-        hyde_vec2 = embed_model.encode(["假设性问题2"], normalize_embeddings=True).tolist()[0]
-        milvus_conn.insert(999998, vector, category_l1="测试", hyde_vectors=[hyde_vec1, hyde_vec2])
+        vector = embed_model.encode(["ETC HyDE娴嬭瘯"], normalize_embeddings=True).tolist()[0]
+        hyde_vec1 = embed_model.encode(["鍋囪鎬ч棶棰?"], normalize_embeddings=True).tolist()[0]
+        hyde_vec2 = embed_model.encode(["鍋囪鎬ч棶棰?"], normalize_embeddings=True).tolist()[0]
+        milvus_conn.insert(999998, vector, category_l1="娴嬭瘯", hyde_vectors=[hyde_vec1, hyde_vec2])
 
         results = milvus_conn.search(vector, top_k=3)
         assert isinstance(results, list)
@@ -266,22 +267,22 @@ class TestL1MilvusConnection:
     def test_search_with_category_filter(self, milvus_conn, embed_model, mysql_conn):
         active_ids = mysql_conn.get_active_ids()
         if not active_ids:
-            pytest.skip("无活跃QA数据")
-        vector = embed_model.encode(["ETC扣费异常"], normalize_embeddings=True).tolist()[0]
-        results = milvus_conn.search(vector, top_k=5, category_filter="售后业务", active_qa_ids=active_ids)
+            pytest.skip("鏃犳椿璺僎A鏁版嵁")
+        vector = embed_model.encode(["ETC鎵ｈ垂寮傚父"], normalize_embeddings=True).tolist()[0]
+        results = milvus_conn.search(vector, top_k=5, category_filter="鍞悗涓氬姟", active_qa_ids=active_ids)
         assert isinstance(results, list)
 
     def test_search_without_hyde(self, milvus_conn, embed_model, mysql_conn):
         active_ids = mysql_conn.get_active_ids()
         if not active_ids:
-            pytest.skip("无活跃QA数据")
-        vector = embed_model.encode(["ETC设备故障"], normalize_embeddings=True).tolist()[0]
+            pytest.skip("鏃犳椿璺僎A鏁版嵁")
+        vector = embed_model.encode(["ETC璁惧鏁呴殰"], normalize_embeddings=True).tolist()[0]
         results = milvus_conn.search(vector, top_k=5, use_hyde=False, active_qa_ids=active_ids)
         assert isinstance(results, list)
 
     def test_batch_insert(self, milvus_conn, embed_model):
-        vector = embed_model.encode(["批量插入测试"], normalize_embeddings=True).tolist()[0]
-        data = [{"id": 999997, "qa_id": 999997, "vector": vector, "category_l1": "测试", "is_hyde": False}]
+        vector = embed_model.encode(["鎵归噺鎻掑叆娴嬭瘯"], normalize_embeddings=True).tolist()[0]
+        data = [{"id": 999997, "qa_id": 999997, "vector": vector, "category_l1": "娴嬭瘯", "is_hyde": False}]
         milvus_conn.batch_insert(data)
 
         from utils.config import get_config
@@ -311,8 +312,8 @@ class TestL1MilvusConnection:
         assert client is not None
 
     def test_milvus_search_empty_result(self, milvus_conn, embed_model):
-        vector = embed_model.encode(["完全不相关的查询xyz123"], normalize_embeddings=True).tolist()[0]
-        results = milvus_conn.search(vector, top_k=1, category_filter="不存在的分类")
+        vector = embed_model.encode(["瀹屽叏涓嶇浉鍏崇殑鏌ヨxyz123"], normalize_embeddings=True).tolist()[0]
+        results = milvus_conn.search(vector, top_k=1, category_filter="涓嶅瓨鍦ㄧ殑鍒嗙被")
         assert isinstance(results, list)
 
     def test_milvus_ensure_loaded(self, milvus_conn):
@@ -326,26 +327,26 @@ class TestL2RAGRecall:
     def test_vector_recall(self, recall_engine, mysql_conn):
         active_ids = mysql_conn.get_active_ids()
         if not active_ids:
-            pytest.skip("无活跃QA数据，跳过")
+            pytest.skip("鏃犳椿璺僎A鏁版嵁锛岃烦杩?)
 
-        vector = recall_engine.encode_query("ETC扣费异常怎么处理")
+        vector = recall_engine.encode_query("ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊")
         results = recall_engine.vector_recall(vector, active_qa_ids=active_ids)
         assert isinstance(results, list)
 
     def test_bm25_recall(self, bm25_index, mysql_conn):
         active_ids = mysql_conn.get_active_ids()
         if not active_ids:
-            pytest.skip("无活跃QA数据，跳过")
+            pytest.skip("鏃犳椿璺僎A鏁版嵁锛岃烦杩?)
 
-        results = bm25_index.search("ETC扣费异常", top_k=5, active_qa_ids=active_ids)
+        results = bm25_index.search("ETC鎵ｈ垂寮傚父", top_k=5, active_qa_ids=active_ids)
         assert isinstance(results, list)
 
     def test_full_recall(self, recall_engine, mysql_conn):
         active_ids = mysql_conn.get_active_ids()
         if not active_ids:
-            pytest.skip("无活跃QA数据，跳过")
+            pytest.skip("鏃犳椿璺僎A鏁版嵁锛岃烦杩?)
 
-        results = recall_engine.recall("ETC扣费异常怎么处理", active_qa_ids=active_ids)
+        results = recall_engine.recall("ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊", active_qa_ids=active_ids)
         assert isinstance(results, list)
         if results:
             assert isinstance(results[0], tuple)
@@ -354,21 +355,21 @@ class TestL2RAGRecall:
     def test_reranker(self, reranker, recall_engine, mysql_conn):
         active_ids = mysql_conn.get_active_ids()
         if not active_ids:
-            pytest.skip("无活跃QA数据，跳过")
+            pytest.skip("鏃犳椿璺僎A鏁版嵁锛岃烦杩?)
 
-        candidates = recall_engine.recall("ETC扣费异常", active_qa_ids=active_ids)
+        candidates = recall_engine.recall("ETC鎵ｈ垂寮傚父", active_qa_ids=active_ids)
         if not candidates:
-            pytest.skip("召回结果为空，跳过")
+            pytest.skip("鍙洖缁撴灉涓虹┖锛岃烦杩?)
 
-        reranked = reranker.rerank("ETC扣费异常", candidates)
+        reranked = reranker.rerank("ETC鎵ｈ垂寮傚父", candidates)
         assert isinstance(reranked, list)
 
     def test_threshold(self, threshold_judge, recall_engine, mysql_conn):
         active_ids = mysql_conn.get_active_ids()
         if not active_ids:
-            pytest.skip("无活跃QA数据，跳过")
+            pytest.skip("鏃犳椿璺僎A鏁版嵁锛岃烦杩?)
 
-        candidates = recall_engine.recall("ETC扣费异常", active_qa_ids=active_ids)
+        candidates = recall_engine.recall("ETC鎵ｈ垂寮傚父", active_qa_ids=active_ids)
         confidence, filtered = threshold_judge.filter_candidates(candidates)
         assert confidence in ("high", "mid", "low", "none")
         assert isinstance(filtered, list)
@@ -443,16 +444,16 @@ class TestL2RAGRecall:
             _set_threshold_mode(original_mode)
 
     def test_full_query(self, qa_service):
-        result = qa_service.query("ETC扣费异常怎么处理")
+        result = qa_service.query("ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊")
         assert result.confidence in ("high", "mid", "low", "none")
         assert isinstance(result.candidates, list)
 
     def test_query_with_category(self, qa_service):
-        result = qa_service.query("ETC扣费异常", category_l1="售后业务")
+        result = qa_service.query("ETC鎵ｈ垂寮傚父", category_l1="鍞悗涓氬姟")
         assert result.confidence in ("high", "mid", "low", "none")
 
     def test_recall_encode_query(self, recall_engine):
-        vector = recall_engine.encode_query("ETC扣费异常")
+        vector = recall_engine.encode_query("ETC鎵ｈ垂寮傚父")
         assert isinstance(vector, list)
         assert len(vector) > 0
 
@@ -470,14 +471,14 @@ class TestL2RAGRecall:
         assert isinstance(merged, list)
 
     def test_reranker_empty_candidates(self, reranker):
-        result = reranker.rerank("ETC扣费异常", [])
+        result = reranker.rerank("ETC鎵ｈ垂寮傚父", [])
         assert result == []
 
     def test_reranker_disabled(self, mysql_conn):
         from rag.reranker import Reranker
         r = Reranker(None, mysql_client=mysql_conn)
         candidates = [(1, 0.9)]
-        result = r.rerank("测试", candidates)
+        result = r.rerank("娴嬭瘯", candidates)
         assert result == candidates
 
 
@@ -487,7 +488,7 @@ class TestL3AgentPipeline:
         from agent.graph import preprocess_agent
         from agent.state import AgentState
 
-        state = AgentState(raw_question="我想问一下ETC扣费扣多了怎么办啊")
+        state = AgentState(raw_question="鎴戞兂闂竴涓婨TC鎵ｈ垂鎵ｅ浜嗘€庝箞鍔炲晩")
         result = preprocess_agent.invoke(state.model_dump())
         assert "question" in result
         assert result["question"] != ""
@@ -497,8 +498,8 @@ class TestL3AgentPipeline:
         from agent.state import AgentState
 
         state = AgentState(
-            raw_question="ETC重复扣费怎么退款",
-            raw_answer="核实扣费记录后3个工作日退款到原支付账户",
+            raw_question="ETC閲嶅鎵ｈ垂鎬庝箞閫€娆?,
+            raw_answer="鏍稿疄鎵ｈ垂璁板綍鍚?涓伐浣滄棩閫€娆惧埌鍘熸敮浠樿处鎴?,
         )
         result = ingest_agent.invoke(state.model_dump())
         assert "question" in result
@@ -513,7 +514,7 @@ class TestL4APIEndToEnd:
         assert resp.json()["status"] == "ok"
 
     def test_query(self, real_client):
-        resp = real_client.post("/api/v1/query", json={"question": "ETC扣费异常"})
+        resp = real_client.post("/api/v1/query", json={"question": "ETC鎵ｈ垂寮傚父"})
         assert resp.status_code == 200
         data = resp.json()
         assert "confidence" in data
@@ -521,7 +522,7 @@ class TestL4APIEndToEnd:
 
     def test_query_with_category(self, real_client):
         resp = real_client.post("/api/v1/query", json={
-            "question": "ETC扣费异常", "category_l1": "售后业务"
+            "question": "ETC鎵ｈ垂寮傚父", "category_l1": "鍞悗涓氬姟"
         })
         assert resp.status_code == 200
 
@@ -560,8 +561,8 @@ class TestL4APIEndToEnd:
 
     def test_agent_process(self, real_client):
         resp = real_client.post("/api/v1/agent/process", json={
-            "question": "ETC重复扣费怎么退款",
-            "answer": "核实扣费记录后3个工作日退款到原支付账户",
+            "question": "ETC閲嶅鎵ｈ垂鎬庝箞閫€娆?,
+            "answer": "鏍稿疄鎵ｈ垂璁板綍鍚?涓伐浣滄棩閫€娆惧埌鍘熸敮浠樿处鎴?,
         })
         assert resp.status_code == 200
         data = resp.json()
@@ -570,10 +571,10 @@ class TestL4APIEndToEnd:
 
     def test_add_qa_via_api(self, real_client, mysql_conn):
         resp = real_client.post("/api/v1/add", json={
-            "question": "集成测试API添加_ETC设备亮红灯",
-            "answer": "OBU设备红灯闪烁表示电池电量不足，请更换电池",
-            "category_l1": "售后业务",
-            "category_l2": "设备异常",
+            "question": "闆嗘垚娴嬭瘯API娣诲姞_ETC璁惧浜孩鐏?,
+            "answer": "OBU璁惧绾㈢伅闂儊琛ㄧず鐢垫睜鐢甸噺涓嶈冻锛岃鏇存崲鐢垫睜",
+            "category_l1": "鍞悗涓氬姟",
+            "category_l2": "璁惧寮傚父",
         })
         assert resp.status_code == 200
         qa_id = resp.json()["qa_id"]
@@ -581,7 +582,7 @@ class TestL4APIEndToEnd:
         resp = real_client.get(f"/api/v1/qa/{qa_id}")
         assert resp.status_code == 200
         data = resp.json()
-        assert data["question"] == "集成测试API添加_ETC设备亮红灯"
+        assert data["question"] == "闆嗘垚娴嬭瘯API娣诲姞_ETC璁惧浜孩鐏?
 
         resp = real_client.put("/api/v1/qa/status", json={"qa_id": qa_id, "status": "deprecated"})
         assert resp.status_code == 200
@@ -603,18 +604,18 @@ class TestL4APIEndToEnd:
         assert resp.status_code == 400
 
     def test_qa_list_with_filters(self, real_client):
-        resp = real_client.get("/api/v1/qa/list", params={"category_l1": "售后业务", "page_size": 5})
+        resp = real_client.get("/api/v1/qa/list", params={"category_l1": "鍞悗涓氬姟", "page_size": 5})
         assert resp.status_code == 200
 
     def test_qa_search_with_filters(self, real_client):
         resp = real_client.post("/api/v1/qa/search", json={
-            "keyword": "ETC", "category_l1": "售后业务", "page_size": 5,
+            "keyword": "ETC", "category_l1": "鍞悗涓氬姟", "page_size": 5,
         })
         assert resp.status_code == 200
 
     def test_config_update_and_get(self, real_client, mysql_conn):
         resp = real_client.put("/api/v1/config/test_int_cfg", json={
-            "value": {"k": "v"}, "description": "集成测试配置",
+            "value": {"k": "v"}, "description": "闆嗘垚娴嬭瘯閰嶇疆",
         })
         assert resp.status_code == 200
 
@@ -642,13 +643,13 @@ class TestL2WorkOrderClient:
     def test_create_mock_work_order(self):
         from api.work_order.client import WorkOrderClient
         client = WorkOrderClient(use_mock=True)
-        wo_id = client.create_work_order("ETC扣费异常", "售后业务")
+        wo_id = client.create_work_order("ETC鎵ｈ垂寮傚父", "鍞悗涓氬姟")
         assert wo_id.startswith("WO-")
 
     def test_fetch_processed_mock(self):
         from api.work_order.client import WorkOrderClient
         client = WorkOrderClient(use_mock=True)
-        client.create_work_order("ETC退款问题", "售后业务")
+        client.create_work_order("ETC閫€娆鹃棶棰?, "鍞悗涓氬姟")
         results = client.fetch_processed_work_orders()
         assert isinstance(results, list)
 
@@ -656,7 +657,7 @@ class TestL2WorkOrderClient:
         from api.work_order.client import WorkOrderClient
         client = WorkOrderClient(use_mock=False)
         with pytest.raises(NotImplementedError):
-            client.create_work_order("测试", "测试")
+            client.create_work_order("娴嬭瘯", "娴嬭瘯")
 
     def test_real_fetch_not_implemented(self):
         from api.work_order.client import WorkOrderClient
@@ -670,16 +671,16 @@ class TestL2PromptEngine:
     def test_render_with_fallback(self):
         from agent.prompt_engine import PromptEngine
         pe = PromptEngine()
-        result = pe.render("nonexistent_key_xyz", fallback="测试模板 {{question}}", question="ETC扣费")
-        assert "ETC扣费" in result
+        result = pe.render("nonexistent_key_xyz", fallback="娴嬭瘯妯℃澘 {{question}}", question="ETC鎵ｈ垂")
+        assert "ETC鎵ｈ垂" in result
 
     def test_render_with_db_template(self, mysql_conn):
-        mysql_conn.set_prompt_template("test_pe_key", "DB模板 {{question}}", "PE集成测试")
+        mysql_conn.set_prompt_template("test_pe_key", "DB妯℃澘 {{question}}", "PE闆嗘垚娴嬭瘯")
         from agent.prompt_engine import PromptEngine
         pe = PromptEngine()
         PromptEngine.invalidate_cache("test_pe_key")
-        result = pe.render("test_pe_key", fallback="fallback", question="ETC退款")
-        assert "DB模板" in result or "ETC退款" in result
+        result = pe.render("test_pe_key", fallback="fallback", question="ETC閫€娆?)
+        assert "DB妯℃澘" in result or "ETC閫€娆? in result
 
         conn = mysql_conn._get_conn()
         try:
@@ -697,18 +698,18 @@ class TestL2PromptEngine:
         from prompt.version_manager import get_version_manager
         clear_records()
 
-        mysql_conn.set_prompt_template("test_pe_shadow", "主模板 {{question}}", "影子测试")
+        mysql_conn.set_prompt_template("test_pe_shadow", "涓绘ā鏉?{{question}}", "褰卞瓙娴嬭瘯")
 
         vm = get_version_manager()
         vm._mysql = mysql_conn
         vm._cols_cache = None
-        vm.publish("test_pe_shadow", "影子模板 {{question}} 影子版", "影子版本")
+        vm.publish("test_pe_shadow", "褰卞瓙妯℃澘 {{question}} 褰卞瓙鐗?, "褰卞瓙鐗堟湰")
         vm.start_shadow("test_pe_shadow", 2)
 
         pe = PromptEngine()
         pe.enable_shadow(True)
         PromptEngine.invalidate_cache("test_pe_shadow")
-        result = pe.render("test_pe_shadow", fallback="fallback", question="ETC测试")
+        result = pe.render("test_pe_shadow", fallback="fallback", question="ETC娴嬭瘯")
         assert result != ""
 
         stats = get_shadow_stats()
@@ -740,11 +741,11 @@ class TestL2PromptEngine:
             pe.render("nonexistent_key_xyz_999", fallback="")
 
     def test_render_template_syntax_error(self, mysql_conn):
-        mysql_conn.set_prompt_template("test_pe_syntax", "模板 {{question", "语法错误模板")
+        mysql_conn.set_prompt_template("test_pe_syntax", "妯℃澘 {{question", "璇硶閿欒妯℃澘")
         from agent.prompt_engine import PromptEngine
         pe = PromptEngine()
         PromptEngine.invalidate_cache("test_pe_syntax")
-        result = pe.render("test_pe_syntax", fallback="fallback", question="ETC测试")
+        result = pe.render("test_pe_syntax", fallback="fallback", question="ETC娴嬭瘯")
         assert result != ""
 
         conn = mysql_conn._get_conn()
@@ -760,20 +761,20 @@ class TestL2PromptEngine:
     def test_resolve_variables(self):
         from agent.prompt_engine import PromptEngine
         pe = PromptEngine()
-        variables = pe._resolve_variables(question="ETC扣费")
+        variables = pe._resolve_variables(question="ETC鎵ｈ垂")
         assert "enterprise_name" in variables
         assert "brand_keywords" in variables
-        assert variables["question"] == "ETC扣费"
+        assert variables["question"] == "ETC鎵ｈ垂"
 
     def test_cache_hit(self, mysql_conn):
         from agent.prompt_engine import PromptEngine
-        mysql_conn.set_prompt_template("test_pe_cache", "缓存模板 {{question}}", "缓存测试")
+        mysql_conn.set_prompt_template("test_pe_cache", "缂撳瓨妯℃澘 {{question}}", "缂撳瓨娴嬭瘯")
         pe = PromptEngine()
         PromptEngine.invalidate_cache("test_pe_cache")
         result1 = pe.render("test_pe_cache", fallback="fallback", question="ETC1")
         result2 = pe.render("test_pe_cache", fallback="fallback", question="ETC2")
         assert "ETC2" in result2
-        assert result1 != result2 or "缓存模板" in result1
+        assert result1 != result2 or "缂撳瓨妯℃澘" in result1
 
         conn = mysql_conn._get_conn()
         try:
@@ -790,11 +791,11 @@ class TestL2PromptEngine:
         from prompt.shadow_recorder import clear_records
         clear_records()
 
-        mysql_conn.set_prompt_template("test_pe_noshadow", "主模板 {{question}}", "无影子模板")
+        mysql_conn.set_prompt_template("test_pe_noshadow", "涓绘ā鏉?{{question}}", "鏃犲奖瀛愭ā鏉?)
         pe = PromptEngine()
         pe.enable_shadow(True)
         PromptEngine.invalidate_cache("test_pe_noshadow")
-        result = pe.render("test_pe_noshadow", fallback="fallback", question="ETC测试")
+        result = pe.render("test_pe_noshadow", fallback="fallback", question="ETC娴嬭瘯")
         assert result != ""
         pe.enable_shadow(False)
 
@@ -841,21 +842,21 @@ class TestL2RerankerNoMysql:
         from rag.reranker import Reranker
         r = Reranker(None, mysql_client=None)
         candidates = [(1, 0.9)]
-        result = r.rerank("测试", candidates)
+        result = r.rerank("娴嬭瘯", candidates)
         assert result == candidates
 
 
 @pytest.mark.integration
 class TestL2BM25Index:
     def test_bm25_search_no_active_ids(self, bm25_index):
-        results = bm25_index.search("ETC扣费", top_k=5, active_qa_ids=[])
+        results = bm25_index.search("ETC鎵ｈ垂", top_k=5, active_qa_ids=[])
         assert isinstance(results, list)
 
     def test_bm25_search_with_active_ids(self, bm25_index, mysql_conn):
         active_ids = mysql_conn.get_active_ids()
         if not active_ids:
-            pytest.skip("无活跃QA数据")
-        results = bm25_index.search("ETC扣费异常", top_k=5, active_qa_ids=active_ids)
+            pytest.skip("鏃犳椿璺僎A鏁版嵁")
+        results = bm25_index.search("ETC鎵ｈ垂寮傚父", top_k=5, active_qa_ids=active_ids)
         assert isinstance(results, list)
 
 
@@ -869,7 +870,7 @@ class TestL2ConfigCenter:
 
     def test_cache_ttl_expiry(self, mysql_conn):
         from utils.config_center import _cache, _cache_lock, get_business_config, invalidate_cache
-        mysql_conn.set_config("test_cc_ttl", {"v": "1"}, "TTL测试")
+        mysql_conn.set_config("test_cc_ttl", {"v": "1"}, "TTL娴嬭瘯")
         invalidate_cache("test_cc_ttl")
         get_business_config("test_cc_ttl")
         with _cache_lock:
@@ -887,7 +888,7 @@ class TestL2ConfigCenter:
 
     def test_get_prompt_template_from_config_center(self, mysql_conn):
         from utils.config_center import get_prompt_template, invalidate_cache
-        mysql_conn.set_prompt_template("test_cc_ptpl", "CC模板 {{q}}", "CC模板测试")
+        mysql_conn.set_prompt_template("test_cc_ptpl", "CC妯℃澘 {{q}}", "CC妯℃澘娴嬭瘯")
         invalidate_cache("test_cc_ptpl")
         result = get_prompt_template("test_cc_ptpl")
         assert result != ""
@@ -905,7 +906,254 @@ class TestL2ConfigCenter:
     def test_flush_shadow_to_db(self, mysql_conn):
         from prompt.shadow_recorder import clear_records, flush_to_db, get_shadow_stats, record_shadow
         clear_records()
-        record_shadow("test_flush_key", "主结果", "影子结果", query="测试")
+        record_shadow("test_flush_key", "涓荤粨鏋?, "褰卞瓙缁撴灉", query="娴嬭瘯")
         flush_to_db()
         stats = get_shadow_stats()
         assert stats["total"] == 0
+
+
+@pytest.mark.integration
+class TestL2MySQLClientErrorHandling:
+    def test_insert_qa_error_rollback(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.insert_qa("test", "test")
+
+    def test_get_all_questions_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.get_all_questions()
+
+    def test_update_qa_status_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.update_qa_status(999, "active")
+
+    def test_delete_qa_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.delete_qa(999)
+
+    def test_get_qa_detail_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.get_qa_detail(999)
+
+    def test_search_qa_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.search_qa("test")
+
+    def test_count_qa_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.count_qa()
+
+    def test_count_work_orders_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.count_work_orders()
+
+    def test_get_category_stats_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.get_category_stats()
+
+    def test_get_category_tree_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.get_category_tree()
+
+    def test_get_active_ids_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.get_active_ids()
+
+    def test_get_qa_list_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.get_qa_list()
+
+    def test_get_work_order_list_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.get_work_order_list()
+
+    def test_get_config_error_returns_default(self, mysql_conn):
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("鏌ヨ澶辫触")
+        mock_conn.cursor.return_value = mock_cursor
+        with patch.object(mysql_conn, '_get_conn', return_value=mock_conn):
+            result = mysql_conn.get_config("nonexistent_key", default="fallback")
+            assert result == "fallback"
+
+    def test_set_config_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.set_config("test_key", "test_val")
+
+    def test_get_prompt_template_error_returns_empty(self, mysql_conn):
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("鏌ヨ澶辫触")
+        mock_conn.cursor.return_value = mock_cursor
+        with patch.object(mysql_conn, '_get_conn', return_value=mock_conn):
+            result = mysql_conn.get_prompt_template("nonexistent_key")
+            assert result == ""
+
+    def test_get_by_ids_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.get_by_ids([1, 2])
+
+    def test_insert_work_order_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.insert_work_order("ext_1", "test")
+
+    def test_update_work_order_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.update_work_order("ext_1", "data", "processed")
+
+    def test_get_work_orders_by_status_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.get_work_orders_by_status("submitted")
+
+    def test_delete_work_orders_by_status_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.delete_work_orders_by_status(["submitted"])
+
+    def test_set_prompt_template_error(self, mysql_conn):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
+            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+                mysql_conn.set_prompt_template("test_key", "template text")
+
+    def test_reset_conn(self, mysql_conn):
+        mysql_conn._reset_conn()
+        assert getattr(mysql_conn._local, "conn", None) is None
+
+
+@pytest.mark.integration
+class TestL2MilvusClientErrorHandling:
+    def test_init_collection_grpc_error_then_reconnect(self, milvus_conn):
+        original_client = milvus_conn._client
+        mock_client = MagicMock()
+        mock_client.has_collection.side_effect = Exception("too_many_pings")
+        mock_client2 = MagicMock()
+        mock_client2.has_collection.return_value = True
+        call_count = [0]
+
+        def fake_reconnect():
+            milvus_conn._client = mock_client2
+            milvus_conn._collection_loaded = False
+
+        with patch.object(milvus_conn, '_reconnect', side_effect=fake_reconnect):
+            milvus_conn._client = mock_client
+            milvus_conn.init_collection()
+
+        milvus_conn._client = original_client
+
+    def test_ensure_loaded_grpc_error_then_reconnect(self, milvus_conn):
+        original_client = milvus_conn._client
+        milvus_conn._collection_loaded = False
+        mock_client = MagicMock()
+        mock_client.has_collection.return_value = True
+        mock_client.load_collection.side_effect = [
+            Exception("GOAWAY error"),
+            None,
+        ]
+        call_count = [0]
+
+        def fake_reconnect():
+            milvus_conn._client = mock_client
+            milvus_conn._collection_loaded = False
+
+        with patch.object(milvus_conn, '_reconnect', side_effect=fake_reconnect):
+            milvus_conn._client = mock_client
+            milvus_conn._ensure_loaded()
+
+        milvus_conn._client = original_client
+        milvus_conn._collection_loaded = True
+
+    def test_safe_search_grpc_error_then_reconnect(self, milvus_conn):
+        original_client = milvus_conn._client
+        mock_client = MagicMock()
+        mock_client.has_collection.return_value = True
+        mock_client.search.side_effect = [
+            Exception("UNAVAILABLE"),
+            [{"entity": {"qa_id": 1}, "distance": 0.9}],
+        ]
+        mock_client.load_collection.return_value = None
+
+        def fake_reconnect():
+            milvus_conn._client = mock_client
+            milvus_conn._collection_loaded = False
+
+        with patch.object(milvus_conn, '_reconnect', side_effect=fake_reconnect):
+            milvus_conn._client = mock_client
+            result = milvus_conn._safe_search(
+                collection_name="test",
+                data=[[0.1] * 1024],
+                limit=5,
+                output_fields=["qa_id"],
+                filter="",
+                search_params={"metric_type": "COSINE"},
+            )
+            assert result is not None
+
+        milvus_conn._client = original_client
+
+    def test_init_collection_unknown_error_raises(self, milvus_conn):
+        original_client = milvus_conn._client
+        mock_client = MagicMock()
+        mock_client.has_collection.side_effect = Exception("unknown error")
+
+        milvus_conn._client = mock_client
+        with pytest.raises(Exception, match="unknown error"):
+            milvus_conn.init_collection()
+
+        milvus_conn._client = original_client
+
+    def test_ensure_loaded_unknown_error_raises(self, milvus_conn):
+        original_client = milvus_conn._client
+        mock_client = MagicMock()
+        mock_client.has_collection.return_value = True
+        mock_client.load_collection.side_effect = Exception("unknown error")
+
+        milvus_conn._client = mock_client
+        milvus_conn._collection_loaded = False
+        with pytest.raises(Exception, match="unknown error"):
+            milvus_conn._ensure_loaded()
+
+        milvus_conn._client = original_client
+        milvus_conn._collection_loaded = True
+
+
+@pytest.mark.integration
+class TestL2LLMStructuredOutput:
+    def test_structured_output_fallback_on_exception(self):
+        from agent.llm import _structured_cache, get_structured_llm
+        from agent.output_schemas import StandardizeOutput
+
+        _structured_cache.clear()
+
+        with patch('agent.llm.get_llm') as mock_get_llm:
+            mock_llm = MagicMock()
+            mock_llm.model = "test-model"
+            mock_llm.with_structured_output.side_effect = Exception("涓嶆敮鎸乻tructured output")
+            mock_get_llm.return_value = mock_llm
+
+            with patch('agent.llm._get_structured_method', return_value="json_schema"):
+                llm, supported = get_structured_llm(StandardizeOutput)
+                assert supported is False
+
+    def test_llm_not_enabled_raises(self):
+        from agent.llm import get_llm
+        mock_cfg = {"enabled": False, "provider": "test", "model": "test", "base_url": "test", "api_key": "test"}
+        with patch('agent.llm.get_config', return_value={"llm": mock_cfg}):
+            with pytest.raises(RuntimeError, match="LLM鏈惎鐢?):
+                get_llm()

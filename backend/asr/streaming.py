@@ -1,0 +1,389 @@
+﻿import asyncio
+import json
+import threading
+import time
+from abc import ABC, abstractmethod
+from collections import deque
+
+from asr.models import ASRResponse, SpeakerSegment
+from utils.config import get_config
+from utils.config_center import get_business_config
+from utils.logger import get_logger
+
+logger = get_logger("asr.streaming")
+
+
+class StreamingCallback:
+    def on_partial(self, text: str):
+        pass
+
+    def on_final(self, text: str, is_end: bool = False):
+        pass
+
+    def on_error(self, error: str):
+        pass
+
+
+class StreamingBackend(ABC):
+    @abstractmethod
+    def start(self, callback: StreamingCallback):
+        pass
+
+    @abstractmethod
+    def send_audio(self, chunk: bytes):
+        pass
+
+    @abstractmethod
+    def stop(self):
+        pass
+
+    def warmup(self):
+        pass
+
+
+class LocalStreamingBackend(StreamingBackend):
+    def __init__(self, model_name: str = "paraformer-zh-streaming", device: str = "cpu", hotwords: list | None = None):
+        self._model_name = model_name
+        self._device = device
+        self._hotwords = hotwords or []
+        self._model = None
+        self._callback = None
+        self._chunk_size = 960
+        self._encoder_lookback = 640
+        self._decoder_lookback = 880
+        self._cache = {}
+        self._running = False
+        self._audio_buffer = deque()
+        self._lock = threading.Lock()
+
+    def _load_model(self):
+        if self._model is not None:
+            return
+        try:
+            from funasr import AutoModel
+        except ImportError as e:
+            raise RuntimeError(f"funasr瀵煎叆澶辫触: {e}")
+        logger.info(f"鍔犺浇娴佸紡ASR妯″瀷: {self._model_name}, device={self._device}")
+        self._model = AutoModel(model=self._model_name, device=self._device)
+        self._cache = {}
+        logger.info("娴佸紡ASR妯″瀷鍔犺浇瀹屾垚")
+
+    def warmup(self):
+        self._load_model()
+
+    def start(self, callback: StreamingCallback):
+        self._load_model()
+        self._callback = callback
+        self._running = True
+        self._cache = {}
+        self._audio_buffer.clear()
+
+    def send_audio(self, chunk: bytes):
+        if not self._running or self._model is None:
+            return
+
+        import numpy as np
+        audio_data = np.frombuffer(chunk, dtype=np.int16).astype(np.float32) / 32768.0
+
+        is_final = False
+        generate_kwargs = {
+            "input": audio_data,
+            "cache": self._cache,
+            "is_final": is_final,
+            "chunk_size": [5, 10, 5],
+            "encoder_chunk_lookback": self._encoder_lookback,
+            "decoder_chunk_lookback": self._decoder_lookback,
+        }
+        if self._hotwords:
+            generate_kwargs["hotword"] = " ".join(self._hotwords)
+        result = self._model.generate(**generate_kwargs)
+
+        if result and len(result) > 0:
+            text = result[0].get("text", "").strip()
+            if text and self._callback:
+                if is_final:
+                    self._callback.on_final(text, is_end=False)
+                else:
+                    self._callback.on_partial(text)
+
+    def stop(self):
+        self._running = False
+        if self._model and self._cache is not None:
+            import numpy as np
+            audio_data = np.zeros(1, dtype=np.float32)
+            result = self._model.generate(
+                input=audio_data,
+                cache=self._cache,
+                is_final=True,
+                chunk_size=[5, 10, 5],
+                encoder_chunk_lookback=self._encoder_lookback,
+                decoder_chunk_lookback=self._decoder_lookback,
+            )
+            if result and len(result) > 0:
+                text = result[0].get("text", "").strip()
+                if text and self._callback:
+                    self._callback.on_final(text, is_end=True)
+        self._cache = {}
+
+
+class PseudoStreamingBackend(StreamingBackend):
+    def __init__(
+        self,
+        model_name: str = "FunAudioLLM/Fun-ASR-Nano-2512",
+        device: str = "cuda",
+        hotwords: list | None = None,
+        sample_rate: int = 16000,
+        silence_threshold: float = 0.01,
+        silence_duration_ms: int = 500,
+        min_utterance_ms: int = 300,
+    ):
+        self._model_name = model_name
+        self._device = device
+        self._hotwords = hotwords or []
+        self._sample_rate = sample_rate
+        self._silence_threshold = silence_threshold
+        self._silence_duration_ms = silence_duration_ms
+        self._min_utterance_ms = min_utterance_ms
+        self._model = None
+        self._callback = None
+        self._running = False
+        self._audio_buffer = bytearray()
+        self._silence_samples = 0
+        self._lock = threading.Lock()
+
+    def _load_model(self):
+        if self._model is not None:
+            return
+        try:
+            from funasr import AutoModel
+        except ImportError as e:
+            raise RuntimeError(f"funasr瀵煎叆澶辫触: {e}")
+        logger.info(f"鍔犺浇浼祦寮廇SR妯″瀷: {self._model_name}, device={self._device}")
+        self._model = AutoModel(model=self._model_name, device=self._device)
+        logger.info("浼祦寮廇SR妯″瀷鍔犺浇瀹屾垚")
+
+    def warmup(self):
+        self._load_model()
+
+    def start(self, callback: StreamingCallback):
+        self._load_model()
+        self._callback = callback
+        self._running = True
+        self._audio_buffer = bytearray()
+        self._silence_samples = 0
+
+    def _process_utterance(self):
+        if not self._audio_buffer:
+            return
+        min_bytes = self._min_utterance_ms * self._sample_rate * 2 // 1000
+        if len(self._audio_buffer) < min_bytes:
+            self._audio_buffer = bytearray()
+            self._silence_samples = 0
+            return
+
+        import numpy as np
+        import soundfile as sf
+        import tempfile
+        import os
+
+        audio_np = np.frombuffer(bytes(self._audio_buffer), dtype=np.int16).astype(np.float32) / 32768.0
+        tmp_path = os.path.join(tempfile.gettempdir(), f"pseudo_asr_{threading.get_ident()}.wav")
+        sf.write(tmp_path, audio_np, self._sample_rate, subtype="PCM_16")
+
+        try:
+            kwargs = {"input": tmp_path}
+            if self._hotwords:
+                kwargs["hotword"] = " ".join(self._hotwords)
+            result = self._model.generate(**kwargs)
+            if result and len(result) > 0:
+                text = result[0].get("text", "").strip()
+                if text and self._callback:
+                    self._callback.on_final(text, is_end=False)
+        except Exception as e:
+            logger.error(f"浼祦寮忚瘑鍒け璐? {e}")
+            if self._callback:
+                self._callback.on_error(str(e))
+        finally:
+            try:
+                os.remove(tmp_path)
+            except Exception:
+                pass
+
+        self._audio_buffer = bytearray()
+        self._silence_samples = 0
+
+    def send_audio(self, chunk: bytes):
+        if not self._running or self._model is None:
+            return
+
+        import numpy as np
+
+        with self._lock:
+            self._audio_buffer.extend(chunk)
+            audio_np = np.frombuffer(chunk, dtype=np.int16).astype(np.float32) / 32768.0
+            rms = np.sqrt(np.mean(audio_np ** 2)) if len(audio_np) > 0 else 0.0
+
+            if rms < self._silence_threshold:
+                self._silence_samples += len(audio_np)
+            else:
+                self._silence_samples = 0
+
+            silence_threshold_samples = self._silence_duration_ms * self._sample_rate // 1000
+            if self._silence_samples >= silence_threshold_samples:
+                self._process_utterance()
+
+    def stop(self):
+        self._running = False
+        with self._lock:
+            if self._audio_buffer:
+                self._process_utterance()
+        if self._callback:
+            self._callback.on_final("", is_end=True)
+
+
+class AliCloudStreamingBackend(StreamingBackend):
+    def __init__(
+        self,
+        app_key: str,
+        access_key_id: str,
+        access_key_secret: str,
+        sample_rate: int = 16000,
+        format: str = "pcm",
+    ):
+        self._app_key = app_key
+        self._access_key_id = access_key_id
+        self._access_key_secret = access_key_secret
+        self._sample_rate = sample_rate
+        self._format = format
+        self._callback = None
+        self._running = False
+
+    def start(self, callback: StreamingCallback):
+        self._callback = callback
+        self._running = True
+        logger.info(f"闃块噷浜戞祦寮廇SR杩炴帴: app_key={self._app_key[:8]}...")
+
+    def send_audio(self, chunk: bytes):
+        if not self._running:
+            return
+        pass
+
+    def stop(self):
+        self._running = False
+        if self._callback:
+            self._callback.on_final("", is_end=True)
+        logger.info("闃块噷浜戞祦寮廇SR杩炴帴鍏抽棴")
+
+
+
+class StreamingASRService:
+    def __init__(self):
+        cfg = get_config().get("asr", {}).get("streaming", {})
+        self._enabled = cfg.get("enabled", False)
+        self._mode = cfg.get("mode", "local")
+        self._device = cfg.get("device", "cpu")
+        self._local_model = cfg.get("local_model", "paraformer-zh-streaming")
+        self._hotwords = cfg.get("hotwords", [])
+        self._alicloud = cfg.get("alicloud", {})
+        self._backend: StreamingBackend | None = None
+        self._lock = threading.Lock()
+        asr_cfg = get_config().get("asr", {})
+        self._offline_model = asr_cfg.get("model", "FunAudioLLM/Fun-ASR-Nano-2512")
+        self._offline_device = asr_cfg.get("device", "cuda")
+        self._sample_rate = asr_cfg.get("sample_rate", 16000)
+        self._silence_threshold = cfg.get("silence_threshold", 0.01)
+        self._silence_duration_ms = cfg.get("silence_duration_ms", 500)
+        self._min_utterance_ms = cfg.get("min_utterance_ms", 300)
+
+    @property
+    def enabled(self) -> bool:
+        return self._enabled
+
+    @property
+    def mode(self) -> str:
+        return self._mode
+
+    def _create_backend(self) -> StreamingBackend:
+        if self._mode == "pseudo":
+            return PseudoStreamingBackend(
+                model_name=self._offline_model,
+                device=self._offline_device,
+                hotwords=self._hotwords,
+                sample_rate=self._sample_rate,
+                silence_threshold=self._silence_threshold,
+                silence_duration_ms=self._silence_duration_ms,
+                min_utterance_ms=self._min_utterance_ms,
+            )
+        if self._mode == "alicloud":
+            return AliCloudStreamingBackend(
+                app_key=self._alicloud.get("app_key", ""),
+                access_key_id=self._alicloud.get("access_key_id", ""),
+                access_key_secret=self._alicloud.get("access_key_secret", ""),
+                sample_rate=self._alicloud.get("sample_rate", 16000),
+                format=self._alicloud.get("format", "pcm"),
+            )
+        return LocalStreamingBackend(
+            model_name=self._local_model,
+            device=self._device,
+            hotwords=self._hotwords,
+        )
+
+    def warmup(self):
+        if not self._enabled:
+            logger.info("娴佸紡ASR鏈惎鐢紝璺宠繃棰勭儹")
+            return
+        try:
+            with self._lock:
+                if self._backend is None:
+                    self._backend = self._create_backend()
+                    logger.info(f"棰勭儹娴佸紡ASR backend: mode={self._mode}")
+                else:
+                    logger.info(f"娴佸紡ASR backend宸插瓨鍦紝璺宠繃鍒涘缓: mode={self._mode}")
+                t0 = time.time()
+                self._backend.warmup()
+                elapsed_ms = int((time.time() - t0) * 1000)
+                logger.info(f"娴佸紡ASR妯″瀷棰勭儹瀹屾垚: mode={self._mode}, 鑰楁椂={elapsed_ms}ms")
+        except Exception as e:
+            logger.warning(f"娴佸紡ASR妯″瀷棰勭儹澶辫触锛岄€€鍖栦负鎳掑姞杞? {e}")
+
+    def start_stream(self, callback: StreamingCallback):
+        if not self._enabled:
+            raise RuntimeError("娴佸紡ASR鏈惎鐢?)
+
+        with self._lock:
+            if self._backend is None:
+                self._backend = self._create_backend()
+                logger.info("鍒涘缓鏂癰ackend瀹炰緥")
+            else:
+                logger.info("澶嶇敤宸叉湁backend瀹炰緥")
+            self._backend.start(callback)
+        logger.info(f"娴佸紡ASR鍚姩: mode={self._mode}")
+
+    def send_audio(self, chunk: bytes):
+        if self._backend:
+            self._backend.send_audio(chunk)
+
+    def stop_stream(self):
+        if self._backend:
+            self._backend.stop()
+        logger.info("娴佸紡ASR鍋滄")
+
+    def health(self) -> dict:
+        return {
+            "enabled": self._enabled,
+            "mode": self._mode,
+            "backend": type(self._backend).__name__ if self._backend else None,
+        }
+
+
+_streaming_service: StreamingASRService | None = None
+_streaming_config_sig: dict | None = None
+
+
+def get_streaming_service() -> StreamingASRService:
+    global _streaming_service, _streaming_config_sig
+    current_cfg = get_config().get("asr", {}).get("streaming", {})
+    if _streaming_service is None or _streaming_config_sig != current_cfg:
+        _streaming_service = StreamingASRService()
+        _streaming_config_sig = current_cfg
+    return _streaming_service

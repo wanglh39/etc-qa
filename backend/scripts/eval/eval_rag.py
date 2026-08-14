@@ -1,4 +1,4 @@
-import os
+﻿import os
 
 os.environ['ETC_QA_ENV'] = os.environ.get('ETC_QA_ENV', 'test')
 import sys
@@ -36,7 +36,7 @@ for qa in all_qa:
     if q not in question_to_ids:
         question_to_ids[q] = qa["id"]
 
-PROJECT_ROOT = os.path.join(os.path.dirname(__file__), "..")
+PROJECT_ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 test_csv_path = os.path.join(PROJECT_ROOT, cfg.get("data", {}).get("test_csv", "data/eval/test_rag.csv"))
 test_data = []
 with open(test_csv_path, encoding="utf-8") as f:

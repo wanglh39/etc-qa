@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 from unittest.mock import MagicMock
 
@@ -24,7 +24,7 @@ from agent.state import AgentState
 
 def _make_state(**kwargs):
     defaults = {
-        "raw_question": "ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊",
+        "raw_question": "ETC扣费异常怎么处理",
         "raw_answer": "",
         "raw_context": "",
         "user_id": None,

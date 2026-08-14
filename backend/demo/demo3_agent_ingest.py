@@ -1,6 +1,8 @@
-﻿"""
-Demo 3: 鍏ュ簱棰勫鐞嗘紨绀?灞曠ず: 宸ュ崟鏁版嵁 鈫?clean_text 鈫?structure_ingest 鈫?hyde_rewrite 鈫?鏍囧噯鍖栧叆搴撴潯鐩?
-杩愯: python demo/demo3_agent_ingest.py
+"""
+Demo 3: 入库预处理演示
+展示: 工单数据 → clean_text → structure_ingest → hyde_rewrite → 标准化入库条目
+
+运行: python demo/demo3_agent_ingest.py
 """
 
 import os
@@ -23,16 +25,16 @@ def demo_clean_text(question, answer):
     from agent.state import AgentState
 
     print(f"\n{SEP}")
-    print("姝ラ1: clean_text锛堥槻寰℃€ф竻娲楋級")
+    print("步骤1: clean_text（防御性清洗）")
     print(SEP)
-    print(f"  闂杈撳叆: \"{question}\"")
-    print(f"  绛旀杈撳叆: \"{answer}\"")
+    print(f"  问题输入: \"{question}\"")
+    print(f"  答案输入: \"{answer}\"")
 
     state = AgentState(raw_question=question, raw_answer=answer)
     result = clean_text(state)
 
-    print(f"  闂杈撳嚭: \"{result['question']}\"")
-    print(f"  绛旀杈撳嚭: \"{result['answer']}\"")
+    print(f"  问题输出: \"{result['question']}\"")
+    print(f"  答案输出: \"{result['answer']}\"")
 
     return result["question"], result["answer"]
 
@@ -42,24 +44,24 @@ def demo_structure_ingest(question, answer):
     from agent.state import AgentState
 
     print(f"\n{SEP}")
-    print("姝ラ2: structure_ingest锛堢粨鏋勫寲瑙勬暣+鍒嗙被锛?)
+    print("步骤2: structure_ingest（结构化规整+分类）")
     print(SEP)
-    print(f"  杈撳叆: \"{question}\"")
+    print(f"  输入: \"{question}\"")
 
     state = AgentState(raw_question=question, question=question, answer=answer)
     t0 = time.time()
     result = structure_ingest(state)
     elapsed = time.time() - t0
 
-    print(f"  鏀瑰啓鍚庨棶棰? \"{result.get('question', question)}\"")
-    print(f"  缁撴瀯鍖栫瓟妗? \"{result.get('answer', '')}\"")
-    print(f"  鍐呴儴娴佺▼: \"{result.get('internal_process', '')}\"")
-    print(f"  鍙嶉閮ㄩ棬: \"{result.get('feedback_dept', '')}\"")
-    print(f"  涓€绾у垎绫? {result.get('category_l1', '')}")
-    print(f"  浜岀骇鍒嗙被: {result.get('category_l2', '')}")
-    print(f"  鍒嗙被缃俊搴? {result.get('category_confidence', 'N/A')}")
-    print(f"  闇€浜哄伐瀹℃牳: {result.get('needs_review', False)}")
-    print(f"  鑰楁椂: {elapsed:.2f}s")
+    print(f"  改写后问题: \"{result.get('question', question)}\"")
+    print(f"  结构化答案: \"{result.get('answer', '')}\"")
+    print(f"  内部流程: \"{result.get('internal_process', '')}\"")
+    print(f"  反馈部门: \"{result.get('feedback_dept', '')}\"")
+    print(f"  一级分类: {result.get('category_l1', '')}")
+    print(f"  二级分类: {result.get('category_l2', '')}")
+    print(f"  分类置信度: {result.get('category_confidence', 'N/A')}")
+    print(f"  需人工审核: {result.get('needs_review', False)}")
+    print(f"  耗时: {elapsed:.2f}s")
 
     return result
 
@@ -69,10 +71,10 @@ def demo_hyde_rewrite(question, answer):
     from agent.state import AgentState
 
     print(f"\n{SEP}")
-    print("姝ラ3: hyde_rewrite锛堟潯浠舵敼鍐欙級")
+    print("步骤3: hyde_rewrite（条件改写）")
     print(SEP)
-    print(f"  杈撳叆: \"{question}\"")
-    print("  鍒ゆ柇鏄惁闇€瑕丠yDE鏀瑰啓...")
+    print(f"  输入: \"{question}\"")
+    print("  判断是否需要HyDE改写...")
 
     state = AgentState(raw_question=question, question=question, answer=answer)
     t0 = time.time()
@@ -83,42 +85,42 @@ def demo_hyde_rewrite(question, answer):
     hyde_questions = result.get("hyde_questions", [])
 
     if need_rewrite is not None:
-        print(f"  鏄惁闇€瑕佹敼鍐? {need_rewrite}")
+        print(f"  是否需要改写: {need_rewrite}")
     if need_rewrite and hyde_questions:
-        print(f"  鐢熸垚鐨勫亣璁炬€ч棶棰?")
+        print(f"  生成的假设性问题:")
         for j, hq in enumerate(hyde_questions, 1):
             print(f"    {j}. \"{hq}\"")
     elif not need_rewrite:
-        print("  璺宠繃鏀瑰啓锛堥棶棰樺凡瓒冲鏍囧噯锛?)
-    print(f"  鑰楁椂: {elapsed:.2f}s")
+        print("  跳过改写（问题已足够标准）")
+    print(f"  耗时: {elapsed:.2f}s")
 
     return result
 
 
 def main():
     print(SEP)
-    print("  Demo 3: 鍏ュ簱棰勫鐞?)
+    print("  Demo 3: 入库预处理")
     print(SEP)
 
-    print("\n鍔犺浇閰嶇疆鍜屾ā鍨?..")
+    print("\n加载配置和模型...")
     load_config()
 
     test_cases = [
         {
-            "question": "瀹㈡埛寮犱笁锛堢數璇濓細13800138000锛夊弽棣堬細ETC閲嶅鎵ｈ垂浜嗕笂涓湀鍦ㄥ悓涓€楂橀€熷彛鎵ｄ簡涓ゆ",
-            "answer": "鏍稿疄鎵ｈ垂璁板綍锛岀‘璁ら噸澶嶆墸璐瑰悗3涓伐浣滄棩閫€娆捐嚦鍘熻处鎴?,
+            "question": "客户张三（电话：13800138000）反馈：ETC重复扣费了上个月在同一高速口扣了两次",
+            "answer": "核实扣费记录，确认重复扣费后3个工作日退款至原账户",
         },
         {
-            "question": "鐢ㄦ埛鏉ョ數璇碠BU璁惧钃濈墮杩炰笉涓婏紝鎵嬫満鎼滀笉鍒拌澶囦俊鍙?,
-            "answer": "寮曞鐢ㄦ埛閲嶇疆OBU钃濈墮妯″潡锛岄噸鏂伴厤瀵硅繛鎺?,
+            "question": "用户来电说OBU设备蓝牙连不上，手机搜不到设备信号",
+            "answer": "引导用户重置OBU蓝牙模块，重新配对连接",
         },
     ]
 
     for i, tc in enumerate(test_cases, 1):
         print(f"\n{'#' * 60}")
-        print(f"  娴嬭瘯鐢ㄤ緥 {i}/{len(test_cases)}")
-        print(f"  宸ュ崟闂: \"{tc['question']}\"")
-        print(f"  宸ュ崟绛旀: \"{tc['answer']}\"")
+        print(f"  测试用例 {i}/{len(test_cases)}")
+        print(f"  工单问题: \"{tc['question']}\"")
+        print(f"  工单答案: \"{tc['answer']}\"")
         print(f"{'#' * 60}")
 
         cleaned_q, cleaned_a = demo_clean_text(tc["question"], tc["answer"])
@@ -128,16 +130,16 @@ def main():
             ingest_result.get("answer", cleaned_a),
         )
 
-        print(f"\n  馃搶 鏈€缁堝叆搴撴潯鐩?")
-        print(f"    闂: \"{ingest_result.get('question', cleaned_q)}\"")
-        print(f"    绛旀: \"{ingest_result.get('answer', cleaned_a)}\"")
-        print(f"    鍒嗙被: {ingest_result.get('category_l1', '')}/{ingest_result.get('category_l2', '')}")
+        print(f"\n  📌 最终入库条目:")
+        print(f"    问题: \"{ingest_result.get('question', cleaned_q)}\"")
+        print(f"    答案: \"{ingest_result.get('answer', cleaned_a)}\"")
+        print(f"    分类: {ingest_result.get('category_l1', '')}/{ingest_result.get('category_l2', '')}")
 
         if i < len(test_cases):
-            input(f"\n>>> 鎸夊洖杞︾户缁笅涓€涓敤渚?({i}/{len(test_cases)}) ...")
+            input(f"\n>>> 按回车继续下一个用例 ({i}/{len(test_cases)}) ...")
 
     print(f"\n{SEP}")
-    print("  Demo 3 瀹屾垚")
+    print("  Demo 3 完成")
     print(SEP)
 
 

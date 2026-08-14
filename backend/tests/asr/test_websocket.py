@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 import json
 import sys
 import time
@@ -62,9 +62,9 @@ def _clean_pending(loop):
 
 class TestWebSocketControlMessage:
     def test_config_with_category(self):
-        ctrl = json.loads('{"type": "config", "category_l1": "ETC涓氬姟"}')
+        ctrl = json.loads('{"type": "config", "category_l1": "ETC业务"}')
         assert ctrl["type"] == "config"
-        assert ctrl["category_l1"] == "ETC涓氬姟"
+        assert ctrl["category_l1"] == "ETC业务"
 
     def test_config_with_speaker_filter(self):
         ctrl = json.loads('{"type": "config", "speaker_filter": "SPEAKER_00"}')
@@ -104,9 +104,9 @@ class TestWSCallback:
                 pass
 
         cb = TestCallback()
-        cb.on_final("绗竴鍙?)
-        cb.on_final("绗簩鍙?)
-        assert collected == ["绗竴鍙?, "绗簩鍙?]
+        cb.on_final("第一句")
+        cb.on_final("第二句")
+        assert collected == ["第一句", "第二句"]
 
     def test_on_final_empty_skipped(self):
         collected = []
@@ -124,8 +124,8 @@ class TestWSCallback:
 
         cb = TestCallback()
         cb.on_final("")
-        cb.on_final("鏈夊唴瀹?)
-        assert collected == ["鏈夊唴瀹?]
+        cb.on_final("有内容")
+        assert collected == ["有内容"]
 
     def test_on_error(self):
         errors = []
@@ -141,13 +141,13 @@ class TestWSCallback:
                 errors.append(error)
 
         cb = TestCallback()
-        cb.on_error("杩炴帴瓒呮椂")
-        assert errors == ["杩炴帴瓒呮椂"]
+        cb.on_error("连接超时")
+        assert errors == ["连接超时"]
 
 
 class TestFilterPipeline:
     def test_greeting_then_query(self):
-        texts = ["浣犲ソ", "ETC鎬庝箞鍔炵悊"]
+        texts = ["你好", "ETC怎么办理"]
         results = []
         cache = QueryCache(similarity_threshold=0.8, min_interval=5.0)
         for t in texts:
@@ -160,11 +160,11 @@ class TestFilterPipeline:
                 results.append(("query", t))
         assert results == [
             ("filtered", "greeting"),
-            ("query", "ETC鎬庝箞鍔炵悊"),
+            ("query", "ETC怎么办理"),
         ]
 
     def test_duplicate_filtered(self):
-        texts = ["ETC鎵ｈ垂鏈夐棶棰?, "ETC鎵ｈ垂鏈夐棶棰?, "钃濈墮杩炴帴涓嶄笂"]
+        texts = ["ETC扣费有问题", "ETC扣费有问题", "蓝牙连接不上"]
         results = []
         cache = QueryCache(similarity_threshold=0.8, min_interval=5.0)
         for t in texts:
@@ -176,37 +176,37 @@ class TestFilterPipeline:
                 cache.record(t, {"q": t})
                 results.append(("query", t))
         assert results == [
-            ("query", "ETC鎵ｈ垂鏈夐棶棰?),
+            ("query", "ETC扣费有问题"),
             ("filtered", "duplicate"),
-            ("query", "钃濈墮杩炴帴涓嶄笂"),
+            ("query", "蓝牙连接不上"),
         ]
 
     def test_coreference_resolution(self):
         ctx = ContextWindow(max_size=3)
-        ctx.add("ETC鎵ｈ垂鏈夐棶棰?)
-        text = "閭ｄ釜鎬庝箞閫€娆?
+        ctx.add("ETC扣费有问题")
+        text = "那个怎么退款"
         assert _has_pronoun(text) is True
         resolved = ctx.resolve_pronoun(text)
-        assert "ETC鎵ｈ垂鏈夐棶棰? in resolved
+        assert "ETC扣费有问题" in resolved
 
     def test_vad_triggers_flush(self):
         acc = QueryAccumulator(max_sentences=5, silence_timeout=10.0)
         detector = VADSilenceDetector(silence_threshold=0.05)
-        acc.add("ETC鎵ｈ垂鏈夐棶棰?)
+        acc.add("ETC扣费有问题")
         time.sleep(0.06)
         assert detector.check_silence() is True
         ready = acc.flush()
-        assert ready == ["ETC鎵ｈ垂鏈夐棶棰?]
+        assert ready == ["ETC扣费有问题"]
 
     def test_accumulate_mode(self):
         acc = QueryAccumulator(max_sentences=2, silence_timeout=2.0)
-        texts = ["ETC鎬庝箞鍔炵悊", "鎵ｈ垂鏈夐棶棰?]
+        texts = ["ETC怎么办理", "扣费有问题"]
         queries = []
         for t in texts:
             ready = acc.add(t)
             if ready is not None:
                 queries.append("".join(ready))
-        assert queries == ["ETC鎬庝箞鍔炵悊鎵ｈ垂鏈夐棶棰?]
+        assert queries == ["ETC怎么办理扣费有问题"]
 
 
 class TestDiarizeTriggerLogic:
@@ -254,9 +254,9 @@ class TestSendQueryResult:
         import asyncio
         mock_ws = AsyncMock()
         cache = QueryCache(similarity_threshold=0.8, min_interval=5.0)
-        cache.record("ETC鎵ｈ垂", {"confidence": "high"})
+        cache.record("ETC扣费", {"confidence": "high"})
         with patch("asr.websocket._do_query", return_value=None):
-            asyncio.run(_send_query_result(mock_ws, "ETC鎵ｈ垂", cache=cache))
+            asyncio.run(_send_query_result(mock_ws, "ETC扣费", cache=cache))
         mock_ws.send_json.assert_called_once()
         sent = mock_ws.send_json.call_args[0][0]
         assert sent["from_cache"] is True
@@ -264,15 +264,15 @@ class TestSendQueryResult:
     def test_no_cache_calls_query(self):
         import asyncio
         mock_ws = AsyncMock()
-        with patch("asr.websocket._do_query", return_value={"query": "ETC鎵ｈ垂"}):
-            asyncio.run(_send_query_result(mock_ws, "ETC鎵ｈ垂"))
+        with patch("asr.websocket._do_query", return_value={"query": "ETC扣费"}):
+            asyncio.run(_send_query_result(mock_ws, "ETC扣费"))
         assert mock_ws.send_json.call_count >= 1
 
     def test_service_none_no_send(self):
         import asyncio
         mock_ws = AsyncMock()
         with patch("asr.websocket._do_query", return_value=None):
-            asyncio.run(_send_query_result(mock_ws, "ETC鎵ｈ垂"))
+            asyncio.run(_send_query_result(mock_ws, "ETC扣费"))
         mock_ws.send_json.assert_not_called()
 
 
@@ -284,27 +284,27 @@ class TestStateMachine:
         def on_sent():
             callback_called.append(True)
 
-        with patch("asr.websocket._do_query", return_value={"query": "ETC鎵ｈ垂"}):
-            _run_async(_send_query_result(mock_ws, "ETC鎵ｈ垂", on_sent=on_sent))
+        with patch("asr.websocket._do_query", return_value={"query": "ETC扣费"}):
+            _run_async(_send_query_result(mock_ws, "ETC扣费", on_sent=on_sent))
         assert callback_called == [True]
 
     def test_send_query_result_invokes_on_sent_on_cache_hit(self):
         mock_ws = AsyncMock()
         cache = QueryCache(similarity_threshold=0.8, min_interval=5.0)
-        cache.record("ETC鎵ｈ垂", {"confidence": "high"})
+        cache.record("ETC扣费", {"confidence": "high"})
         callback_called = []
 
         def on_sent():
             callback_called.append(True)
 
         with patch("asr.websocket._do_query", return_value=None):
-            _run_async(_send_query_result(mock_ws, "ETC鎵ｈ垂", cache=cache, on_sent=on_sent))
+            _run_async(_send_query_result(mock_ws, "ETC扣费", cache=cache, on_sent=on_sent))
         assert callback_called == [True]
 
     def test_send_query_result_no_on_sent_does_not_error(self):
         mock_ws = AsyncMock()
-        with patch("asr.websocket._do_query", return_value={"query": "ETC鎵ｈ垂"}):
-            _run_async(_send_query_result(mock_ws, "ETC鎵ｈ垂", on_sent=None))
+        with patch("asr.websocket._do_query", return_value={"query": "ETC扣费"}):
+            _run_async(_send_query_result(mock_ws, "ETC扣费", on_sent=None))
         assert mock_ws.send_json.call_count >= 1
 
     def test_audio_transitions_to_listening_from_idle(self):
@@ -339,13 +339,13 @@ class TestStateMachine:
 
     def test_correction_transitions_to_listening(self):
         session = {"state": SessionState.QUERY_READY}
-        if _is_correction("涓嶅"):
+        if _is_correction("不对"):
             session["state"] = SessionState.LISTENING
         assert session["state"] == SessionState.LISTENING
 
     def test_valid_query_transitions_to_query_ready(self):
         session = {"state": SessionState.LISTENING}
-        text = "ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊"
+        text = "ETC扣费异常怎么处理"
         if not _is_greeting(text) and len(text.strip()) >= 4:
             session["state"] = SessionState.QUERY_READY
         assert session["state"] == SessionState.QUERY_READY
@@ -429,18 +429,18 @@ class TestControlMessageUpdate:
 
 class TestOnFinalCorrections:
     def test_corrections_applied_when_text_and_corrections_present(self):
-        text = "E T C鎵ｈ垂寮傚父"
+        text = "E T C扣费异常"
         text_corrections = {"E T C": "ETC"}
         if text and text_corrections:
             text = _apply_corrections(text, text_corrections)
-        assert text == "ETC鎵ｈ垂寮傚父"
+        assert text == "ETC扣费异常"
 
     def test_corrections_not_applied_when_corrections_empty(self):
-        text = "E T C鎵ｈ垂寮傚父"
+        text = "E T C扣费异常"
         text_corrections = {}
         if text and text_corrections:
             text = _apply_corrections(text, text_corrections)
-        assert text == "E T C鎵ｈ垂寮傚父"
+        assert text == "E T C扣费异常"
 
     def test_corrections_not_applied_when_text_empty(self):
         text = ""
@@ -450,40 +450,40 @@ class TestOnFinalCorrections:
         assert text == ""
 
     def test_corrections_applied_before_greeting_filter(self):
-        text = "涓轰綘濂?
-        text_corrections = {"涓轰綘濂?: "浣犲ソ"}
+        text = "为你好"
+        text_corrections = {"为你好": "你好"}
         if text and text_corrections:
             text = _apply_corrections(text, text_corrections)
         assert _is_greeting(text) is True
 
     def test_corrections_applied_before_query(self):
-        text = "O B U璁惧鎬庝箞婵€娲?
+        text = "O B U设备怎么激活"
         text_corrections = {"O B U": "OBU"}
         if text and text_corrections:
             text = _apply_corrections(text, text_corrections)
-        assert text == "OBU璁惧鎬庝箞婵€娲?
+        assert text == "OBU设备怎么激活"
         assert _is_greeting(text) is False
 
     def test_corrections_applied_multiple_rules(self):
-        text = "E T C鎵ｈ垂鍜孫 B U璁惧"
+        text = "E T C扣费和O B U设备"
         text_corrections = {"E T C": "ETC", "O B U": "OBU"}
         if text and text_corrections:
             text = _apply_corrections(text, text_corrections)
-        assert text == "ETC鎵ｈ垂鍜孫BU璁惧"
+        assert text == "ETC扣费和OBU设备"
 
     def test_corrections_preserve_text_when_no_match(self):
-        text = "钃濈墮杩炴帴涓嶄笂"
+        text = "蓝牙连接不上"
         text_corrections = {"E T C": "ETC"}
         if text and text_corrections:
             text = _apply_corrections(text, text_corrections)
-        assert text == "钃濈墮杩炴帴涓嶄笂"
+        assert text == "蓝牙连接不上"
 
     def test_corrections_applied_then_not_greeting(self):
-        text = "e t c鎬庝箞鍔炵悊"
+        text = "e t c怎么办理"
         text_corrections = {"e t c": "ETC"}
         if text and text_corrections:
             text = _apply_corrections(text, text_corrections)
-        assert text == "ETC鎬庝箞鍔炵悊"
+        assert text == "ETC怎么办理"
         assert _is_greeting(text) is False
         assert len(text.strip()) >= 4
 
@@ -560,7 +560,7 @@ class TestWSConnect:
 
 class TestWSConfig:
     def test_config_message(self):
-        _run(_make_cfg(), [{"text": '{"type": "config", "category_l1": "ETC涓氬姟"}'}])
+        _run(_make_cfg(), [{"text": '{"type": "config", "category_l1": "ETC业务"}'}])
 
 
 class TestWSFlush:
@@ -625,7 +625,7 @@ class TestWSVAD:
 class TestWSMultiple:
     def test_multi_messages(self):
         _run(_make_cfg(), [
-            {"text": '{"type": "config", "category_l1": "ETC涓氬姟"}'},
+            {"text": '{"type": "config", "category_l1": "ETC业务"}'},
             {"bytes": b"\x00" * 3200},
             {"text": '{"type": "clear_cache"}'},
             {"text": '{"type": "clear_context"}'},
@@ -660,7 +660,7 @@ def _run_callback(cfg_overrides, final_texts=None, partial_texts=None, error_tex
 
     with patch("asr.websocket.get_config", return_value=cfg):
         with patch("asr.streaming.get_streaming_service") as mock_get:
-            with patch("asr.websocket._do_query", return_value={"answer": "娴嬭瘯"}):
+            with patch("asr.websocket._do_query", return_value={"answer": "测试"}):
                 mock_svc = MagicMock()
                 mock_svc.mode = "local"
                 mock_svc.start_stream = start_stream
@@ -680,21 +680,21 @@ def _run_callback(cfg_overrides, final_texts=None, partial_texts=None, error_tex
 
 class TestWSCallbackPartial:
     def test_on_partial(self):
-        ws = _run_callback({}, partial_texts=["浣犲ソ"])
+        ws = _run_callback({}, partial_texts=["你好"])
         types = [m["type"] for m in ws.sent]
         assert "partial" in types
 
 
 class TestWSCallbackError:
     def test_on_error(self):
-        ws = _run_callback({}, error_text="ASR閿欒")
+        ws = _run_callback({}, error_text="ASR错误")
         types = [m["type"] for m in ws.sent]
         assert "error" in types
 
 
 class TestWSCallbackFinalNormal:
     def test_final_with_query(self):
-        ws = _run_callback({}, final_texts=["ETC鎵ｈ垂鎬庝箞鏌ヨ"])
+        ws = _run_callback({}, final_texts=["ETC扣费怎么查询"])
         types = [m["type"] for m in ws.sent]
         assert "final" in types
         assert "query_result" in types
@@ -702,7 +702,7 @@ class TestWSCallbackFinalNormal:
 
 class TestWSCallbackFinalGreeting:
     def test_final_greeting_filtered(self):
-        ws = _run_callback({}, final_texts=["浣犲ソ"])
+        ws = _run_callback({}, final_texts=["你好"])
         types = [m["type"] for m in ws.sent]
         assert "final" in types
         assert "filtered" in types
@@ -719,8 +719,8 @@ class TestWSCallbackFinalTooShort:
 
 class TestWSCallbackFinalCorrection:
     def test_final_correction(self):
-        ws = _run_callback({}, final_texts=["ETC鎵ｈ垂"], )
-        ws2 = _run_callback({}, final_texts=["涓嶅"])
+        ws = _run_callback({}, final_texts=["ETC扣费"], )
+        ws2 = _run_callback({}, final_texts=["不对"])
         types2 = [m["type"] for m in ws2.sent]
         assert "corrected" in types2
 
@@ -737,7 +737,7 @@ class TestWSCallbackFinalNoAutoQuery:
         def send_audio(data):
             cb = captured.get("cb")
             if cb:
-                cb.on_final("ETC鎵ｈ垂鏌ヨ")
+                cb.on_final("ETC扣费查询")
 
         with patch("asr.websocket.get_config", return_value=cfg):
             with patch("asr.streaming.get_streaming_service") as mock_get:
@@ -761,14 +761,14 @@ class TestWSCallbackFinalNoAutoQuery:
 
 class TestWSCallbackFinalDedup:
     def test_final_dedup(self):
-        ws = _run_callback({}, final_texts=["ETC鎵ｈ垂鏌ヨ", "ETC鎵ｈ垂鏌ヨ"])
+        ws = _run_callback({}, final_texts=["ETC扣费查询", "ETC扣费查询"])
         types = [m["type"] for m in ws.sent]
         assert types.count("final") == 2
 
 
 class TestWSCallbackFinalCoreference:
     def test_final_coreference(self):
-        ws = _run_callback({}, final_texts=["ETC璁惧", "瀹冩€庝箞鍔炵悊"])
+        ws = _run_callback({}, final_texts=["ETC设备", "它怎么办理"])
         types = [m["type"] for m in ws.sent]
         assert "coreference_resolved" in types
 
@@ -776,7 +776,7 @@ class TestWSCallbackFinalCoreference:
 class TestWSCallbackFinalAccumulate:
     def test_final_accumulate(self):
         ws = _run_callback({"accumulate_mode": "accumulate", "accumulate_max_sentences": 2},
-                           final_texts=["ETC鎵ｈ垂", "OBU璁惧"])
+                           final_texts=["ETC扣费", "OBU设备"])
         types = [m["type"] for m in ws.sent]
         assert "query_result" in types
 
@@ -789,7 +789,7 @@ class TestWSErrorHandler:
             with patch("asr.streaming.get_streaming_service") as mock_get:
                 mock_svc = MagicMock()
                 mock_svc.mode = "local"
-                mock_svc.start_stream = MagicMock(side_effect=RuntimeError("鍚姩澶辫触"))
+                mock_svc.start_stream = MagicMock(side_effect=RuntimeError("启动失败"))
                 mock_get.return_value = mock_svc
                 ws.receive_queue = [WebSocketDisconnect()]
                 loop = _get_loop()
@@ -814,11 +814,11 @@ class TestWSFlushWithData:
         def send_audio(data):
             cb = captured.get("cb")
             if cb:
-                cb.on_final("ETC鎵ｈ垂鏌ヨ")
+                cb.on_final("ETC扣费查询")
 
         with patch("asr.websocket.get_config", return_value=cfg):
             with patch("asr.streaming.get_streaming_service") as mock_get:
-                with patch("asr.websocket._do_query", return_value={"answer": "娴嬭瘯"}):
+                with patch("asr.websocket._do_query", return_value={"answer": "测试"}):
                     mock_svc = MagicMock()
                     mock_svc.mode = "local"
                     mock_svc.start_stream = start_stream
@@ -842,7 +842,7 @@ class TestWSFlushWithData:
 
 class TestWSConfigSpeakerFilter:
     def test_config_with_speaker_filter(self):
-        ws = _run(_make_cfg(), [{"text": '{"type": "config", "category_l1": "ETC涓氬姟", "speaker_filter": "SPEAKER_01"}'}])
+        ws = _run(_make_cfg(), [{"text": '{"type": "config", "category_l1": "ETC业务", "speaker_filter": "SPEAKER_01"}'}])
         assert ws.sent[0]["type"] == "ready"
 
 
@@ -858,11 +858,11 @@ class TestWSCallbackSpeakerMismatch:
         def send_audio(data):
             cb = captured.get("cb")
             if cb:
-                cb.on_final("ETC鎵ｈ垂鏌ヨ")
+                cb.on_final("ETC扣费查询")
 
         with patch("asr.websocket.get_config", return_value=cfg):
             with patch("asr.streaming.get_streaming_service") as mock_get:
-                with patch("asr.websocket._do_query", return_value={"answer": "娴嬭瘯"}):
+                with patch("asr.websocket._do_query", return_value={"answer": "测试"}):
                     mock_svc = MagicMock()
                     mock_svc.mode = "local"
                     mock_svc.start_stream = start_stream
@@ -898,11 +898,11 @@ class TestWSCallbackDuplicateFiltered:
         def send_audio(data):
             cb = captured.get("cb")
             if cb:
-                cb.on_final("ETC鎵ｈ垂鏌ヨ")
+                cb.on_final("ETC扣费查询")
 
         with patch("asr.websocket.get_config", return_value=cfg):
             with patch("asr.streaming.get_streaming_service") as mock_get:
-                with patch("asr.websocket._do_query", return_value={"answer": "娴嬭瘯"}):
+                with patch("asr.websocket._do_query", return_value={"answer": "测试"}):
                     with patch("asr.websocket.QueryCache.should_skip", side_effect=[False, True]):
                         mock_svc = MagicMock()
                         mock_svc.mode = "local"
@@ -986,7 +986,7 @@ class TestWSOnFinalCorrections:
         def send_audio(data):
             cb = captured.get("cb")
             if cb:
-                cb.on_final("E T C鎵ｈ垂寮傚父")
+                cb.on_final("E T C扣费异常")
 
         with patch("asr.websocket.get_config", return_value=cfg):
             with patch("asr.streaming.get_streaming_service") as mock_get:
@@ -1006,7 +1006,7 @@ class TestWSOnFinalCorrections:
                         _clean_pending(loop)
         final_msgs = [m for m in ws.sent if m.get("type") == "final"]
         assert len(final_msgs) >= 1
-        assert final_msgs[0]["text"] == "ETC鎵ｈ垂寮傚父"
+        assert final_msgs[0]["text"] == "ETC扣费异常"
 
     def test_corrections_applied_then_query_uses_corrected_text(self):
         ws = MockWebSocket()
@@ -1019,12 +1019,12 @@ class TestWSOnFinalCorrections:
         def send_audio(data):
             cb = captured.get("cb")
             if cb:
-                cb.on_final("O B U璁惧婵€娲?)
+                cb.on_final("O B U设备激活")
 
         with patch("asr.websocket.get_config", return_value=cfg):
             with patch("asr.streaming.get_streaming_service") as mock_get:
                 with patch("asr.websocket._load_corrections", return_value={"O B U": "OBU"}):
-                    with patch("asr.websocket._do_query", return_value={"answer": "娴嬭瘯"}) as mock_q:
+                    with patch("asr.websocket._do_query", return_value={"answer": "测试"}) as mock_q:
                         mock_svc = MagicMock()
                         mock_svc.mode = "local"
                         mock_svc.start_stream = start_stream
@@ -1039,7 +1039,7 @@ class TestWSOnFinalCorrections:
                             pass
                             _clean_pending(loop)
         query_calls = [c[0][0] for c in mock_q.call_args_list]
-        assert any("OBU璁惧婵€娲? in q for q in query_calls)
+        assert any("OBU设备激活" in q for q in query_calls)
         assert not any("O B U" in q for q in query_calls)
 
     def test_no_corrections_when_table_empty(self):
@@ -1053,7 +1053,7 @@ class TestWSOnFinalCorrections:
         def send_audio(data):
             cb = captured.get("cb")
             if cb:
-                cb.on_final("E T C鎵ｈ垂")
+                cb.on_final("E T C扣费")
 
         with patch("asr.websocket.get_config", return_value=cfg):
             with patch("asr.streaming.get_streaming_service") as mock_get:
@@ -1073,4 +1073,4 @@ class TestWSOnFinalCorrections:
                         _clean_pending(loop)
         final_msgs = [m for m in ws.sent if m.get("type") == "final"]
         assert len(final_msgs) >= 1
-        assert final_msgs[0]["text"] == "E T C鎵ｈ垂"
+        assert final_msgs[0]["text"] == "E T C扣费"

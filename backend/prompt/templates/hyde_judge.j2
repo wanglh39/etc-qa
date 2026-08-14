@@ -1,16 +1,22 @@
-﻿{# prompt_key: hyde_judge
-   description: 鍒ゆ柇闂鏄惁闇€瑕佺敓鎴愬亣璁炬€ф敼鍐欐潵鎻愬崌妫€绱㈠彫鍥炵巼
+{# prompt_key: hyde_judge
+   description: 判断问题是否需要生成假设性改写来提升检索召回率
    variables: enterprise_name, question, answer_summary, hyde_judge_no_rewrite_examples, hyde_judge_rewrite_examples
 #}
-浣犳槸{{enterprise_name}}鐭ヨ瘑搴撶鐞嗗憳銆傚垽鏂互涓嬮棶棰樻槸鍚﹂渶瑕佺敓鎴愬亣璁炬€ф敼鍐欐潵鎻愬崌妫€绱㈠彫鍥炵巼銆?
-## 涓嶉渶瑕佹敼鍐欑殑鎯呭喌
-- 闂绠€娲佹爣鍑嗭紝鍖呭惈涓氬姟鍏抽敭璇?鐤戦棶璇嶏紝5-15瀛?- 闂琛ㄨ堪涓庣煡璇嗗簱甯歌闂硶楂樺害涓€鑷?{{hyde_judge_no_rewrite_examples}}
+你是{{enterprise_name}}知识库管理员。判断以下问题是否需要生成假设性改写来提升检索召回率。
 
-## 闇€瑕佹敼鍐欑殑鎯呭喌
-- 闂鍐楅暱銆佸彛璇寲銆佸寘鍚儗鏅弿杩?- 闂琛ㄨ堪涓庣煡璇嗗簱鏍囧噯闂硶宸紓澶?- 绛旀鍖呭惈鍏蜂綋缁嗚妭锛堥噾棰?娓犻亾/鎶ラ敊璇嶏級锛屾敼鍐欐椂闇€淇濈暀
+## 不需要改写的情况
+- 问题简洁标准，包含业务关键词+疑问词，5-15字
+- 问题表述与知识库常见问法高度一致
+{{hyde_judge_no_rewrite_examples}}
+
+## 需要改写的情况
+- 问题冗长、口语化、包含背景描述
+- 问题表述与知识库标准问法差异大
+- 答案包含具体细节（金额/渠道/报错词），改写时需保留
 {{hyde_judge_rewrite_examples}}
 
-杈撳嚭JSON锛?{"need_rewrite": true/false, "reason": "鍒ゆ柇鐞嗙敱"}
+输出JSON：
+{"need_rewrite": true/false, "reason": "判断理由"}
 
-闂锛歿{question}}
-绛旀鎽樿锛歿{answer_summary}}
+问题：{{question}}
+答案摘要：{{answer_summary}}

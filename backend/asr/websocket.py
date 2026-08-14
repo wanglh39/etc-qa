@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 import json
 import time
 from collections import deque
@@ -38,11 +38,11 @@ router = APIRouter()
 @router.websocket("/ws/asr/stream")
 async def asr_stream(websocket: WebSocket):
     await websocket.accept()
-    logger.info("WebSocket娴佸紡ASR杩炴帴寤虹珛")
+    logger.info("WebSocket流式ASR连接建立")
 
     cfg = get_config().get("asr", {}).get("streaming", {})
     if not cfg.get("enabled", False):
-        await websocket.send_json({"type": "error", "message": "娴佸紡ASR鏈惎鐢?})
+        await websocket.send_json({"type": "error", "message": "流式ASR未启用"})
         await websocket.close()
         return
 
@@ -73,7 +73,7 @@ async def asr_stream(websocket: WebSocket):
 
     def _set_state(new_state):
         if session["state"] != new_state:
-            logger.info(f"鐘舵€佽浆鎹? {session['state'].value} -> {new_state.value}")
+            logger.info(f"状态转换: {session['state'].value} -> {new_state.value}")
             session["state"] = new_state
             try:
                 asyncio.get_event_loop().create_task(
@@ -346,9 +346,9 @@ async def asr_stream(websocket: WebSocket):
                         vad_detector.reset()
 
     except WebSocketDisconnect:
-        logger.info("WebSocket娴佸紡ASR杩炴帴鏂紑")
+        logger.info("WebSocket流式ASR连接断开")
     except Exception as e:
-        logger.error(f"WebSocket娴佸紡ASR閿欒: {e}")
+        logger.error(f"WebSocket流式ASR错误: {e}")
         try:
             await websocket.send_json({"type": "error", "message": str(e)})
         except Exception:

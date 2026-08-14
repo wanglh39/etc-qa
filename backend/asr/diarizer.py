@@ -1,4 +1,4 @@
-﻿import threading
+import threading
 
 from utils.config import get_config
 from utils.logger import get_logger
@@ -35,12 +35,12 @@ class SpeakerDiarizer:
                 from pyannote.audio import Pipeline
             except ImportError as e:
                 raise RuntimeError(
-                    f"pyannote.audio瀵煎叆澶辫触: {e}锛岃杩愯: pip install pyannote.audio"
+                    f"pyannote.audio导入失败: {e}，请运行: pip install pyannote.audio"
                 )
 
             import torch
 
-            logger.info(f"鍔犺浇璇磋瘽浜哄垎绂绘ā鍨? {self._model_name}, device={self._device}")
+            logger.info(f"加载说话人分离模型: {self._model_name}, device={self._device}")
 
             if not self._hf_token:
                 self._hf_token = get_config().get("asr", {}).get("diarize", {}).get(
@@ -54,9 +54,9 @@ class SpeakerDiarizer:
 
             if torch.cuda.is_available() and self._device == "cuda":
                 self._pipeline.to(torch.device("cuda"))
-                logger.info("璇磋瘽浜哄垎绂绘ā鍨嬪凡鍔犺浇鍒癎PU")
+                logger.info("说话人分离模型已加载到GPU")
             else:
-                logger.info("璇磋瘽浜哄垎绂绘ā鍨嬪凡鍔犺浇鍒癈PU")
+                logger.info("说话人分离模型已加载到CPU")
 
     def diarize(self, audio_path: str) -> list[dict]:
         if not self._enabled:
@@ -82,7 +82,7 @@ class SpeakerDiarizer:
                 "speaker": speaker,
             })
 
-        logger.info(f"璇磋瘽浜哄垎绂诲畬鎴? {len(segments)}娈? {len(set(s['speaker'] for s in segments))}浣嶈璇濅汉")
+        logger.info(f"说话人分离完成: {len(segments)}段, {len(set(s['speaker'] for s in segments))}位说话人")
         return segments
 
     def health(self) -> dict:
@@ -96,7 +96,7 @@ class SpeakerDiarizer:
     def reload(self):
         with self._lock:
             self._pipeline = None
-        logger.info("璇磋瘽浜哄垎绂绘ā鍨嬪凡鍗歌浇锛屼笅娆¤皟鐢ㄦ椂閲嶆柊鍔犺浇")
+        logger.info("说话人分离模型已卸载，下次调用时重新加载")
 
 
 _diarizer: SpeakerDiarizer | None = None

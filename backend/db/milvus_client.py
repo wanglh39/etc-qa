@@ -1,4 +1,4 @@
-﻿
+
 from pymilvus import DataType, MilvusClient
 
 from utils.config import get_config
@@ -69,7 +69,7 @@ class MilvusQA:
         except Exception as e:
             if "too_many_pings" in str(e) or "UNAVAILABLE" in str(e) or "GOAWAY" in str(e):
                 from utils.logger import get_logger
-                get_logger("milvus").warning(f"_ensure_loaded gRPC閿欒锛岄噸杩? {e}")
+                get_logger("milvus").warning(f"_ensure_loaded gRPC错误，重连: {e}")
                 self._reconnect()
                 self.client.load_collection(self.collection_name)
                 self._collection_loaded = True
@@ -81,7 +81,7 @@ class MilvusQA:
         if self._query_count >= self._reconnect_interval:
             self._query_count = 0
             from utils.logger import get_logger
-            get_logger("milvus").info(f"瀹氭湡閲嶈繛(姣弡self._reconnect_interval}娆℃煡璇?")
+            get_logger("milvus").info(f"定期重连(每{self._reconnect_interval}次查询)")
             self._reconnect()
             self._ensure_loaded()
         try:
@@ -89,7 +89,7 @@ class MilvusQA:
         except Exception as e:
             if "too_many_pings" in str(e) or "UNAVAILABLE" in str(e) or "GOAWAY" in str(e):
                 from utils.logger import get_logger
-                get_logger("milvus").warning("gRPC杩炴帴鏂紑锛屾鍦ㄩ噸杩?..")
+                get_logger("milvus").warning("gRPC连接断开，正在重连...")
                 self._reconnect()
                 self._ensure_loaded()
                 return self.client.search(**kwargs)

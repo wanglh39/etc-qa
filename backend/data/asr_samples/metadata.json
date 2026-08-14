@@ -1,288 +1,288 @@
-﻿[
+[
   {
     "filename": "sample_01.wav",
     "customer_segments": [
-      "鍠備綘濂?,
-      "鎴戞兂闂竴涓?,
-      "ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊"
+      "喂你好",
+      "我想问一下",
+      "ETC扣费异常怎么处理"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?,
-      "濂界殑鎮ㄨ璇?
+      "您好请问有什么可以帮您",
+      "好的您请说"
     ],
-    "final_question": "ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊",
-    "category_l1": "鍞悗涓氬姟",
-    "keyword": "鎵ｈ垂寮傚父"
+    "final_question": "ETC扣费异常怎么处理",
+    "category_l1": "售后业务",
+    "keyword": "扣费异常"
   },
   {
     "filename": "sample_02.wav",
     "customer_segments": [
-      "浣犲ソ",
-      "ETC閫€娆鹃渶瑕佸闀挎椂闂?
+      "你好",
+      "ETC退款需要多长时间"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?
+      "您好请问有什么可以帮您"
     ],
-    "final_question": "ETC閫€娆鹃渶瑕佸闀挎椂闂?,
-    "category_l1": "鍞悗涓氬姟",
-    "keyword": "閫€娆?
+    "final_question": "ETC退款需要多长时间",
+    "category_l1": "售后业务",
+    "keyword": "退款"
   },
   {
     "filename": "sample_03.wav",
     "customer_segments": [
-      "鍠?,
-      "鎴戞兂闂竴涓?,
-      "ETC榛戝悕鍗曟€庝箞瑙ｉ櫎"
+      "喂",
+      "我想问一下",
+      "ETC黑名单怎么解除"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?,
-      "鎮ㄨ璇?
+      "您好请问有什么可以帮您",
+      "您请说"
     ],
-    "final_question": "ETC榛戝悕鍗曟€庝箞瑙ｉ櫎",
-    "category_l1": "鍞悗涓氬姟",
-    "keyword": "榛戝悕鍗?
+    "final_question": "ETC黑名单怎么解除",
+    "category_l1": "售后业务",
+    "keyword": "黑名单"
   },
   {
     "filename": "sample_04.wav",
     "customer_segments": [
-      "浣犲ソ",
-      "鎴戦偅涓狤TC璁惧",
-      "娌＄數浜嗘€庝箞鍔?
+      "你好",
+      "我那个ETC设备",
+      "没电了怎么办"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?,
-      "鍡?
+      "您好请问有什么可以帮您",
+      "嗯"
     ],
-    "final_question": "ETC璁惧娌＄數浜嗘€庝箞鍔?,
-    "category_l1": "鍞悗涓氬姟",
-    "keyword": "璁惧寮傚父"
+    "final_question": "ETC设备没电了怎么办",
+    "category_l1": "售后业务",
+    "keyword": "设备异常"
   },
   {
     "filename": "sample_05.wav",
     "customer_segments": [
-      "鍠備綘濂?,
-      "ETC娉ㄩ攢娴佺▼鏄粈涔?
+      "喂你好",
+      "ETC注销流程是什么"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?
+      "您好请问有什么可以帮您"
     ],
-    "final_question": "ETC娉ㄩ攢娴佺▼鏄粈涔?,
-    "category_l1": "鍞悗涓氬姟",
-    "keyword": "涓氬姟鍙樻洿"
+    "final_question": "ETC注销流程是什么",
+    "category_l1": "售后业务",
+    "keyword": "业务变更"
   },
   {
     "filename": "sample_06.wav",
     "customer_segments": [
-      "浣犲ソ",
-      "鎴戞兂闂竴涓?,
-      "濡備綍鍔炵悊ETC鏂板姙"
+      "你好",
+      "我想问一下",
+      "如何办理ETC新办"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?,
-      "濂界殑璇疯"
+      "您好请问有什么可以帮您",
+      "好的请说"
     ],
-    "final_question": "濡備綍鍔炵悊ETC鏂板姙",
-    "category_l1": "鍞墠涓氬姟",
-    "keyword": "鏂板姙"
+    "final_question": "如何办理ETC新办",
+    "category_l1": "售前业务",
+    "keyword": "新办"
   },
   {
     "filename": "sample_07.wav",
     "customer_segments": [
-      "鍠?,
-      "ETC钃濈墮",
-      "杩炴帴涓嶄笂鎬庝箞瑙ｅ喅"
+      "喂",
+      "ETC蓝牙",
+      "连接不上怎么解决"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?,
-      "鍡?
+      "您好请问有什么可以帮您",
+      "嗯"
     ],
-    "final_question": "ETC钃濈墮杩炴帴涓嶄笂鎬庝箞瑙ｅ喅",
-    "category_l1": "鍞悗涓氬姟",
-    "keyword": "璁惧寮傚父"
+    "final_question": "ETC蓝牙连接不上怎么解决",
+    "category_l1": "售后业务",
+    "keyword": "设备异常"
   },
   {
     "filename": "sample_08.wav",
     "customer_segments": [
-      "浣犲ソ",
-      "ETC鍙戠エ鎬庝箞寮€鍏?
+      "你好",
+      "ETC发票怎么开具"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?
+      "您好请问有什么可以帮您"
     ],
-    "final_question": "ETC鍙戠エ鎬庝箞寮€鍏?,
-    "category_l1": "鍞悗涓氬姟",
-    "keyword": "鍙戠エ"
+    "final_question": "ETC发票怎么开具",
+    "category_l1": "售后业务",
+    "keyword": "发票"
   },
   {
     "filename": "sample_09.wav",
     "customer_segments": [
-      "鍠備綘濂?,
-      "鎴戞兂闂竴涓?,
-      "ETC鍏呭€煎け璐ユ€庝箞鍔?
+      "喂你好",
+      "我想问一下",
+      "ETC充值失败怎么办"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?,
-      "鎮ㄨ璇?
+      "您好请问有什么可以帮您",
+      "您请说"
     ],
-    "final_question": "ETC鍏呭€煎け璐ユ€庝箞鍔?,
-    "category_l1": "鍞悗涓氬姟",
-    "keyword": "鍏呭€?
+    "final_question": "ETC充值失败怎么办",
+    "category_l1": "售后业务",
+    "keyword": "充值"
   },
   {
     "filename": "sample_10.wav",
     "customer_segments": [
-      "浣犲ソ",
-      "ETC鎶潌澶辫触",
-      "濡備綍澶勭悊"
+      "你好",
+      "ETC抬杆失败",
+      "如何处理"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?,
-      "鍡?
+      "您好请问有什么可以帮您",
+      "嗯"
     ],
-    "final_question": "ETC鎶潌澶辫触濡備綍澶勭悊",
-    "category_l1": "鍞悗涓氬姟",
-    "keyword": "閫氳寮傚父"
+    "final_question": "ETC抬杆失败如何处理",
+    "category_l1": "售后业务",
+    "keyword": "通行异常"
   },
   {
     "filename": "sample_11.wav",
     "customer_segments": [
-      "鍠?,
-      "ETC閲嶅鎵ｈ垂",
-      "鎬庝箞閫€娆?
+      "喂",
+      "ETC重复扣费",
+      "怎么退款"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?,
-      "鎮ㄨ璇?
+      "您好请问有什么可以帮您",
+      "您请说"
     ],
-    "final_question": "ETC閲嶅鎵ｈ垂鎬庝箞閫€娆?,
-    "category_l1": "鍞悗涓氬姟",
-    "keyword": "鎵ｈ垂寮傚父"
+    "final_question": "ETC重复扣费怎么退款",
+    "category_l1": "售后业务",
+    "keyword": "扣费异常"
   },
   {
     "filename": "sample_12.wav",
     "customer_segments": [
-      "浣犲ソ",
-      "ETC璁惧OBU鏄粈涔?
+      "你好",
+      "ETC设备OBU是什么"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?
+      "您好请问有什么可以帮您"
     ],
-    "final_question": "ETC璁惧OBU鏄粈涔?,
-    "category_l1": "鍞悗涓氬姟",
-    "keyword": "璁惧寮傚父"
+    "final_question": "ETC设备OBU是什么",
+    "category_l1": "售后业务",
+    "keyword": "设备异常"
   },
   {
     "filename": "sample_13.wav",
     "customer_segments": [
-      "鍠備綘濂?,
-      "鎴戞兂闂竴涓?,
-      "ETC璐︽埛鍐荤粨鎬庝箞鍔?
+      "喂你好",
+      "我想问一下",
+      "ETC账户冻结怎么办"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?,
-      "濂界殑璇疯"
+      "您好请问有什么可以帮您",
+      "好的请说"
     ],
-    "final_question": "ETC璐︽埛鍐荤粨鎬庝箞鍔?,
-    "category_l1": "鍞悗涓氬姟",
-    "keyword": "璐︽埛"
+    "final_question": "ETC账户冻结怎么办",
+    "category_l1": "售后业务",
+    "keyword": "账户"
   },
   {
     "filename": "sample_14.wav",
     "customer_segments": [
-      "浣犲ソ",
-      "ETC閫炬湡鏈繕娆?,
-      "鎬庝箞澶勭悊"
+      "你好",
+      "ETC逾期未还款",
+      "怎么处理"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?,
-      "鍡?
+      "您好请问有什么可以帮您",
+      "嗯"
     ],
-    "final_question": "ETC閫炬湡鏈繕娆炬€庝箞澶勭悊",
-    "category_l1": "鍞悗涓氬姟",
-    "keyword": "閫炬湡"
+    "final_question": "ETC逾期未还款怎么处理",
+    "category_l1": "售后业务",
+    "keyword": "逾期"
   },
   {
     "filename": "sample_15.wav",
     "customer_segments": [
-      "鍠?,
-      "ETC瀹㈡湇鐑嚎鏄灏?
+      "喂",
+      "ETC客服热线是多少"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?
+      "您好请问有什么可以帮您"
     ],
-    "final_question": "ETC瀹㈡湇鐑嚎鏄灏?,
-    "category_l1": "鍞墠涓氬姟",
-    "keyword": "瀹㈡湇鐑嚎"
+    "final_question": "ETC客服热线是多少",
+    "category_l1": "售前业务",
+    "keyword": "客服热线"
   },
   {
     "filename": "sample_16.wav",
     "customer_segments": [
-      "浣犲ソ",
-      "鎴戞兂闂竴涓?,
-      "ETC婵€娲诲け璐ユ€庝箞鍔?
+      "你好",
+      "我想问一下",
+      "ETC激活失败怎么办"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?,
-      "鎮ㄨ璇?
+      "您好请问有什么可以帮您",
+      "您请说"
     ],
-    "final_question": "ETC婵€娲诲け璐ユ€庝箞鍔?,
-    "category_l1": "鍞悗涓氬姟",
-    "keyword": "涓氬姟鍙樻洿"
+    "final_question": "ETC激活失败怎么办",
+    "category_l1": "售后业务",
+    "keyword": "业务变更"
   },
   {
     "filename": "sample_17.wav",
     "customer_segments": [
-      "鍠備綘濂?,
-      "ETC鎸傚け鎬庝箞鍔炵悊"
+      "喂你好",
+      "ETC挂失怎么办理"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?
+      "您好请问有什么可以帮您"
     ],
-    "final_question": "ETC鎸傚け鎬庝箞鍔炵悊",
-    "category_l1": "鍞悗涓氬姟",
-    "keyword": "涓氬姟鍙樻洿"
+    "final_question": "ETC挂失怎么办理",
+    "category_l1": "售后业务",
+    "keyword": "业务变更"
   },
   {
     "filename": "sample_18.wav",
     "customer_segments": [
-      "浣犲ソ",
-      "ETC瀵瑰叕璐︽埛",
-      "鎬庝箞寮€閫?
+      "你好",
+      "ETC对公账户",
+      "怎么开通"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?,
-      "鍡?
+      "您好请问有什么可以帮您",
+      "嗯"
     ],
-    "final_question": "ETC瀵瑰叕璐︽埛鎬庝箞寮€閫?,
-    "category_l1": "鍞墠涓氬姟",
-    "keyword": "瀵瑰叕"
+    "final_question": "ETC对公账户怎么开通",
+    "category_l1": "售前业务",
+    "keyword": "对公"
   },
   {
     "filename": "sample_19.wav",
     "customer_segments": [
-      "鍠?,
-      "鎴戞兂闂竴涓?,
-      "ETC鎶奸噾鎬庝箞閫€"
+      "喂",
+      "我想问一下",
+      "ETC押金怎么退"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?,
-      "鎮ㄨ璇?
+      "您好请问有什么可以帮您",
+      "您请说"
     ],
-    "final_question": "ETC鎶奸噾鎬庝箞閫€",
-    "category_l1": "鍞悗涓氬姟",
-    "keyword": "鎶奸噾"
+    "final_question": "ETC押金怎么退",
+    "category_l1": "售后业务",
+    "keyword": "押金"
   },
   {
     "filename": "sample_20.wav",
     "customer_segments": [
-      "浣犲ソ",
-      "ETC鍛ㄥ崱鎬庝箞鍔炵悊"
+      "你好",
+      "ETC周卡怎么办理"
     ],
     "agent_segments": [
-      "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?
+      "您好请问有什么可以帮您"
     ],
-    "final_question": "ETC鍛ㄥ崱鎬庝箞鍔炵悊",
-    "category_l1": "鍞墠涓氬姟",
-    "keyword": "濂楅"
+    "final_question": "ETC周卡怎么办理",
+    "category_l1": "售前业务",
+    "keyword": "套餐"
   }
 ]

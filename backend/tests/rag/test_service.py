@@ -1,4 +1,4 @@
-﻿from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 from rag.service import QAService
 
@@ -18,31 +18,31 @@ def _make_service(**overrides):
 class TestQAServiceQuery:
     @patch("rag.service.preprocess_agent")
     def test_query_none_confidence(self, mock_agent):
-        mock_agent.invoke.return_value = {"question": "ETC鎵ｈ垂寮傚父"}
+        mock_agent.invoke.return_value = {"question": "ETC扣费异常"}
         svc, mock_recall, mock_threshold, mock_reranker, mock_mysql = _make_service()
         mock_recall.encode_query.return_value = [0.1] * 1024
         mock_recall.recall.return_value = []
         mock_reranker.rerank.return_value = []
         mock_threshold.filter_candidates.return_value = ("none", [])
 
-        result = svc.query("ETC鎵ｈ垂寮傚父")
+        result = svc.query("ETC扣费异常")
         assert result.confidence == "none"
         assert result.candidates == []
 
     @patch("rag.service.preprocess_agent")
     def test_query_high_confidence_with_candidates(self, mock_agent):
-        mock_agent.invoke.return_value = {"question": "ETC鎵ｈ垂寮傚父"}
+        mock_agent.invoke.return_value = {"question": "ETC扣费异常"}
         svc, mock_recall, mock_threshold, mock_reranker, mock_mysql = _make_service()
         mock_recall.encode_query.return_value = [0.1] * 1024
         mock_recall.recall.return_value = [(1, 0.9), (2, 0.7)]
         mock_reranker.rerank.return_value = [(1, 0.95), (2, 0.6)]
         mock_threshold.filter_candidates.return_value = ("high", [(1, 0.95), (2, 0.6)])
         mock_mysql.get_by_ids.return_value = [
-            {"id": 1, "question": "ETC鎵ｈ垂寮傚父", "answer": "鏍稿疄閫€娆?, "category_l1": "鍞悗", "category_l2": "鎵ｈ垂", "internal_process": "", "feedback_dept": ""},
-            {"id": 2, "question": "ETC娉ㄩ攢", "answer": "鑱旂郴瀹㈡湇", "category_l1": "鍞墠", "category_l2": "娉ㄩ攢", "internal_process": "", "feedback_dept": ""},
+            {"id": 1, "question": "ETC扣费异常", "answer": "核实退款", "category_l1": "售后", "category_l2": "扣费", "internal_process": "", "feedback_dept": ""},
+            {"id": 2, "question": "ETC注销", "answer": "联系客服", "category_l1": "售前", "category_l2": "注销", "internal_process": "", "feedback_dept": ""},
         ]
 
-        result = svc.query("ETC鎵ｈ垂寮傚父")
+        result = svc.query("ETC扣费异常")
         assert result.confidence == "high"
         assert len(result.candidates) == 2
         assert result.candidates[0].qa_id == 1
@@ -71,7 +71,7 @@ class TestQAServiceQuery:
         mock_reranker.rerank.return_value = []
         mock_threshold.filter_candidates.return_value = ("none", [])
 
-        svc.query("test", category_l1="鍞悗涓氬姟")
+        svc.query("test", category_l1="售后业务")
         mock_recall.recall.assert_called_once()
 
     @patch("rag.service.preprocess_agent")
@@ -83,8 +83,8 @@ class TestQAServiceQuery:
         mock_reranker.rerank.return_value = []
         mock_threshold.filter_candidates.return_value = ("none", [])
 
-        result = svc.query("鍘熷闂")
-        assert result.standardized_query == "鍘熷闂"
+        result = svc.query("原始问题")
+        assert result.standardized_query == "原始问题"
 
 
 class TestQAServiceActiveIdsCache:
@@ -131,52 +131,52 @@ class TestQAServiceActiveIdsCache:
 class TestQAServiceStandardize:
     @patch("rag.service.preprocess_agent")
     def test_standardize_cache_hit(self, mock_agent):
-        mock_agent.invoke.return_value = {"question": "ETC鎵ｈ垂寮傚父"}
+        mock_agent.invoke.return_value = {"question": "ETC扣费异常"}
         svc, _, _, _, _ = _make_service()
 
-        result1 = svc._standardize("ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊")
-        result2 = svc._standardize("ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊")
-        assert result1 == "ETC鎵ｈ垂寮傚父"
-        assert result2 == "ETC鎵ｈ垂寮傚父"
+        result1 = svc._standardize("ETC扣费异常怎么处理")
+        result2 = svc._standardize("ETC扣费异常怎么处理")
+        assert result1 == "ETC扣费异常"
+        assert result2 == "ETC扣费异常"
         assert mock_agent.invoke.call_count == 1
 
     @patch("rag.service.preprocess_agent")
     def test_standardize_cache_miss_different_questions(self, mock_agent):
-        mock_agent.invoke.side_effect = [{"question": "鏍囧噯A"}, {"question": "鏍囧噯B"}]
+        mock_agent.invoke.side_effect = [{"question": "标准A"}, {"question": "标准B"}]
         svc, _, _, _, _ = _make_service()
 
-        result1 = svc._standardize("闂A")
-        result2 = svc._standardize("闂B")
-        assert result1 == "鏍囧噯A"
-        assert result2 == "鏍囧噯B"
+        result1 = svc._standardize("问题A")
+        result2 = svc._standardize("问题B")
+        assert result1 == "标准A"
+        assert result2 == "标准B"
         assert mock_agent.invoke.call_count == 2
 
     @patch("rag.service.preprocess_agent")
     def test_standardize_fallback_on_exception(self, mock_agent):
-        mock_agent.invoke.side_effect = Exception("LLM瓒呮椂")
+        mock_agent.invoke.side_effect = Exception("LLM超时")
         svc, _, _, _, _ = _make_service()
 
-        result = svc._standardize("ETC鎵ｈ垂寮傚父")
-        assert result == "ETC鎵ｈ垂寮傚父"
+        result = svc._standardize("ETC扣费异常")
+        assert result == "ETC扣费异常"
 
     @patch("rag.service.preprocess_agent")
     def test_standardize_fallback_cached(self, mock_agent):
-        mock_agent.invoke.side_effect = Exception("LLM瓒呮椂")
+        mock_agent.invoke.side_effect = Exception("LLM超时")
         svc, _, _, _, _ = _make_service()
 
-        result1 = svc._standardize("闂A")
-        result2 = svc._standardize("闂A")
-        assert result1 == "闂A"
-        assert result2 == "闂A"
+        result1 = svc._standardize("问题A")
+        result2 = svc._standardize("问题A")
+        assert result1 == "问题A"
+        assert result2 == "问题A"
         assert mock_agent.invoke.call_count == 1
 
     @patch("rag.service.preprocess_agent")
     def test_standardize_cache_size_limit(self, mock_agent):
-        mock_agent.invoke.side_effect = lambda x: {"question": "鏍囧噯"}
+        mock_agent.invoke.side_effect = lambda x: {"question": "标准"}
         svc, _, _, _, _ = _make_service()
 
         for i in range(QAService._STANDARDIZE_CACHE_SIZE + 10):
-            svc._standardize(f"闂{i}")
+            svc._standardize(f"问题{i}")
         assert len(svc._standardize_cache) <= QAService._STANDARDIZE_CACHE_SIZE
 
     @patch("rag.service.preprocess_agent")
@@ -184,8 +184,8 @@ class TestQAServiceStandardize:
         mock_agent.invoke.return_value = {"question": ""}
         svc, _, _, _, _ = _make_service()
 
-        result = svc._standardize("鍘熷闂")
-        assert result == "鍘熷闂"
+        result = svc._standardize("原始问题")
+        assert result == "原始问题"
 
 
 class TestQAServiceAddKnowledge:
@@ -196,10 +196,10 @@ class TestQAServiceAddKnowledge:
         mock_mysql.get_all_questions.return_value = [{"id": 42, "question": "test"}]
 
         req = MagicMock()
-        req.question = "鏂伴棶棰?
-        req.answer = "鏂扮瓟妗?
-        req.category_l1 = "鍞悗"
-        req.category_l2 = "鎵ｈ垂"
+        req.question = "新问题"
+        req.answer = "新答案"
+        req.category_l1 = "售后"
+        req.category_l2 = "扣费"
         req.internal_process = ""
         req.feedback_dept = ""
 

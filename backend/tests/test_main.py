@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 from unittest.mock import MagicMock, patch
 
 from fastapi import APIRouter
@@ -23,7 +23,7 @@ class TestMainModule:
     @patch("app.create_service")
     @patch("utils.config.get_config")
     def test_app_title_from_config(self, mock_cfg, mock_create):
-        mock_cfg.return_value = {"server": {"title": "鑷畾涔夋爣棰?, "version": "2.0"}}
+        mock_cfg.return_value = {"server": {"title": "自定义标题", "version": "2.0"}}
         mock_create.return_value = MagicMock()
         mock_router = APIRouter()
         mock_mod = MagicMock()
@@ -32,4 +32,4 @@ class TestMainModule:
             if "main" in sys.modules:
                 del sys.modules["main"]
             import main
-        assert "鑷畾涔夋爣棰? in main.app.title
+        assert "自定义标题" in main.app.title

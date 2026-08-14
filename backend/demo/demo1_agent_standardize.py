@@ -1,7 +1,8 @@
-﻿"""
-Demo 1: Agent鏍囧噯鍖栭澶勭悊婕旂ず
-灞曠ず: 鍘熷闂 鈫?clean_text 鈫?standardize_query 鈫?鏍囧噯鍖栭棶棰?
-杩愯: python demo/demo1_agent_standardize.py
+"""
+Demo 1: Agent标准化预处理演示
+展示: 原始问题 → clean_text → standardize_query → 标准化问题
+
+运行: python demo/demo1_agent_standardize.py
 """
 
 import os
@@ -24,20 +25,20 @@ def demo_clean_text(question):
     from agent.state import AgentState
 
     print(f"\n{SEP}")
-    print("姝ラ1: clean_text锛堥槻寰℃€ф竻娲楋級")
+    print("步骤1: clean_text（防御性清洗）")
     print(SEP)
-    print(f"  杈撳叆: \"{question}\"")
+    print(f"  输入: \"{question}\"")
 
     state = AgentState(raw_question=question)
     result = clean_text(state)
     cleaned = result["question"]
 
-    print(f"  杈撳嚭: \"{cleaned}\"")
+    print(f"  输出: \"{cleaned}\"")
 
     if cleaned != question:
-        print("  鍙樺寲: 鉁?鏈夋竻娲楁晥鏋?)
+        print("  变化: ✅ 有清洗效果")
     else:
-        print("  鍙樺寲: 鏃犲彉鍖栵紙璇ラ棶棰樻棤闇€娓呮礂锛?)
+        print("  变化: 无变化（该问题无需清洗）")
 
     return cleaned
 
@@ -47,10 +48,10 @@ def demo_standardize_query(question):
     from agent.state import AgentState
 
     print(f"\n{SEP}")
-    print("姝ラ2: standardize_query锛堟櫤鑳借鏁达級")
+    print("步骤2: standardize_query（智能规整）")
     print(SEP)
-    print(f"  杈撳叆: \"{question}\"")
-    print("  绛栫暐: 瑙勫垯浼樺厛 + LLM鍏滃簳")
+    print(f"  输入: \"{question}\"")
+    print("  策略: 规则优先 + LLM兜底")
 
     state = AgentState(raw_question=question, question=question)
     t0 = time.time()
@@ -61,55 +62,55 @@ def demo_standardize_query(question):
     need_rewrite = result.get("need_rewrite", None)
     rewrite_confidence = result.get("rewrite_confidence", None)
 
-    print(f"  杈撳嚭: \"{standardized}\"")
+    print(f"  输出: \"{standardized}\"")
     if need_rewrite is not None:
-        print(f"  鏄惁鏀瑰啓: {need_rewrite}")
+        print(f"  是否改写: {need_rewrite}")
     if rewrite_confidence is not None:
-        print(f"  鏀瑰啓缃俊搴? {rewrite_confidence}")
-    print(f"  鑰楁椂: {elapsed:.2f}s")
+        print(f"  改写置信度: {rewrite_confidence}")
+    print(f"  耗时: {elapsed:.2f}s")
 
     if standardized != question:
-        print("  鍙樺寲: 鉁?鏈夎鏁存晥鏋?)
+        print("  变化: ✅ 有规整效果")
     else:
-        print("  鍙樺寲: 鏃犲彉鍖?)
+        print("  变化: 无变化")
 
     return standardized
 
 
 def main():
     print(SEP)
-    print("  Demo 1: Agent鏍囧噯鍖栭澶勭悊")
+    print("  Demo 1: Agent标准化预处理")
     print(SEP)
 
-    print("\n鍔犺浇閰嶇疆鍜屾ā鍨?..")
+    print("\n加载配置和模型...")
     load_config()
 
     test_cases = [
-        "鎴戞兂闂竴涓婨TC鎵ｈ垂寮傚父鎬庝箞澶勭悊鍟?,
-        "瀹㈡埛寮犱笁锛堢數璇濓細13800138000锛夊弽棣堬細ETC閲嶅鎵ｈ垂浜?,
-        "鍜嬫暣鍟奅TC璁惧涓嶄寒浜?,
-        "ETC鎬庝箞娉ㄩ攢",
-        "璇烽棶涓€涓嬮偅涓摑鐗橭BU杩炴帴涓嶄笂鎬庝箞鍔炲憿璋㈣阿",
-        "涓婁釜鏈堝湪楂橀€熷彛琚鎵ｄ簡涓€娆¤垂浣嗘槸涓嶇煡閬撴槸鍝閫氳浜х敓鐨勬兂鏌ヤ竴涓嬫槑缁?,
-        "閫氳鍚庝竴鐩存病鏀跺埌鎵ｈ垂閫氱煡鎷呭績鏄笉鏄紡鎵ｄ簡杩樻槸绯荤粺鍑洪棶棰樹簡",
+        "我想问一下ETC扣费异常怎么处理啊",
+        "客户张三（电话：13800138000）反馈：ETC重复扣费了",
+        "咋整啊ETC设备不亮了",
+        "ETC怎么注销",
+        "请问一下那个蓝牙OBU连接不上怎么办呢谢谢",
+        "上个月在高速口被多扣了一次费但是不知道是哪次通行产生的想查一下明细",
+        "通行后一直没收到扣费通知担心是不是漏扣了还是系统出问题了",
     ]
 
     for i, raw_q in enumerate(test_cases, 1):
         print(f"\n{'#' * 60}")
-        print(f"  娴嬭瘯鐢ㄤ緥 {i}/{len(test_cases)}")
-        print(f"  鍘熷闂: \"{raw_q}\"")
+        print(f"  测试用例 {i}/{len(test_cases)}")
+        print(f"  原始问题: \"{raw_q}\"")
         print(f"{'#' * 60}")
 
         cleaned = demo_clean_text(raw_q)
         standardized = demo_standardize_query(cleaned)
 
-        print(f"\n  馃搶 鏈€缁堢粨鏋? \"{raw_q}\" 鈫?\"{standardized}\"")
+        print(f"\n  📌 最终结果: \"{raw_q}\" → \"{standardized}\"")
 
         if i < len(test_cases):
-            input(f"\n>>> 鎸夊洖杞︾户缁笅涓€涓敤渚?({i}/{len(test_cases)}) ...")
+            input(f"\n>>> 按回车继续下一个用例 ({i}/{len(test_cases)}) ...")
 
     print(f"\n{SEP}")
-    print("  Demo 1 瀹屾垚")
+    print("  Demo 1 完成")
     print(SEP)
 
 

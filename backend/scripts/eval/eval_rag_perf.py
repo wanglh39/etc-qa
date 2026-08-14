@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 import time
 import statistics
@@ -22,16 +22,16 @@ from utils.logger import get_logger
 logger = get_logger("scripts.eval.eval_rag_perf")
 
 TEST_QUERIES = [
-    "ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊",
-    "榛戝悕鍗曞浣曡В闄?,
-    "鍙戠エ鎬庝箞鐢宠",
-    "ETC璁惧涓嶄寒浜嗕絾鏄摑鐗欒兘杩炰笂",
-    "鎴戜笂涓湀鍦ㄥ悓涓€涓珮閫熷彛琚墸浜嗕袱娆¤垂鎬庝箞鍔?,
-    "ETC鎬庝箞娉ㄩ攢",
-    "ETC缁戝畾鐨勯摱琛屽崱鑳戒笉鑳芥崲",
-    "ETC閲嶅鎵ｈ垂鎬庝箞閫€娆?,
-    "ETC婵€娲绘祦绋嬫槸浠€涔?,
-    "ETC璐﹀崟鎬庝箞鏌ヨ",
+    "ETC扣费异常怎么处理",
+    "黑名单如何解除",
+    "发票怎么申请",
+    "ETC设备不亮了但是蓝牙能连上",
+    "我上个月在同一个高速口被扣了两次费怎么办",
+    "ETC怎么注销",
+    "ETC绑定的银行卡能不能换",
+    "ETC重复扣费怎么退款",
+    "ETC激活流程是什么",
+    "ETC账单怎么查询",
 ]
 
 
@@ -47,26 +47,26 @@ def _percentile(data, p):
 
 def init_rag_service():
     cfg = load_config()
-    print("鍒濆鍖朢AG鏈嶅姟...")
+    print("初始化RAG服务...")
     t0 = time.perf_counter()
 
     mysql = MySQLClient()
     milvus = MilvusQA()
     all_qa = mysql.get_all_questions()
-    print(f"  MySQL: {len(all_qa)}鏉A璁板綍")
+    print(f"  MySQL: {len(all_qa)}条QA记录")
 
     bm25 = BM25Index()
     bm25.build(all_qa)
-    print(f"  BM25绱㈠紩鏋勫缓瀹屾垚")
+    print(f"  BM25索引构建完成")
 
     embed_path = cfg["models"]["embed"]["path"]
     from sentence_transformers import CrossEncoder, SentenceTransformer
     embed_model = SentenceTransformer(embed_path)
-    print(f"  Embedding妯″瀷鍔犺浇: {embed_path}")
+    print(f"  Embedding模型加载: {embed_path}")
 
     rerank_path = cfg["models"]["rerank"]["path"]
     rerank_model = CrossEncoder(rerank_path)
-    print(f"  Reranker妯″瀷鍔犺浇: {rerank_path}")
+    print(f"  Reranker模型加载: {rerank_path}")
 
     recall_eng = RecallEngine(embed_model, milvus, bm25)
     reranker = Reranker(rerank_model, mysql_client=mysql)
@@ -74,7 +74,7 @@ def init_rag_service():
     qa_service = QAService(recall_eng, threshold, reranker, mysql)
 
     t1 = time.perf_counter()
-    print(f"RAG鏈嶅姟鍒濆鍖栧畬鎴? {t1-t0:.2f}s\n")
+    print(f"RAG服务初始化完成: {t1-t0:.2f}s\n")
     return qa_service, recall_eng, reranker, threshold, mysql
 
 
@@ -83,16 +83,16 @@ def run_perf_benchmark(qa_service, recall_eng, reranker, threshold, mysql,
     timings = defaultdict(list)
 
     if warmup > 0:
-        print(f"棰勭儹 {warmup} 娆?..")
+        print(f"预热 {warmup} 次...")
         for i in range(warmup):
             q = queries[i % len(queries)]
             try:
                 qa_service.query(q)
             except Exception as e:
-                print(f"  棰勭儹寮傚父(蹇界暐): {e}")
-        print("棰勭儹瀹屾垚\n")
+                print(f"  预热异常(忽略): {e}")
+        print("预热完成\n")
 
-    print(f"寮€濮嬫祴閫? {len(queries)}涓棶棰?脳 {iterations}杞?= {len(queries)*iterations}娆℃煡璇n")
+    print(f"开始测速: {len(queries)}个问题 × {iterations}轮 = {len(queries)*iterations}次查询\n")
 
     for round_num in range(iterations):
         for q in queries:
@@ -161,20 +161,20 @@ def _print_report(timings, total_queries):
     ]
 
     step_names = {
-        "0_total": "鎬昏€楁椂",
-        "1_standardize_llm": "鈶燣LM鏍囧噯鍖?,
-        "2_get_active_ids": "鈶℃椿璺僆D缂撳瓨",
-        "3_encode_query": "鈶mbedding缂栫爜",
-        "4_recall_total": "鈶ｅ弻璺彫鍥?RRF",
-        "5_rerank": "鈶rossEncoder閲嶆帓",
-        "6_threshold": "鈶ラ槇鍊艰繃婊?,
-        "7_mysql_get_by_ids": "鈶ySQL鍙栬褰?,
+        "0_total": "总耗时",
+        "1_standardize_llm": "①LLM标准化",
+        "2_get_active_ids": "②活跃ID缓存",
+        "3_encode_query": "③Embedding编码",
+        "4_recall_total": "④双路召回+RRF",
+        "5_rerank": "⑤CrossEncoder重排",
+        "6_threshold": "⑥阈值过滤",
+        "7_mysql_get_by_ids": "⑦MySQL取记录",
     }
 
     print("=" * 90)
-    print(f"RAG妫€绱㈡€ц兘鎶ュ憡 ({total_queries}娆℃煡璇?")
+    print(f"RAG检索性能报告 ({total_queries}次查询)")
     print("=" * 90)
-    print(f"{'姝ラ':<22} {'mean':>8} {'p50':>8} {'p95':>8} {'p99':>8} {'min':>8} {'max':>8}  鍗曚綅:ms")
+    print(f"{'步骤':<22} {'mean':>8} {'p50':>8} {'p95':>8} {'p99':>8} {'min':>8} {'max':>8}  单位:ms")
     print("-" * 90)
 
     total_mean = 0
@@ -196,7 +196,7 @@ def _print_report(timings, total_queries):
         print(f"{name:<22} {mean:>8.1f} {p50:>8.1f} {p95:>8.1f} {p99:>8.1f} {mn:>8.1f} {mx:>8.1f}")
 
     print("-" * 90)
-    print(f"{'鍚勬涔嬪拰':<22} {total_mean:>8.1f}")
+    print(f"{'各步之和':<22} {total_mean:>8.1f}")
     print()
 
     step_times = []
@@ -206,23 +206,23 @@ def _print_report(timings, total_queries):
             step_times.append((step_names.get(step, step), statistics.mean(data)))
 
     step_times.sort(key=lambda x: x[1], reverse=True)
-    print("鐡堕鎺掑簭锛堜粠鎱㈠埌蹇級:")
+    print("瓶颈排序（从慢到快）:")
     for i, (name, ms) in enumerate(step_times):
         pct = ms / total_mean * 100 if total_mean > 0 else 0
-        bar = "鈻? * int(pct / 2)
+        bar = "█" * int(pct / 2)
         print(f"  {i+1}. {name:<20} {ms:>7.1f}ms ({pct:>5.1f}%) {bar}")
 
     print()
     errors = timings.get("standardize_errors", [])
     if errors:
-        print(f"鈿?LLM鏍囧噯鍖栧け璐?{len(errors)} 娆?)
+        print(f"⚠ LLM标准化失败 {len(errors)} 次")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="RAG妫€绱㈡€ц兘鍩哄噯娴嬭瘯")
-    parser.add_argument("--iterations", type=int, default=3, help="姣忚疆鏌ヨ鐨勯噸澶嶈疆鏁帮紙榛樿3锛?)
-    parser.add_argument("--warmup", type=int, default=2, help="棰勭儹鏌ヨ娆℃暟锛堥粯璁?锛?)
-    parser.add_argument("--queries", nargs="*", default=None, help="鑷畾涔夋煡璇㈤棶棰樺垪琛?)
+    parser = argparse.ArgumentParser(description="RAG检索性能基准测试")
+    parser.add_argument("--iterations", type=int, default=3, help="每轮查询的重复轮数（默认3）")
+    parser.add_argument("--warmup", type=int, default=2, help="预热查询次数（默认2）")
+    parser.add_argument("--queries", nargs="*", default=None, help="自定义查询问题列表")
     args = parser.parse_args()
 
     queries = args.queries if args.queries else TEST_QUERIES

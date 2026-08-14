@@ -1,4 +1,4 @@
-﻿import os
+import os
 import tempfile
 import threading
 
@@ -51,7 +51,7 @@ class AudioPreprocessor:
             )
             get_speech_timestamps = utils[0]
         except Exception as e:
-            logger.warning(f"silero-vad鍔犺浇澶辫触锛岃烦杩嘨AD: {e}")
+            logger.warning(f"silero-vad加载失败，跳过VAD: {e}")
             return audio, sr
 
         import numpy as np
@@ -70,7 +70,7 @@ class AudioPreprocessor:
         )
 
         if not timestamps:
-            logger.warning("VAD鏈娴嬪埌璇煶娈碉紝杩斿洖鍘熷闊抽")
+            logger.warning("VAD未检测到语音段，返回原始音频")
             return audio, sr
 
         segments = []
@@ -81,8 +81,8 @@ class AudioPreprocessor:
         original_duration = len(audio) / sr
         trimmed_duration = len(trimmed) / sr
         logger.info(
-            f"VAD: {original_duration:.1f}s 鈫?{trimmed_duration:.1f}s "
-            f"({len(timestamps)}娈佃闊? 鍘婚櫎{original_duration - trimmed_duration:.1f}s闈欓煶)"
+            f"VAD: {original_duration:.1f}s → {trimmed_duration:.1f}s "
+            f"({len(timestamps)}段语音, 去除{original_duration - trimmed_duration:.1f}s静音)"
         )
         return trimmed, sr
 
@@ -93,13 +93,13 @@ class AudioPreprocessor:
         try:
             import noisereduce
         except ImportError as e:
-            logger.warning(f"noisereduce鏈畨瑁咃紝璺宠繃闄嶅櫔: {e}")
+            logger.warning(f"noisereduce未安装，跳过降噪: {e}")
             return audio, sr
 
         import numpy as np
 
         if len(audio) < sr:
-            logger.warning("闊抽澶煭锛岃烦杩囬檷鍣?)
+            logger.warning("音频太短，跳过降噪")
             return audio, sr
 
         noisy_part = audio[: int(sr * 0.5)]
@@ -112,7 +112,7 @@ class AudioPreprocessor:
         )
 
         noise_level = np.mean(np.abs(audio - reduced))
-        logger.info(f"闄嶅櫔瀹屾垚: 鍣０姘村钩={noise_level:.4f}")
+        logger.info(f"降噪完成: 噪声水平={noise_level:.4f}")
         return reduced, sr
 
     def process(self, audio_path: str) -> str:
@@ -122,7 +122,7 @@ class AudioPreprocessor:
         try:
             audio, sr = self._load_audio(audio_path)
         except Exception as e:
-            logger.warning(f"闊抽鍔犺浇澶辫触锛岃烦杩囬澶勭悊: {e}")
+            logger.warning(f"音频加载失败，跳过预处理: {e}")
             return audio_path
 
         audio, sr = self.apply_denoise(audio, sr)
@@ -134,10 +134,10 @@ class AudioPreprocessor:
 
         try:
             self._save_audio(audio, sr, out_path)
-            logger.info(f"棰勫鐞嗗畬鎴? {audio_path} 鈫?{out_path}")
+            logger.info(f"预处理完成: {audio_path} → {out_path}")
             return out_path
         except Exception as e:
-            logger.warning(f"棰勫鐞嗛煶棰戜繚瀛樺け璐? {e}")
+            logger.warning(f"预处理音频保存失败: {e}")
             return audio_path
 
     def cleanup(self, processed_path: str, original_path: str):

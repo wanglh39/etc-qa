@@ -1,4 +1,4 @@
-﻿from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 from asr.ws_helpers import (
     _char_overlap_ratio,
@@ -15,22 +15,22 @@ from asr.ws_helpers import (
 
 class TestIsGreeting:
     def test_simple_greetings(self):
-        assert _is_greeting("浣犲ソ") is True
-        assert _is_greeting("鎮ㄥソ") is True
-        assert _is_greeting("鍠?) is True
-        assert _is_greeting("鍡?) is True
+        assert _is_greeting("你好") is True
+        assert _is_greeting("您好") is True
+        assert _is_greeting("喂") is True
+        assert _is_greeting("嗯") is True
 
     def test_greetings_with_particles(self):
-        assert _is_greeting("浣犲ソ鍟?) is True
-        assert _is_greeting("鎮ㄥソ锛?) is True
-        assert _is_greeting("鍠傦紵") is True
+        assert _is_greeting("你好啊") is True
+        assert _is_greeting("您好，") is True
+        assert _is_greeting("喂？") is True
 
     def test_polite_openings(self):
-        assert _is_greeting("閭ｄ釜") is True
-        assert _is_greeting("灏辨槸") is True
-        assert _is_greeting("鎴戞兂闂竴涓?) is True
-        assert _is_greeting("璇烽棶涓€涓?) is True
-        assert _is_greeting("涓嶅ソ鎰忔€?) is True
+        assert _is_greeting("那个") is True
+        assert _is_greeting("就是") is True
+        assert _is_greeting("我想问一下") is True
+        assert _is_greeting("请问一下") is True
+        assert _is_greeting("不好意思") is True
 
     def test_empty_and_short(self):
         assert _is_greeting("") is True
@@ -38,67 +38,67 @@ class TestIsGreeting:
         assert _is_greeting("OK") is True
 
     def test_real_questions_not_greeting(self):
-        assert _is_greeting("ETC鎬庝箞鍔炵悊") is False
-        assert _is_greeting("ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊") is False
-        assert _is_greeting("鎴戠殑OBU璁惧婵€娲讳笉浜?) is False
-        assert _is_greeting("钃濈墮杩炴帴涓嶄笂") is False
-        assert _is_greeting("閫€娆句粈涔堟椂鍊欏埌璐?) is False
+        assert _is_greeting("ETC怎么办理") is False
+        assert _is_greeting("ETC扣费异常怎么处理") is False
+        assert _is_greeting("我的OBU设备激活不了") is False
+        assert _is_greeting("蓝牙连接不上") is False
+        assert _is_greeting("退款什么时候到账") is False
 
     def test_mixed_not_greeting(self):
-        assert _is_greeting("浣犲ソ锛屾垜鎯抽棶涓€涓婨TC鎬庝箞鍔炵悊") is False
+        assert _is_greeting("你好，我想问一下ETC怎么办理") is False
 
-    def test_涓轰綘濂絖is_greeting(self):
-        assert _is_greeting("涓轰綘濂?) is True
+    def test_为你好_is_greeting(self):
+        assert _is_greeting("为你好") is True
 
-    def test_涓轰綘_is_greeting(self):
-        assert _is_greeting("涓轰綘") is True
+    def test_为你_is_greeting(self):
+        assert _is_greeting("为你") is True
 
 
 class TestIsCorrection:
     def test_correction_phrases(self):
-        assert _is_correction("涓嶅") is True
-        assert _is_correction("涓嶆槸") is True
-        assert _is_correction("鎼為敊浜?) is True
-        assert _is_correction("璇撮敊浜?) is True
-        assert _is_correction("绾犳涓€涓?) is True
-        assert _is_correction("鎴戦噸璇?) is True
-        assert _is_correction("閲嶆柊璇?) is True
+        assert _is_correction("不对") is True
+        assert _is_correction("不是") is True
+        assert _is_correction("搞错了") is True
+        assert _is_correction("说错了") is True
+        assert _is_correction("纠正一下") is True
+        assert _is_correction("我重说") is True
+        assert _is_correction("重新说") is True
 
     def test_correction_with_context(self):
-        assert _is_correction("涓嶅锛孍TC鎵ｈ垂") is True
-        assert _is_correction("涓嶆槸閭ｄ釜鎰忔€?) is True
+        assert _is_correction("不对，ETC扣费") is True
+        assert _is_correction("不是那个意思") is True
 
     def test_not_correction(self):
-        assert _is_correction("ETC鎵ｈ垂鏈夐棶棰?) is False
-        assert _is_correction("浣犲ソ") is False
-        assert _is_correction("閫€娆句粈涔堟椂鍊欏埌璐?) is False
+        assert _is_correction("ETC扣费有问题") is False
+        assert _is_correction("你好") is False
+        assert _is_correction("退款什么时候到账") is False
 
 
 class TestHasPronoun:
     def test_pronouns_detected(self):
-        assert _has_pronoun("閭ｄ釜鎬庝箞閫€娆?) is True
-        assert _has_pronoun("杩欎釜鏈夐棶棰?) is True
-        assert _has_pronoun("瀹冩€庝箞杩炴帴") is True
-        assert _has_pronoun("鍒氭墠璇寸殑閭ｄ釜") is True
-        assert _has_pronoun("鍓嶉潰鎻愬埌鐨?) is True
-        assert _has_pronoun("鍒氬垰璇寸殑") is True
+        assert _has_pronoun("那个怎么退款") is True
+        assert _has_pronoun("这个有问题") is True
+        assert _has_pronoun("它怎么连接") is True
+        assert _has_pronoun("刚才说的那个") is True
+        assert _has_pronoun("前面提到的") is True
+        assert _has_pronoun("刚刚说的") is True
 
     def test_no_pronoun(self):
-        assert _has_pronoun("ETC鎵ｈ垂鏈夐棶棰?) is False
-        assert _has_pronoun("钃濈墮杩炴帴涓嶄笂") is False
-        assert _has_pronoun("閫€娆句粈涔堟椂鍊欏埌璐?) is False
+        assert _has_pronoun("ETC扣费有问题") is False
+        assert _has_pronoun("蓝牙连接不上") is False
+        assert _has_pronoun("退款什么时候到账") is False
 
 
 class TestCharOverlapRatio:
     def test_identical(self):
-        assert _char_overlap_ratio("ETC鎵ｈ垂鏈夐棶棰?, "ETC鎵ｈ垂鏈夐棶棰?) == 1.0
+        assert _char_overlap_ratio("ETC扣费有问题", "ETC扣费有问题") == 1.0
 
     def test_similar(self):
-        r = _char_overlap_ratio("ETC鎵ｈ垂鏈夐棶棰?, "ETC鎵ｈ垂寮傚父")
+        r = _char_overlap_ratio("ETC扣费有问题", "ETC扣费异常")
         assert r > 0.5
 
     def test_different(self):
-        r = _char_overlap_ratio("ETC鎵ｈ垂鏈夐棶棰?, "钃濈墮杩炴帴涓嶄笂")
+        r = _char_overlap_ratio("ETC扣费有问题", "蓝牙连接不上")
         assert r < 0.3
 
     def test_empty(self):
@@ -106,7 +106,7 @@ class TestCharOverlapRatio:
         assert _char_overlap_ratio("test", "") == 0.0
 
     def test_partial_overlap(self):
-        r = _char_overlap_ratio("瀵瑰氨鏄墸璐规湁闂", "ETC鎵ｈ垂鏈夐棶棰?)
+        r = _char_overlap_ratio("对就是扣费有问题", "ETC扣费有问题")
         assert 0.3 < r < 0.8
 
 
@@ -179,7 +179,7 @@ class TestDoQuery:
         mock_mod = MagicMock()
         mock_mod.service = None
         with patch.dict(sys.modules, {"api.routes": mock_mod}):
-            result = _do_query("ETC鎵ｈ垂")
+            result = _do_query("ETC扣费")
         assert result is None
 
     def test_returns_dict_on_success(self):
@@ -187,19 +187,19 @@ class TestDoQuery:
         from models.schemas import QueryResponse
         mock_mod = MagicMock()
         mock_mod.service.query.return_value = QueryResponse(
-            query="ETC鎵ｈ垂", confidence="high", candidates=[], total_candidates=0
+            query="ETC扣费", confidence="high", candidates=[], total_candidates=0
         )
         with patch.dict(sys.modules, {"api.routes": mock_mod}):
-            result = _do_query("ETC鎵ｈ垂")
+            result = _do_query("ETC扣费")
         assert result is not None
-        assert result["query"] == "ETC鎵ｈ垂"
+        assert result["query"] == "ETC扣费"
 
     def test_returns_none_on_exception(self):
         import sys
         mock_mod = MagicMock()
         mock_mod.service.query.side_effect = RuntimeError("fail")
         with patch.dict(sys.modules, {"api.routes": mock_mod}):
-            result = _do_query("ETC鎵ｈ垂")
+            result = _do_query("ETC扣费")
         assert result is None
 
 

@@ -1,4 +1,4 @@
-﻿from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -13,8 +13,8 @@ class TestL3PromptVersionManager:
 
         result = vm.publish(
             "test_int_prompt",
-            "杩欐槸闆嗘垚娴嬭瘯鎻愮ず璇峷1 {{question}}",
-            "闆嗘垚娴嬭瘯鍙戝竷",
+            "这是集成测试提示词v1 {{question}}",
+            "集成测试发布",
         )
         assert "version" in result
         assert result["version"] >= 1
@@ -27,8 +27,8 @@ class TestL3PromptVersionManager:
 
         result = vm.publish(
             "test_int_prompt",
-            "杩欐槸闆嗘垚娴嬭瘯鎻愮ず璇峷2 {{question}} {{category}}",
-            "闆嗘垚娴嬭瘯鍙戝竷v2",
+            "这是集成测试提示词v2 {{question}} {{category}}",
+            "集成测试发布v2",
         )
         assert result["version"] >= 2
 
@@ -104,7 +104,7 @@ class TestL3PromptVersionManager:
 
         result = vm.start_shadow("test_int_prompt", shadow_version=2)
         if "error" in result:
-            pytest.skip(f"褰卞瓙娴嬭瘯鍚姩澶辫触: {result['error']}")
+            pytest.skip(f"影子测试启动失败: {result['error']}")
         assert result["status"] == "shadow"
 
     def test_get_shadow_template(self, mysql_conn):
@@ -115,7 +115,7 @@ class TestL3PromptVersionManager:
 
         template = vm.get_shadow_template("test_int_prompt")
         assert template is not None
-        assert "鎻愮ず璇? in template or "question" in template
+        assert "提示词" in template or "question" in template
 
     def test_stop_shadow(self, mysql_conn):
         from prompt.version_manager import PromptVersionManager
@@ -154,7 +154,7 @@ class TestL3ShadowRecorder:
         from prompt.shadow_recorder import clear_records, get_shadow_stats, record_shadow
         clear_records()
 
-        record_shadow("test_key", "涓荤粨鏋淎", "褰卞瓙缁撴灉B", query="娴嬭瘯鏌ヨ", pipeline="preprocess")
+        record_shadow("test_key", "主结果A", "影子结果B", query="测试查询", pipeline="preprocess")
         stats = get_shadow_stats()
         assert stats["total"] == 1
         assert stats["diff_count"] == 1
@@ -163,7 +163,7 @@ class TestL3ShadowRecorder:
         from prompt.shadow_recorder import clear_records, get_shadow_stats, record_shadow
         clear_records()
 
-        record_shadow("test_key", "鐩稿悓缁撴灉", "鐩稿悓缁撴灉", query="娴嬭瘯鏌ヨ")
+        record_shadow("test_key", "相同结果", "相同结果", query="测试查询")
         stats = get_shadow_stats()
         assert stats["total"] == 1
         assert stats["diff_count"] == 0
@@ -172,8 +172,8 @@ class TestL3ShadowRecorder:
         from prompt.shadow_recorder import clear_records, get_shadow_records, record_shadow
         clear_records()
 
-        record_shadow("key_a", "缁撴灉1", "缁撴灉2", query="q1")
-        record_shadow("key_b", "缁撴灉3", "缁撴灉3", query="q2")
+        record_shadow("key_a", "结果1", "结果2", query="q1")
+        record_shadow("key_b", "结果3", "结果3", query="q2")
 
         all_records = get_shadow_records()
         assert len(all_records) == 2
@@ -203,7 +203,7 @@ class TestL3ShadowRecorder:
         from prompt.shadow_recorder import clear_records, flush_to_db, get_shadow_stats, record_shadow
         clear_records()
 
-        record_shadow("test_flush_key", "涓荤粨鏋?, "褰卞瓙缁撴灉", query="娴嬭瘯")
+        record_shadow("test_flush_key", "主结果", "影子结果", query="测试")
         flush_to_db()
 
         stats = get_shadow_stats()
@@ -224,8 +224,8 @@ class TestL4PromptAPI:
     def test_publish_via_api(self, real_client):
         resp = real_client.post("/api/v1/prompts/publish", json={
             "prompt_key": "test_api_prompt",
-            "template_text": "API娴嬭瘯鎻愮ず璇?{{question}}",
-            "description": "API闆嗘垚娴嬭瘯",
+            "template_text": "API测试提示词 {{question}}",
+            "description": "API集成测试",
         })
         assert resp.status_code == 200
         data = resp.json()
@@ -245,8 +245,8 @@ class TestL4PromptAPI:
     def test_rollback_via_api(self, real_client):
         real_client.post("/api/v1/prompts/publish", json={
             "prompt_key": "test_api_prompt",
-            "template_text": "API娴嬭瘯鎻愮ず璇峷2 {{question}}",
-            "description": "API闆嗘垚娴嬭瘯v2",
+            "template_text": "API测试提示词v2 {{question}}",
+            "description": "API集成测试v2",
         })
 
         resp = real_client.post("/api/v1/prompts/rollback", json={
@@ -297,8 +297,8 @@ class TestL2VersionManagerErrorHandling:
         vm = PromptVersionManager()
         vm._mysql = mysql_conn
         vm._cols_cache = {"id", "prompt_key", "template_text", "version", "is_active", "status", "description", "created_at", "updated_at"}
-        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
-            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("模拟连接失败")):
+            with pytest.raises(Exception, match="模拟连接失败"):
                 vm.list_versions("test_key")
 
     def test_get_version_error(self, mysql_conn):
@@ -306,8 +306,8 @@ class TestL2VersionManagerErrorHandling:
         vm = PromptVersionManager()
         vm._mysql = mysql_conn
         vm._cols_cache = {"id", "prompt_key", "template_text", "version", "is_active", "status", "description", "created_at", "updated_at"}
-        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
-            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("模拟连接失败")):
+            with pytest.raises(Exception, match="模拟连接失败"):
                 vm.get_version("test_key")
 
     def test_publish_error(self, mysql_conn):
@@ -315,8 +315,8 @@ class TestL2VersionManagerErrorHandling:
         vm = PromptVersionManager()
         vm._mysql = mysql_conn
         vm._cols_cache = {"id", "prompt_key", "template_text", "version", "is_active", "status", "description", "created_at", "updated_at"}
-        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
-            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("模拟连接失败")):
+            with pytest.raises(Exception, match="模拟连接失败"):
                 vm.publish("test_key", "template", "desc")
 
     def test_rollback_error(self, mysql_conn):
@@ -324,8 +324,8 @@ class TestL2VersionManagerErrorHandling:
         vm = PromptVersionManager()
         vm._mysql = mysql_conn
         vm._cols_cache = {"id", "prompt_key", "template_text", "version", "is_active", "status", "description", "created_at", "updated_at"}
-        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
-            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("模拟连接失败")):
+            with pytest.raises(Exception, match="模拟连接失败"):
                 vm.rollback("test_key")
 
     def test_start_shadow_no_status_column(self, mysql_conn):
@@ -349,6 +349,6 @@ class TestL2VersionManagerErrorHandling:
         vm = PromptVersionManager()
         vm._mysql = mysql_conn
         vm._cols_cache = {"id", "prompt_key", "template_text", "version", "is_active", "status", "description", "created_at", "updated_at"}
-        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("妯℃嫙杩炴帴澶辫触")):
-            with pytest.raises(Exception, match="妯℃嫙杩炴帴澶辫触"):
+        with patch.object(mysql_conn, '_get_conn', side_effect=Exception("模拟连接失败")):
+            with pytest.raises(Exception, match="模拟连接失败"):
                 vm.list_all_keys()

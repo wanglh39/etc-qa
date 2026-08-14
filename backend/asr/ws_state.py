@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 import time
 from collections import deque
 from enum import Enum
@@ -131,9 +131,9 @@ class VADSilenceDetector:
             )
             self._model = model
             self._get_speech_timestamps = utils[0]
-            logger.info("VAD闈欓煶妫€娴嬫ā鍨嬪姞杞藉畬鎴?)
+            logger.info("VAD静音检测模型加载完成")
         except Exception as e:
-            logger.warning(f"VAD妯″瀷鍔犺浇澶辫触: {e}")
+            logger.warning(f"VAD模型加载失败: {e}")
 
     def feed_audio(self, audio_chunk: bytes):
         try:

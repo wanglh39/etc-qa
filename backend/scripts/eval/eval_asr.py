@@ -1,11 +1,17 @@
-﻿"""
-瀹㈡湇杈呭姪妫€绱㈡祴璇勶紙鍙屽０閬撳娈靛璇濈増锛夛細
-  璇诲彇宸叉湁鍙屽０閬撻煶棰?鈫?澹伴亾鍒嗙 鈫?涓ゆ潯閾捐矾瀵规瘮锛?    1. 绂荤嚎鍩虹嚎锛歏AD鍒囧垎鈫掓瘡娈电绾緼SR鈫掔疮绉啋CER vs 鎵€鏈夋鎷兼帴
-    2. 浼祦寮忎笟鍔￠摼璺細鏁翠釜瀹㈡埛澹伴亾鈫扨seudoStreamingBackend(VAD+Fun-ASR-Nano)鈫掕繃婊も啋绱Н鈫扖ER vs final_question
-  RAG Recall@1锛氱敤浼祦寮忚繃婊ゅ悗鐨勬枃鏈绱?
-鍓嶇疆鏉′欢锛氬厛杩愯 python scripts/samples/synthesize_data.py 鍚堟垚娴嬭瘯闊抽
-  锛堟垨浠庣湡瀹炰笟鍔″鍑洪煶棰戞斁鍒?data/asr_samples/锛?
-鐢ㄦ硶锛?  1. python scripts/eval/eval_asr.py              # 瀹屾暣娴嬭瘯锛圓SR+RAG锛?  2. python scripts/eval/eval_asr.py --rag-only   # 鍙祴RAG锛堢敤final_question鏂囨湰锛屼笉缁忚繃ASR锛?  3. python scripts/eval/eval_asr.py --asr-only   # 鍙祴ASR锛堜笉娴婻AG妫€绱級
+"""
+客服辅助检索测评（双声道多段对话版）：
+  读取已有双声道音频 → 声道分离 → 两条链路对比：
+    1. 离线基线：VAD切分→每段离线ASR→累积→CER vs 所有段拼接
+    2. 伪流式业务链路：整个客户声道→PseudoStreamingBackend(VAD+Fun-ASR-Nano)→过滤→累积→CER vs final_question
+  RAG Recall@1：用伪流式过滤后的文本检索
+
+前置条件：先运行 python scripts/samples/synthesize_data.py 合成测试音频
+  （或从真实业务导出音频放到 data/asr_samples/）
+
+用法：
+  1. python scripts/eval/eval_asr.py              # 完整测试（ASR+RAG）
+  2. python scripts/eval/eval_asr.py --rag-only   # 只测RAG（用final_question文本，不经过ASR）
+  3. python scripts/eval/eval_asr.py --asr-only   # 只测ASR（不测RAG检索）
 """
 import argparse
 import json
@@ -26,7 +32,7 @@ TEST_QUESTIONS_PATH = os.path.join(SAMPLES_DIR, "test_questions.json")
 
 def calculate_cer(reference: str, hypothesis: str) -> float:
     import re
-    strip_re = re.compile(r'[锛屻€傦紵锛併€侊紱锛?"'r'锛堬級\s]')
+    strip_re = re.compile(r'[，。？！、；：""'r'（）\s]')
     ref_clean = strip_re.sub('', reference)
     hyp_clean = strip_re.sub('', hypothesis)
     if not ref_clean:
@@ -177,7 +183,7 @@ def run_pseudo_streaming_pipeline(streaming_service, wav_path: str, chunk_sample
             context_window.add(query_text)
 
         def on_error(self, error):
-            print(f"       浼祦寮忛敊璇? {error}")
+            print(f"       伪流式错误: {error}")
 
     data, sr = sf.read(wav_path, dtype="int16")
     if data.ndim > 1:
@@ -232,53 +238,53 @@ def load_test_questions() -> list:
     if os.path.exists(TEST_QUESTIONS_PATH):
         with open(TEST_QUESTIONS_PATH, encoding="utf-8") as f:
             return json.load(f)
-    print(f"娴嬭瘯鏁版嵁涓嶅瓨鍦? {TEST_QUESTIONS_PATH}")
+    print(f"测试数据不存在: {TEST_QUESTIONS_PATH}")
     sys.exit(1)
 
 
 def run_asr_test(args):
     print("=" * 60)
-    print("ASR绔埌绔祴璇曪紙鍙屽０閬撳娈靛璇濈増 - 浼祦寮忥級")
+    print("ASR端到端测试（双声道多段对话版 - 伪流式）")
     print("=" * 60)
 
     test_questions = load_test_questions()
-    print(f"鍔犺浇娴嬭瘯鏁版嵁: {len(test_questions)}鏉?(from {TEST_QUESTIONS_PATH})")
+    print(f"加载测试数据: {len(test_questions)}条 (from {TEST_QUESTIONS_PATH})")
 
     first_wav = os.path.join(SAMPLES_DIR, "sample_01.wav")
     if not args.rag_only and not os.path.exists(first_wav):
-        print(f"\n闊抽涓嶅瓨鍦? {first_wav}")
-        print("璇峰厛鍚堟垚鏁版嵁: python scripts/samples/synthesize_data.py")
-        print("鎴栦粠鐪熷疄涓氬姟瀵煎嚭闊抽鍒?data/asr_samples/")
+        print(f"\n音频不存在: {first_wav}")
+        print("请先合成数据: python scripts/samples/synthesize_data.py")
+        print("或从真实业务导出音频到 data/asr_samples/")
         sys.exit(1)
 
     from asr.service import _apply_corrections, _load_corrections, get_asr_service
     asr_service = get_asr_service()
     corrections = _load_corrections()
-    print(f"鍔犺浇绾犻敊琛? {len(corrections)}鏉?(DB浼樺厛鈫抍onfig/asr.yaml鍏滃簳)")
+    print(f"加载纠错表: {len(corrections)}条 (DB优先→config/asr.yaml兜底)")
 
     if not asr_service._enabled and not args.rag_only:
-        print("ASR鏈惎鐢紝璇峰湪config/asr.yaml涓缃產sr.enabled=true")
+        print("ASR未启用，请在config/asr.yaml中设置asr.enabled=true")
         sys.exit(1)
 
     from utils.config import get_config
     cfg = get_config()
     customer_side = cfg.get("asr", {}).get("streaming", {}).get("channel_customer_side", "left")
-    print(f"澹伴亾閰嶇疆: 瀹㈡埛鍦▄customer_side}澹伴亾")
+    print(f"声道配置: 客户在{customer_side}声道")
 
     streaming_service = None
     if not args.rag_only:
         from asr.streaming import get_streaming_service
         streaming_service = get_streaming_service()
         if streaming_service.enabled:
-            print(f"浼祦寮廇SR: 宸插惎鐢?(mode={streaming_service.mode})")
+            print(f"伪流式ASR: 已启用 (mode={streaming_service.mode})")
         else:
             streaming_service = None
-            print("浼祦寮廇SR: 鏈惎鐢紝浠呮祴绂荤嚎鍩虹嚎")
+            print("伪流式ASR: 未启用，仅测离线基线")
 
     rag_service = None
     if not args.asr_only:
         from app import create_service
-        print("鍒濆鍖朢AG鏈嶅姟...")
+        print("初始化RAG服务...")
         rag_service = create_service()
 
     from db.mysql_client import MySQLClient
@@ -295,7 +301,7 @@ def run_asr_test(args):
     vad_match_count = 0
     vad_total = 0
 
-    print("\n--- 澹伴亾鍒嗙 鈫?绂荤嚎鍩虹嚎 + 浼祦寮忎笟鍔￠摼璺?鈫?RAG妫€绱?---")
+    print("\n--- 声道分离 → 离线基线 + 伪流式业务链路 → RAG检索 ---")
     for i, item in enumerate(test_questions, 1):
         customer_segs = item["customer_segments"]
         agent_segs = item["agent_segments"]
@@ -304,8 +310,8 @@ def run_asr_test(args):
         keyword = item.get("keyword", "")
         stereo_path = os.path.join(SAMPLES_DIR, f"sample_{i:02d}.wav")
 
-        print(f"\n  [{i:2d}] 瀹㈡埛鍒嗘: {customer_segs}")
-        print(f"       鏈€缁堥棶棰? \"{final_question}\"")
+        print(f"\n  [{i:2d}] 客户分段: {customer_segs}")
+        print(f"       最终问题: \"{final_question}\"")
 
         if args.rag_only:
             offline_accumulated = final_question
@@ -315,7 +321,7 @@ def run_asr_test(args):
             vad_segments_count = len(customer_segs)
         else:
             if not os.path.exists(stereo_path):
-                print(f"       闊抽涓嶅瓨鍦? {stereo_path}锛岃烦杩?)
+                print(f"       音频不存在: {stereo_path}，跳过")
                 continue
 
             customer_wav, agent_wav, sr = separate_channels(stereo_path, customer_side)
@@ -326,7 +332,7 @@ def run_asr_test(args):
             vad_total += 1
             if vad_segments_count == expected_seg_count:
                 vad_match_count += 1
-            print(f"       VAD鍒囧垎: {vad_segments_count}娈?(鏈熸湜{expected_seg_count}娈? {'鉁? if vad_segments_count == expected_seg_count else '鉁?}")
+            print(f"       VAD切分: {vad_segments_count}段 (期望{expected_seg_count}段) {'✓' if vad_segments_count == expected_seg_count else '✗'}")
 
             seg_texts = []
             tmp_dir = tempfile.mkdtemp(prefix="eval_asr_")
@@ -336,9 +342,9 @@ def run_asr_test(args):
                 try:
                     resp = asr_service.transcribe(seg_path)
                     seg_texts.append(resp.text)
-                    print(f"       娈礫{j+1}] 绂荤嚎ASR: \"{resp.text}\"")
+                    print(f"       段[{j+1}] 离线ASR: \"{resp.text}\"")
                 except Exception as e:
-                    print(f"       娈礫{j+1}] 绂荤嚎ASR澶辫触: {e}")
+                    print(f"       段[{j+1}] 离线ASR失败: {e}")
                     seg_texts.append("")
 
             for f in os.listdir(tmp_dir):
@@ -351,7 +357,7 @@ def run_asr_test(args):
                 resp_a = asr_service.transcribe(agent_wav)
                 agent_asr_text = resp_a.text
             except Exception as e:
-                print(f"       瀹㈡湇澹伴亾ASR澶辫触: {e}")
+                print(f"       客服声道ASR失败: {e}")
                 agent_asr_text = ""
 
             pseudo_filtered_text = None
@@ -362,14 +368,14 @@ def run_asr_test(args):
                         streaming_service, customer_wav
                     )
                     if filtered_msgs:
-                        print(f"       杩囨护鎺墈len(filtered_msgs)}娈? {filtered_msgs}")
-                    print(f"       浼祦寮忕粨鏋? \"{pseudo_filtered_text}\"")
+                        print(f"       过滤掉{len(filtered_msgs)}段: {filtered_msgs}")
+                    print(f"       伪流式结果: \"{pseudo_filtered_text}\"")
                 except Exception as e:
-                    print(f"       浼祦寮忓け璐? {e}")
+                    print(f"       伪流式失败: {e}")
 
         offline_corrected = _apply_corrections(offline_accumulated, corrections) if corrections else offline_accumulated
         import re as _re
-        _punct_re = _re.compile(r'[锛屻€傦紵锛併€侊紱锛?"''锛堬級]$')
+        _punct_re = _re.compile(r'[，。？！、；：""''（）]$')
         offline_corrected = _punct_re.sub('', offline_corrected)
 
         customer_full_text = "".join(customer_segs)
@@ -386,8 +392,8 @@ def run_asr_test(args):
             pseudo_count += 1
 
         if not args.rag_only:
-            print(f"       绂荤嚎绱Н: \"{offline_accumulated}\"")
-            print(f"       瀹㈡湇璇嗗埆:   \"{agent_asr_text}\"")
+            print(f"       离线累积: \"{offline_accumulated}\"")
+            print(f"       客服识别:   \"{agent_asr_text}\"")
 
         rag_query_text = pseudo_filtered_text if pseudo_filtered_text else offline_corrected
         if "expected_qa_id" in item:
@@ -412,21 +418,21 @@ def run_asr_test(args):
                     if rag_hit:
                         rag_hits += 1
             except Exception as e:
-                print(f"       RAG妫€绱㈠け璐? {e}")
+                print(f"       RAG检索失败: {e}")
 
         offline_cer_mark = "OK" if offline_cer < 0.1 else ("WARN" if offline_cer < 0.2 else "FAIL")
         rag_mark = "HIT" if rag_hit else "MISS"
 
         if rag_candidates:
-            print(f"       缁欏鏈嶇殑鍊欓€夋彁绀?")
+            print(f"       给客服的候选提示:")
             for j, c in enumerate(rag_candidates, 1):
-                mark = "鈫?瀹㈡湇閫夋嫨" if j == 1 else ""
-                print(f"         [{j}] 鍒嗘暟={c.score:.4f} \"{c.question}\" {mark}")
-            print(f"         绛旀: \"{rag_candidates[0].answer[:60]}...\"")
-        print(f"       绂荤嚎CER: {offline_cer:.1%}鈫抺offline_cer_corrected:.1%} [{offline_cer_mark}]  "
-              f"瀹㈡湇CER: {agent_cer:.1%}  "
+                mark = "← 客服选择" if j == 1 else ""
+                print(f"         [{j}] 分数={c.score:.4f} \"{c.question}\" {mark}")
+            print(f"         答案: \"{rag_candidates[0].answer[:60]}...\"")
+        print(f"       离线CER: {offline_cer:.1%}→{offline_cer_corrected:.1%} [{offline_cer_mark}]  "
+              f"客服CER: {agent_cer:.1%}  "
               f"RAG: [{rag_mark}]"
-              + (f"  浼祦寮廋ER: {pseudo_cer:.1%}" if pseudo_cer is not None else ""))
+              + (f"  伪流式CER: {pseudo_cer:.1%}" if pseudo_cer is not None else ""))
 
         results.append({
             "index": i,
@@ -459,18 +465,18 @@ def run_asr_test(args):
     vad_match_rate = vad_match_count / vad_total if vad_total else 0
 
     print(f"\n{'='*60}")
-    print("瀹㈡湇杈呭姪妫€绱㈡祴璇曠粨鏋滄眹鎬伙紙鍙屽０閬撳娈靛璇濈増 - 浼祦寮忥級")
+    print("客服辅助检索测试结果汇总（双声道多段对话版 - 伪流式）")
     print(f"{'='*60}")
-    print(f"  娴嬭瘯鍦烘櫙: 瀹㈡埛鍒嗘璇磋瘽 鈫?澹伴亾鍒嗙 鈫?浼祦寮?VAD+Fun-ASR-Nano) 鈫?杩囨护 鈫?RAG妫€绱?)
-    print(f"  鏍锋湰鏁?          {n}")
-    print(f"  VAD鍒囧垎鍖归厤鐜?   {vad_match_rate:.1%} ({vad_match_count}/{vad_total})")
-    print(f"  绂荤嚎鍩虹嚎CER:     {avg_offline_cer:.1%}")
+    print(f"  测试场景: 客户分段说话 → 声道分离 → 伪流式(VAD+Fun-ASR-Nano) → 过滤 → RAG检索")
+    print(f"  样本数:          {n}")
+    print(f"  VAD切分匹配率:   {vad_match_rate:.1%} ({vad_match_count}/{vad_total})")
+    print(f"  离线基线CER:     {avg_offline_cer:.1%}")
     if pseudo_count > 0:
-        print(f"  浼祦寮廋ER:       {avg_pseudo_cer:.1%} ({pseudo_count}鏉? 瀵规瘮final_question)")
-        print(f"  绂荤嚎vs浼祦寮忓樊寮? {avg_offline_cer - avg_pseudo_cer:+.1%}")
-    print(f"  瀹㈡湇澹伴亾CER:     {avg_agent_cer:.1%}")
+        print(f"  伪流式CER:       {avg_pseudo_cer:.1%} ({pseudo_count}条, 对比final_question)")
+        print(f"  离线vs伪流式差异: {avg_offline_cer - avg_pseudo_cer:+.1%}")
+    print(f"  客服声道CER:     {avg_agent_cer:.1%}")
     print(f"  RAG Recall@1:    {rag_recall:.1%} ({rag_hits}/{rag_total})")
-    print(f"  璇存槑: 浼祦寮廋ER瀵规瘮final_question(寮€鍦虹櫧宸茶繃婊?, 绂荤嚎CER瀵规瘮鎵€鏈夋鎷兼帴")
+    print(f"  说明: 伪流式CER对比final_question(开场白已过滤), 离线CER对比所有段拼接")
 
     cer_dist = defaultdict(int)
     for r in results:
@@ -485,7 +491,7 @@ def run_asr_test(args):
             cer_dist["10-20%"] += 1
         else:
             cer_dist[">20%"] += 1
-    print(f"  CER鍒嗗竷:         {dict(cer_dist)}")
+    print(f"  CER分布:         {dict(cer_dist)}")
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     report_path = os.path.join(OUTPUT_DIR, "eval_asr_report.json")
@@ -507,7 +513,7 @@ def run_asr_test(args):
     }
     with open(report_path, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
-    print(f"\n鎶ュ憡宸蹭繚瀛? {report_path}")
+    print(f"\n报告已保存: {report_path}")
 
     if rag_service:
         from db.milvus_client import MilvusQA
@@ -518,8 +524,8 @@ def run_asr_test(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="ASR绔埌绔祴璇曪紙鍙屽０閬撳娈靛璇濈増 - 浼祦寮忥級")
-    parser.add_argument("--rag-only", action="store_true", help="鍙祴RAG锛堢敤final_question鏂囨湰锛屼笉缁忚繃ASR锛?)
-    parser.add_argument("--asr-only", action="store_true", help="鍙祴ASR锛堜笉娴婻AG妫€绱級")
+    parser = argparse.ArgumentParser(description="ASR端到端测试（双声道多段对话版 - 伪流式）")
+    parser.add_argument("--rag-only", action="store_true", help="只测RAG（用final_question文本，不经过ASR）")
+    parser.add_argument("--asr-only", action="store_true", help="只测ASR（不测RAG检索）")
     args = parser.parse_args()
     run_asr_test(args)

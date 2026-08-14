@@ -1,10 +1,11 @@
-﻿"""
-Demo 5: 瀹㈡湇杈呭姪妫€绱㈠叏閾捐矾婕旂ず
-灞曠ず: 瀹㈡埛闂 鈫?Agent鏍囧噯鍖?鈫?RAG妫€绱?鈫?缁欏鏈嶆彁绀哄€欓€?鈫?瀹㈡湇閫夋嫨鍥炵瓟
+"""
+Demo 5: 客服辅助检索全链路演示
+展示: 客户问题 → Agent标准化 → RAG检索 → 给客服提示候选 → 客服选择回答
 
-涓氬姟鍦烘櫙:
-  瀹㈡埛鎵撶數璇濇弿杩伴棶棰?鈫?瀹㈡湇鍚埌鍚庤緭鍏ョ郴缁?鈫?绯荤粺鏍囧噯鍖?妫€绱?鈫?杩斿洖鍊欓€夌瓟妗?鈫?瀹㈡湇瀹℃牳鍚庡洖绛斿鎴?
-杩愯: python demo/demo5_full_pipeline.py
+业务场景:
+  客户打电话描述问题 → 客服听到后输入系统 → 系统标准化+检索 → 返回候选答案 → 客服审核后回答客户
+
+运行: python demo/demo5_full_pipeline.py
 """
 
 import os
@@ -32,24 +33,24 @@ SEP = "=" * 60
 
 def main():
     print(SEP)
-    print("  Demo 5: 瀹㈡湇杈呭姪妫€绱㈠叏閾捐矾")
-    print("  鍦烘櫙: 瀹㈡埛鎻忚堪闂 鈫?绯荤粺鏍囧噯鍖?妫€绱?鈫?缁欏鏈嶅€欓€夋彁绀?鈫?瀹㈡湇閫夋嫨鍥炵瓟")
+    print("  Demo 5: 客服辅助检索全链路")
+    print("  场景: 客户描述问题 → 系统标准化+检索 → 给客服候选提示 → 客服选择回答")
     print(SEP)
 
-    print("\n鍒濆鍖栫郴缁?..")
+    print("\n初始化系统...")
     cfg = load_config()
 
     import torch
     torch.set_num_threads(1)
 
-    print("  鍔犺浇Embedding妯″瀷...")
+    print("  加载Embedding模型...")
     embed_model = SentenceTransformer(cfg["models"]["embed"]["path"])
-    print("  鍔犺浇Reranker妯″瀷...")
+    print("  加载Reranker模型...")
     rerank_model = CrossEncoder(cfg["models"]["rerank"]["path"])
-    print("  鍒濆鍖栨暟鎹簱...")
+    print("  初始化数据库...")
     mysql = MySQLClient()
     milvus = MilvusQA()
-    print("  鏋勫缓BM25绱㈠紩...")
+    print("  构建BM25索引...")
     bm25 = BM25Index()
     all_qa = mysql.get_all_questions()
     bm25.build(all_qa)
@@ -59,78 +60,78 @@ def main():
     threshold = ThresholdJudge()
     service = QAService(recall, threshold, reranker, mysql)
 
-    print(f"  鐭ヨ瘑搴撴潯鐩? {len(all_qa)}")
-    print("  绯荤粺灏辩华锛乗n")
+    print(f"  知识库条目: {len(all_qa)}")
+    print("  系统就绪！\n")
 
     test_cases = [
         {
-            "customer": "鎴戞兂闂竴涓婨TC鎵ｈ垂寮傚父鎬庝箞澶勭悊鍟?,
-            "context": "瀹㈡埛鏉ョ數鍜ㄨETC鎵ｈ垂寮傚父",
+            "customer": "我想问一下ETC扣费异常怎么处理啊",
+            "context": "客户来电咨询ETC扣费异常",
         },
         {
-            "customer": "ETC璁惧涓嶄寒浜嗗拫鏁?,
-            "context": "瀹㈡埛鍙嶉璁惧鏁呴殰",
+            "customer": "ETC设备不亮了咋整",
+            "context": "客户反馈设备故障",
         },
         {
-            "customer": "濡備綍娉ㄩ攢ETC璐︽埛",
-            "context": "瀹㈡埛鐢宠娉ㄩ攢",
+            "customer": "如何注销ETC账户",
+            "context": "客户申请注销",
         },
         {
-            "customer": "钃濈墮OBU杩炴帴涓嶄笂鎬庝箞鍔?,
-            "context": "瀹㈡埛鍙嶉钃濈墮杩炴帴闂",
+            "customer": "蓝牙OBU连接不上怎么办",
+            "context": "客户反馈蓝牙连接问题",
         },
         {
-            "customer": "涓婁釜鏈堝湪楂橀€熷彛琚鎵ｄ簡涓€娆¤垂浣嗘槸涓嶇煡閬撴槸鍝閫氳浜х敓鐨勬兂鏌ヤ竴涓嬫槑缁?,
-            "context": "瀹㈡埛鎶曡瘔澶氭墸璐?,
+            "customer": "上个月在高速口被多扣了一次费但是不知道是哪次通行产生的想查一下明细",
+            "context": "客户投诉多扣费",
         },
     ]
 
     for i, tc in enumerate(test_cases, 1):
         print(f"\n{'#' * 60}")
-        print(f"  閫氳瘽 {i}/{len(test_cases)}")
+        print(f"  通话 {i}/{len(test_cases)}")
         print(f"{'#' * 60}")
 
-        print(f"\n  [鍦烘櫙] {tc['context']}")
-        print(f"  [瀹㈡埛璇碷 \"{tc['customer']}\"")
-        print(f"  [瀹㈡湇杈撳叆绯荤粺] \"{tc['customer']}\"")
+        print(f"\n  [场景] {tc['context']}")
+        print(f"  [客户说] \"{tc['customer']}\"")
+        print(f"  [客服输入系统] \"{tc['customer']}\"")
 
         t_total = time.time()
         result = service.query(tc["customer"])
         t_total = time.time() - t_total
 
-        print(f"\n  [绯荤粺澶勭悊] 鑰楁椂 {t_total:.2f}s")
-        print(f"  鍘熷闂:   \"{result.query}\"")
-        print(f"  鏍囧噯鍖栧悗:   \"{result.standardized_query}\"")
-        print(f"  缃俊搴?     {result.confidence}")
-        print(f"  鍊欓€夋暟閲?   {result.total_candidates}")
+        print(f"\n  [系统处理] 耗时 {t_total:.2f}s")
+        print(f"  原始问题:   \"{result.query}\"")
+        print(f"  标准化后:   \"{result.standardized_query}\"")
+        print(f"  置信度:     {result.confidence}")
+        print(f"  候选数量:   {result.total_candidates}")
 
         if result.candidates:
-            print(f"\n  [缁欏鏈嶇殑鍊欓€夋彁绀篯")
+            print(f"\n  [给客服的候选提示]")
             for j, c in enumerate(result.candidates[:3], 1):
-                print(f"    [{j}] 鍒嗘暟={c.score:.4f} | {c.category_l1}/{c.category_l2}")
-                print(f"        闂: \"{c.question}\"")
-                print(f"        绛旀: \"{c.answer[:80]}{'...' if len(c.answer) > 80 else ''}\"")
+                print(f"    [{j}] 分数={c.score:.4f} | {c.category_l1}/{c.category_l2}")
+                print(f"        问题: \"{c.question}\"")
+                print(f"        答案: \"{c.answer[:80]}{'...' if len(c.answer) > 80 else ''}\"")
                 if c.internal_process:
-                    print(f"        鍐呴儴娴佺▼: \"{c.internal_process[:60]}\"")
+                    print(f"        内部流程: \"{c.internal_process[:60]}\"")
                 if c.feedback_dept:
-                    print(f"        鍙嶉閮ㄩ棬: {c.feedback_dept}")
+                    print(f"        反馈部门: {c.feedback_dept}")
 
-            print(f"\n  [瀹㈡湇瀹℃牳]")
-            print(f"  瀹㈡湇閫夋嫨鍊欓€?[1] 鍥炵瓟瀹㈡埛")
+            print(f"\n  [客服审核]")
+            print(f"  客服选择候选 [1] 回答客户")
             top = result.candidates[0]
-            print(f"  瀹㈡湇鍥炵瓟瀹㈡埛: \"{top.answer[:100]}\"")
+            print(f"  客服回答客户: \"{top.answer[:100]}\"")
             if top.internal_process:
-                print(f"  鍐呴儴鎿嶄綔: \"{top.internal_process[:80]}\"")
+                print(f"  内部操作: \"{top.internal_process[:80]}\"")
             if top.feedback_dept:
-                print(f"  闇€娴佽浆鑷? {top.feedback_dept}")
+                print(f"  需流转至: {top.feedback_dept}")
         else:
-            print(f"\n  [绯荤粺鎻愮ず] 鏈壘鍒板尮閰嶇瓟妗堬紝寤鸿杞汉宸ュ鐞?)
+            print(f"\n  [系统提示] 未找到匹配答案，建议转人工处理")
 
         if i < len(test_cases):
-            input(f"\n>>> 鎸夊洖杞︾户缁笅涓€涓€氳瘽 ({i}/{len(test_cases)}) ...")
+            input(f"\n>>> 按回车继续下一个通话 ({i}/{len(test_cases)}) ...")
 
     print(f"\n{SEP}")
-    print("  Demo 5 瀹屾垚")
+    print("  Demo 5 完成")
     print(SEP)
 
 

@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 import json
 import threading
 import time
@@ -62,11 +62,11 @@ class LocalStreamingBackend(StreamingBackend):
         try:
             from funasr import AutoModel
         except ImportError as e:
-            raise RuntimeError(f"funasr瀵煎叆澶辫触: {e}")
-        logger.info(f"鍔犺浇娴佸紡ASR妯″瀷: {self._model_name}, device={self._device}")
+            raise RuntimeError(f"funasr导入失败: {e}")
+        logger.info(f"加载流式ASR模型: {self._model_name}, device={self._device}")
         self._model = AutoModel(model=self._model_name, device=self._device)
         self._cache = {}
-        logger.info("娴佸紡ASR妯″瀷鍔犺浇瀹屾垚")
+        logger.info("流式ASR模型加载完成")
 
     def warmup(self):
         self._load_model()
@@ -157,10 +157,10 @@ class PseudoStreamingBackend(StreamingBackend):
         try:
             from funasr import AutoModel
         except ImportError as e:
-            raise RuntimeError(f"funasr瀵煎叆澶辫触: {e}")
-        logger.info(f"鍔犺浇浼祦寮廇SR妯″瀷: {self._model_name}, device={self._device}")
+            raise RuntimeError(f"funasr导入失败: {e}")
+        logger.info(f"加载伪流式ASR模型: {self._model_name}, device={self._device}")
         self._model = AutoModel(model=self._model_name, device=self._device)
-        logger.info("浼祦寮廇SR妯″瀷鍔犺浇瀹屾垚")
+        logger.info("伪流式ASR模型加载完成")
 
     def warmup(self):
         self._load_model()
@@ -200,7 +200,7 @@ class PseudoStreamingBackend(StreamingBackend):
                 if text and self._callback:
                     self._callback.on_final(text, is_end=False)
         except Exception as e:
-            logger.error(f"浼祦寮忚瘑鍒け璐? {e}")
+            logger.error(f"伪流式识别失败: {e}")
             if self._callback:
                 self._callback.on_error(str(e))
         finally:
@@ -261,7 +261,7 @@ class AliCloudStreamingBackend(StreamingBackend):
     def start(self, callback: StreamingCallback):
         self._callback = callback
         self._running = True
-        logger.info(f"闃块噷浜戞祦寮廇SR杩炴帴: app_key={self._app_key[:8]}...")
+        logger.info(f"阿里云流式ASR连接: app_key={self._app_key[:8]}...")
 
     def send_audio(self, chunk: bytes):
         if not self._running:
@@ -272,7 +272,7 @@ class AliCloudStreamingBackend(StreamingBackend):
         self._running = False
         if self._callback:
             self._callback.on_final("", is_end=True)
-        logger.info("闃块噷浜戞祦寮廇SR杩炴帴鍏抽棴")
+        logger.info("阿里云流式ASR连接关闭")
 
 
 
@@ -330,34 +330,34 @@ class StreamingASRService:
 
     def warmup(self):
         if not self._enabled:
-            logger.info("娴佸紡ASR鏈惎鐢紝璺宠繃棰勭儹")
+            logger.info("流式ASR未启用，跳过预热")
             return
         try:
             with self._lock:
                 if self._backend is None:
                     self._backend = self._create_backend()
-                    logger.info(f"棰勭儹娴佸紡ASR backend: mode={self._mode}")
+                    logger.info(f"预热流式ASR backend: mode={self._mode}")
                 else:
-                    logger.info(f"娴佸紡ASR backend宸插瓨鍦紝璺宠繃鍒涘缓: mode={self._mode}")
+                    logger.info(f"流式ASR backend已存在，跳过创建: mode={self._mode}")
                 t0 = time.time()
                 self._backend.warmup()
                 elapsed_ms = int((time.time() - t0) * 1000)
-                logger.info(f"娴佸紡ASR妯″瀷棰勭儹瀹屾垚: mode={self._mode}, 鑰楁椂={elapsed_ms}ms")
+                logger.info(f"流式ASR模型预热完成: mode={self._mode}, 耗时={elapsed_ms}ms")
         except Exception as e:
-            logger.warning(f"娴佸紡ASR妯″瀷棰勭儹澶辫触锛岄€€鍖栦负鎳掑姞杞? {e}")
+            logger.warning(f"流式ASR模型预热失败，退化为懒加载: {e}")
 
     def start_stream(self, callback: StreamingCallback):
         if not self._enabled:
-            raise RuntimeError("娴佸紡ASR鏈惎鐢?)
+            raise RuntimeError("流式ASR未启用")
 
         with self._lock:
             if self._backend is None:
                 self._backend = self._create_backend()
-                logger.info("鍒涘缓鏂癰ackend瀹炰緥")
+                logger.info("创建新backend实例")
             else:
-                logger.info("澶嶇敤宸叉湁backend瀹炰緥")
+                logger.info("复用已有backend实例")
             self._backend.start(callback)
-        logger.info(f"娴佸紡ASR鍚姩: mode={self._mode}")
+        logger.info(f"流式ASR启动: mode={self._mode}")
 
     def send_audio(self, chunk: bytes):
         if self._backend:
@@ -366,7 +366,7 @@ class StreamingASRService:
     def stop_stream(self):
         if self._backend:
             self._backend.stop()
-        logger.info("娴佸紡ASR鍋滄")
+        logger.info("流式ASR停止")
 
     def health(self) -> dict:
         return {

@@ -1,4 +1,4 @@
-﻿import json
+import json
 import os
 import sys
 import traceback
@@ -53,7 +53,7 @@ def test_transcribe_single():
         metadata = json.load(f)
     sample = metadata[0]
     audio_path = os.path.normpath(os.path.join(ASR_SAMPLES_DIR, sample["filename"]))
-    assert os.path.exists(audio_path), f"闊抽鏂囦欢涓嶅瓨鍦? {audio_path}"
+    assert os.path.exists(audio_path), f"音频文件不存在: {audio_path}"
 
     result = svc.transcribe(audio_path)
     assert result.text != ""
@@ -86,7 +86,7 @@ def test_batch_accuracy():
                     break
 
     accuracy = correct / total if total > 0 else 0
-    assert accuracy >= 0.6, f"ASR鎵归噺璇嗗埆鍑嗙‘鐜噞accuracy:.0%}浣庝簬60%闃堝€?
+    assert accuracy >= 0.6, f"ASR批量识别准确率{accuracy:.0%}低于60%阈值"
 
 
 def test_streaming_recognize():
@@ -111,7 +111,7 @@ def test_streaming_recognize():
 
     svc = StreamingASRService()
     if not svc.enabled:
-        raise AssertionError("娴佸紡ASR鏈惎鐢?)
+        raise AssertionError("流式ASR未启用")
     cb = _Cb()
     svc.start_stream(cb)
 
@@ -124,7 +124,7 @@ def test_streaming_recognize():
 
     svc.stop_stream()
     all_text = "".join(cb.finals) + "".join(cb.partials)
-    assert len(all_text) > 0, f"娴佸紡ASR鏈骇鐢熶换浣曠粨鏋? finals={cb.finals}, partials={cb.partials}"
+    assert len(all_text) > 0, f"流式ASR未产生任何结果, finals={cb.finals}, partials={cb.partials}"
     return {"text": all_text, "finals_count": len(cb.finals)}
 
 
@@ -148,7 +148,7 @@ def test_asr_to_query():
             "keyword": sample.get("keyword", ""),
             "category_l1": sample.get("category_l1", ""),
         })
-    assert len(results) > 0, "娌℃湁鍙祴璇曠殑闊抽鏍锋湰"
+    assert len(results) > 0, "没有可测试的音频样本"
     return results
 
 
@@ -162,7 +162,7 @@ def test_channel_asr():
 
     stereo_path = os.path.normpath(os.path.join(ASR_SAMPLES_DIR, "sample_01.wav"))
     stereo_audio, sr = sf.read(stereo_path, dtype="int16")
-    assert stereo_audio.ndim == 2, f"sample_01.wav搴斾负鍙屽０閬? 瀹為檯ndim={stereo_audio.ndim}"
+    assert stereo_audio.ndim == 2, f"sample_01.wav应为双声道, 实际ndim={stereo_audio.ndim}"
 
     stereo_bytes = stereo_audio.tobytes()
     left_bytes = _extract_channel(stereo_bytes, "left")
@@ -185,8 +185,8 @@ def test_channel_asr():
         return {
             "customer_text": customer_result.text,
             "agent_text": agent_result.text,
-            "customer_expected": "ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊",
-            "agent_expected": "鎮ㄥソ璇烽棶鏈変粈涔堝彲浠ュ府鎮?,
+            "customer_expected": "ETC扣费异常怎么处理",
+            "agent_expected": "您好请问有什么可以帮您",
         }
     finally:
         for p in (tmp_l, tmp_r):
@@ -211,7 +211,7 @@ if __name__ == "__main__":
     else:
         func = tests.get(test_name)
         if func is None:
-            print(json.dumps({"error": f"鏈煡娴嬭瘯: {test_name}"}))
+            print(json.dumps({"error": f"未知测试: {test_name}"}))
             sys.exit(1)
         results = [_run_test(test_name, func)]
 

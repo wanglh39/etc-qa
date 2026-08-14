@@ -1,4 +1,4 @@
-﻿import os
+import os
 
 import pytest
 
@@ -17,7 +17,7 @@ class TestASRQueryAPIIntegration:
         svc._enabled = True
         try:
             sample_path = os.path.join(ASR_SAMPLES_DIR, "sample_01.wav")
-            assert os.path.exists(sample_path), f"闊抽鏍锋湰涓嶅瓨鍦? {sample_path}"
+            assert os.path.exists(sample_path), f"音频样本不存在: {sample_path}"
             with open(sample_path, "rb") as f:
                 resp = real_client.post(
                     "/api/v1/asr/query",
@@ -63,7 +63,7 @@ class TestASRQueryAPIIntegration:
         svc._enabled = True
         try:
             sample_path = os.path.join(ASR_SAMPLES_DIR, "sample_02.wav")
-            assert os.path.exists(sample_path), f"闊抽鏍锋湰涓嶅瓨鍦? {sample_path}"
+            assert os.path.exists(sample_path), f"音频样本不存在: {sample_path}"
             with open(sample_path, "rb") as f:
                 resp = real_client.post(
                     "/api/v1/asr/query",
@@ -83,7 +83,7 @@ class TestAudioPreprocessorIntegration:
         from asr.preprocess import AudioPreprocessor
         sample_path = os.path.join(ASR_SAMPLES_DIR, "sample_01.wav")
         if not os.path.exists(sample_path):
-            pytest.skip("闊抽鏍锋湰涓嶅瓨鍦?)
+            pytest.skip("音频样本不存在")
         pp = AudioPreprocessor()
         result = pp.process(sample_path)
         if pp.vad_enabled or pp.denoise_enabled:
@@ -125,7 +125,7 @@ class TestWebSocketASRStreamIntegration:
                 data = ws.receive_json()
                 if not streaming_enabled:
                     assert data["type"] == "error"
-                    assert "鏈惎鐢? in data["message"]
+                    assert "未启用" in data["message"]
                 else:
                     assert data["type"] == "ready"
         except Exception as e:

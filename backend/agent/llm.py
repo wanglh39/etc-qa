@@ -1,4 +1,4 @@
-﻿
+
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
@@ -29,7 +29,7 @@ def _get_structured_method(model: str) -> str | None:
 def get_llm() -> ChatOpenAI:
     cfg = get_config()["llm"]
     if not cfg.get("enabled"):
-        raise RuntimeError("LLM鏈惎鐢紝璇峰湪config.yaml涓厤缃甽lm.enabled=true")
+        raise RuntimeError("LLM未启用，请在config.yaml中配置llm.enabled=true")
 
     key = (cfg["provider"], cfg["model"], cfg["base_url"])
     if key not in _llm_cache:
@@ -56,16 +56,16 @@ def get_structured_llm(output_schema: type[BaseModel]) -> tuple:
     method = _get_structured_method(llm.model)
 
     if method is None:
-        logger.info(f"妯″瀷 {llm.model} 涓嶆敮鎸佺粨鏋勫寲杈撳嚭锛屼娇鐢↗SON瑙ｆ瀽: {schema_name}")
+        logger.info(f"模型 {llm.model} 不支持结构化输出，使用JSON解析: {schema_name}")
         _structured_cache[cache_key] = (llm, False)
         return llm, False
 
     try:
         structured = llm.with_structured_output(output_schema, method=method)
         _structured_cache[cache_key] = (structured, True)
-        logger.info(f"缁撴瀯鍖栬緭鍑烘ā寮? {schema_name} ({method})")
+        logger.info(f"结构化输出模式: {schema_name} ({method})")
         return structured, True
     except Exception as e:
-        logger.warning(f"缁撴瀯鍖栬緭鍑哄垵濮嬪寲澶辫触({method})锛岄檷绾т负JSON瑙ｆ瀽: {e}")
+        logger.warning(f"结构化输出初始化失败({method})，降级为JSON解析: {e}")
         _structured_cache[cache_key] = (llm, False)
         return llm, False

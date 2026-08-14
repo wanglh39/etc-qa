@@ -1,4 +1,4 @@
-﻿import os
+import os
 
 os.environ['ETC_QA_ENV'] = os.environ.get('ETC_QA_ENV', 'test')
 import sys

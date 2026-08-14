@@ -1,4 +1,4 @@
-﻿import json
+import json
 import random
 from collections import defaultdict
 
@@ -110,40 +110,51 @@ def _get_kw_lists() -> tuple:
     return forbidden, must_preserve
 
 
-STRUCTURE_INGEST_PROMPT = """浣犳槸{{enterprise_name}}瀹㈡湇鐭ヨ瘑搴撶鐞嗗憳銆傝灏嗕互涓嬪伐鍗曟暟鎹鐞嗕负鐭ヨ瘑搴撴爣鍑嗘牸寮忥紝杈撳嚭JSON銆?
-## 杈撳嚭瀛楁璇存槑
-- question锛氱煡璇嗗簱鏍囧噯闂锛堟敼鍐欏悗鐩存帴鍚戦噺鍖栧瓨鍏ilvus锛屽繀椤讳笌鐜版湁闂椋庢牸涓€鑷达級
-- answer锛氬瀹㈣瘽鏈紙闈㈠悜瀹㈡埛鐨勫洖绛旓紝绠€娲佹竻鏅帮紝鍖呭惈鍏抽敭澶勭悊缁撴灉锛?- category_l1锛氫竴绾у垎绫伙紙浠庡垎绫讳綋绯讳腑閫夋嫨锛?- category_l2锛氫簩绾у垎绫伙紙浠庡垎绫讳綋绯讳腑閫夋嫨锛?- internal_process锛氬唴閮ㄥ鐞嗗姙娉曞強娴佺▼锛堢粰瀹㈡湇鐪嬬殑鎿嶄綔姝ラ锛?- feedback_dept锛氭秹鍙婂弽棣堥儴闂?寰俊缇?宸ュ崟妯℃澘
-- category_confidence锛氬垎绫荤疆淇″害锛?-1锛屽垎绫昏秺纭畾瓒婇珮锛?.5浠ヤ笅琛ㄧず涓嶇‘瀹氾級
+STRUCTURE_INGEST_PROMPT = """你是{{enterprise_name}}客服知识库管理员。请将以下工单数据处理为知识库标准格式，输出JSON。
 
-## 鍒嗙被浣撶郴
+## 输出字段说明
+- question：知识库标准问题（改写后直接向量化存入Milvus，必须与现有问题风格一致）
+- answer：对客话术（面向客户的回答，简洁清晰，包含关键处理结果）
+- category_l1：一级分类（从分类体系中选择）
+- category_l2：二级分类（从分类体系中选择）
+- internal_process：内部处理办法及流程（给客服看的操作步骤）
+- feedback_dept：涉及反馈部门/微信群/工单模板
+- category_confidence：分类置信度（0-1，分类越确定越高，0.5以下表示不确定）
+
+## 分类体系
 {{category_tree}}
 
-## 鍒嗙被閫夋嫨瑙勫垯
-鏍规嵁闂鏍稿績璇夋眰閫夋嫨鏈€鍖归厤鐨勫垎绫伙紝涓嶈榛樿閫夌涓€涓細
-- 鍏堝垽鏂棶棰樺睘浜庡摢涓笟鍔℃澘鍧楋紙鍞悗/鍞墠/璐︽埛/璐㈠姟...锛夛紝鍐嶉€変簩绾у垎绫?{{classify_examples}}
+## 分类选择规则
+根据问题核心诉求选择最匹配的分类，不要默认选第一个：
+- 先判断问题属于哪个业务板块（售后/售前/账户/财务...），再选二级分类
+{{classify_examples}}
 
-## 闂鏀瑰啓瑙勫垯
-1. 闀垮害5-30瀛楋紝绠€鐭洿鎺ワ紝鎻愰棶寮?2. 鏍煎紡锛氫富璇?璇夋眰/鐤戦棶锛屽"XX鎬庝箞鍔炵悊锛?銆?XX鏄粈涔堝師鍥狅紵"
-3. 鍘绘帀鍙欒堪鎬ф弿杩帮紙"鎴戜笂涓湀..."銆?鍚屼竴涓矾娈?.."绛夎儗鏅級锛屼繚鐣欐牳蹇冭瘔姹?4. 銆愬繀椤讳繚鐣欍€戝師闂涓殑鏍稿績涓氬姟鍏抽敭璇嶏細{{must_preserve_kws_str}}绛夛紝涓€涓兘涓嶈兘涓?5. 銆愮姝㈠紩鍏ャ€戜笉寰楀嚟绌哄紩鍏ュ師闂鏈彁鍙婄殑鍏ㄦ柊涓氬姟姒傚康
-6. 淇濇寔鍘熼棶棰樼殑鏍稿績鎰忓浘涓嶅彉锛屼笉瑕佸亸绉诲埌鍏朵粬璇夋眰
+## 问题改写规则
+1. 长度5-30字，简短直接，提问式
+2. 格式：主语+诉求/疑问，如"XX怎么办理？"、"XX是什么原因？"
+3. 去掉叙述性描述（"我上个月..."、"同一个路段..."等背景），保留核心诉求
+4. 【必须保留】原问题中的核心业务关键词：{{must_preserve_kws_str}}等，一个都不能丢
+5. 【禁止引入】不得凭空引入原问题未提及的全新业务概念
+6. 保持原问题的核心意图不变，不要偏移到其他诉求
 
-## 绛旀缁撴瀯鍖栬鍒?1. answer鏄潰鍚戝鎴风殑鏈€缁堣瘽鏈紝绠€娲佹竻鏅帮紝鍖呭惈鍏抽敭澶勭悊缁撴灉
-2. internal_process鏄鏈嶅唴閮ㄦ搷浣滄楠わ紝瀹㈡埛鐪嬩笉鍒?3. feedback_dept浠庡伐鍗曚笂涓嬫枃涓殑"娴佽浆鑷?瀛楁鎻愬彇锛屾病鏈夊垯鐣欑┖
-4. "寰匵X宀?.."鏄唴閮ㄦ祦绋嬫斁internal_process锛屼笉鏄痑nswer
+## 答案结构化规则
+1. answer是面向客户的最终话术，简洁清晰，包含关键处理结果
+2. internal_process是客服内部操作步骤，客户看不到
+3. feedback_dept从工单上下文中的"流转至"字段提取，没有则留空
+4. "待XX岗..."是内部流程放internal_process，不是answer
 
-## 鍙傝€冪ず渚嬶紙鏉ヨ嚜鐪熷疄鐭ヨ瘑搴擄級
+## 参考示例（来自真实知识库）
 {{reference_examples}}
 
-## 宸ュ崟鏁版嵁
-闂鎻忚堪锛歿{question}}
-澶勭悊缁撴灉锛歿{answer}}
+## 工单数据
+问题描述：{{question}}
+处理结果：{{answer}}
 {{context}}
 
-## 杈撳嚭JSON"""
+## 输出JSON"""
 
 
-_CLASSIFY_EXAMPLES_FALLBACK = "- 绀轰緥锛氭墸璐?閫€娆?璐﹀崟鐩稿叧鈫掕处鍗曠被锛涜澶?OBU/钃濈墮鐩稿叧鈫掕澶囧紓甯革紱榛戝悕鍗?椋庢帶鐩稿叧鈫掗粦鍚嶅崟绫伙紱娉ㄩ攢/婵€娲?鎸傚け鐩稿叧鈫掍笟鍔″彉鏇寸被锛涘喕缁?瑙ｅ喕/璐︽埛鐩稿叧鈫掕处鎴风被"
+_CLASSIFY_EXAMPLES_FALLBACK = "- 示例：扣费/退款/账单相关→账单类；设备/OBU/蓝牙相关→设备异常；黑名单/风控相关→黑名单类；注销/激活/挂失相关→业务变更类；冻结/解冻/账户相关→账户类"
 
 
 def _validate_rewrite(original: str, rewrite: str) -> tuple:
@@ -168,12 +179,12 @@ def _apply_confidence_action(cat_conf: float, cat_l1: str, cat_l2: str,
         needs_review = True
     elif cat_conf >= highlight_th:
         needs_review = True
-        review_highlights.append(f"鍒嗙被缃俊搴︿綆({cat_conf:.2f})锛屽缓璁汉宸ョ‘璁?)
+        review_highlights.append(f"分类置信度低({cat_conf:.2f})，建议人工确认")
     else:
         needs_review = True
         cat_l1 = default_l1
         cat_l2 = default_l2
-        review_highlights.append(f"鍒嗙被缃俊搴︽瀬浣?{cat_conf:.2f})锛屼娇鐢ㄩ粯璁ゅ垎绫伙紝寤鸿浜哄伐纭")
+        review_highlights.append(f"分类置信度极低({cat_conf:.2f})，使用默认分类，建议人工确认")
 
     return cat_l1, cat_l2, needs_review
 
@@ -184,7 +195,7 @@ def structure_ingest(state: AgentState) -> dict:
 
     context = ""
     if state.work_order_context:
-        context = f"宸ュ崟涓婁笅鏂囷細{state.work_order_context}"
+        context = f"工单上下文：{state.work_order_context}"
 
     tree = get_category_tree()
     tree_str = get_category_tree_str()
@@ -195,7 +206,7 @@ def structure_ingest(state: AgentState) -> dict:
 
     sample_count = get_business_config("reference_sample_count", 10)
     examples = get_reference_examples(sample_count)
-    reference_examples = "\n".join(f'- "{ex}"' for ex in examples) if examples else "锛堟棤鍙傝€冪ず渚嬶級"
+    reference_examples = "\n".join(f'- "{ex}"' for ex in examples) if examples else "（无参考示例）"
 
     classify_examples = get_business_config("classify_examples", _CLASSIFY_EXAMPLES_FALLBACK)
 
@@ -208,7 +219,7 @@ def structure_ingest(state: AgentState) -> dict:
             question=question,
             answer=answer,
             context=context,
-            must_preserve_kws_str="銆?.join(must_preserve_kws),
+            must_preserve_kws_str="、".join(must_preserve_kws),
             reference_examples=reference_examples,
             classify_examples=classify_examples,
         )
@@ -222,7 +233,7 @@ def structure_ingest(state: AgentState) -> dict:
                     return _process_structured_result(result, question, answer, tree, default_l1, default_l2, state)
             except Exception as e:
 
-                logger.warning(f"缁撴瀯鍖栬緭鍑鸿皟鐢ㄥけ璐ワ紝闄嶇骇涓篔SON瑙ｆ瀽: {e}")
+                logger.warning(f"结构化输出调用失败，降级为JSON解析: {e}")
 
         llm = get_llm()
         response = llm.invoke([HumanMessage(content=prompt)])
@@ -232,7 +243,7 @@ def structure_ingest(state: AgentState) -> dict:
             return _process_parsed_result(parsed, question, answer, tree, default_l1, default_l2, state)
 
     except Exception as e:
-        logger.error(f"LLM瑙勬暣澶辫触: {e}")
+        logger.error(f"LLM规整失败: {e}")
         return {
             "question": question,
             "answer": answer,
@@ -241,7 +252,7 @@ def structure_ingest(state: AgentState) -> dict:
             "category_confidence": 0.3,
             "internal_process": "",
             "feedback_dept": "",
-            "error": f"LLM瑙勬暣澶辫触: {e!s}",
+            "error": f"LLM规整失败: {e!s}",
             "current_step": "structure_ingest",
         }
 
@@ -276,18 +287,18 @@ def _process_structured_result(result: StructureIngestOutput, question: str, ans
     if hallucination_kws:
         rewritten = question
         needs_review = True
-        review_highlights.append(f"鏀瑰啓寮曞叆涓嶅瓨鍦ㄧ殑鍏抽敭璇峽hallucination_kws}锛屽凡鍥為€€涓哄師濮嬮棶棰?)
+        review_highlights.append(f"改写引入不存在的关键词{hallucination_kws}，已回退为原始问题")
 
     if lost_kws and not hallucination_kws:
         needs_review = True
-        review_highlights.append(f"鏀瑰啓涓㈠け鍏抽敭璇峽lost_kws}锛屽缓璁汉宸ョ‘璁?)
+        review_highlights.append(f"改写丢失关键词{lost_kws}，建议人工确认")
 
     std_cfg = get_business_config("standardize", {})
     rewrite_min_len = std_cfg.get("rewrite_min_length", 3) if isinstance(std_cfg, dict) else 3
     if not rewritten or len(rewritten) < rewrite_min_len:
         rewritten = question
         needs_review = True
-        review_highlights.append("闂鏀瑰啓缁撴灉杩囩煭锛屽缓璁汉宸ョ‘璁?)
+        review_highlights.append("问题改写结果过短，建议人工确认")
 
     cat_conf = result.category_confidence
     cat_l1, cat_l2, conf_review = _apply_confidence_action(
@@ -331,18 +342,18 @@ def _process_parsed_result(parsed: dict, question: str, answer: str,
     if hallucination_kws:
         rewritten = question
         needs_review = True
-        review_highlights.append(f"鏀瑰啓寮曞叆涓嶅瓨鍦ㄧ殑鍏抽敭璇峽hallucination_kws}锛屽凡鍥為€€涓哄師濮嬮棶棰?)
+        review_highlights.append(f"改写引入不存在的关键词{hallucination_kws}，已回退为原始问题")
 
     if lost_kws and not hallucination_kws:
         needs_review = True
-        review_highlights.append(f"鏀瑰啓涓㈠け鍏抽敭璇峽lost_kws}锛屽缓璁汉宸ョ‘璁?)
+        review_highlights.append(f"改写丢失关键词{lost_kws}，建议人工确认")
 
     std_cfg = get_business_config("standardize", {})
     rewrite_min_len = std_cfg.get("rewrite_min_length", 3) if isinstance(std_cfg, dict) else 3
     if not rewritten or len(rewritten) < rewrite_min_len:
         rewritten = question
         needs_review = True
-        review_highlights.append("闂鏀瑰啓缁撴灉杩囩煭锛屽缓璁汉宸ョ‘璁?)
+        review_highlights.append("问题改写结果过短，建议人工确认")
 
     cat_conf = parsed.get("category_confidence", 0.5)
     try:

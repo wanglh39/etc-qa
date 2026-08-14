@@ -1,4 +1,4 @@
-﻿import time
+import time
 from unittest.mock import MagicMock, patch
 
 from asr.ws_state import (
@@ -13,8 +13,8 @@ from asr.ws_state import (
 class TestQueryAccumulator:
     def test_no_flush_before_max(self):
         acc = QueryAccumulator(max_sentences=3, silence_timeout=2.0)
-        assert acc.add("绗竴鍙?) is None
-        assert acc.add("绗簩鍙?) is None
+        assert acc.add("第一句") is None
+        assert acc.add("第二句") is None
         assert acc.pending_count == 2
 
     def test_auto_flush_at_max(self):
@@ -52,39 +52,39 @@ class TestQueryAccumulator:
 
     def test_correction_removes_last(self):
         acc = QueryAccumulator(max_sentences=3, silence_timeout=2.0)
-        acc.add("ETC鎵ｈ垂鏈夐棶棰?)
-        acc.add("涓嶅")
+        acc.add("ETC扣费有问题")
+        acc.add("不对")
         popped = acc.pop_last()
-        assert popped == "涓嶅"
+        assert popped == "不对"
         assert acc.pending_count == 1
 
 
 class TestQueryCache:
     def test_first_query_not_skipped(self):
         cache = QueryCache(similarity_threshold=0.8, min_interval=5.0)
-        assert cache.should_skip("ETC鎵ｈ垂鏈夐棶棰?) is False
+        assert cache.should_skip("ETC扣费有问题") is False
 
     def test_duplicate_skipped(self):
         cache = QueryCache(similarity_threshold=0.8, min_interval=5.0)
-        cache.record("ETC鎵ｈ垂鏈夐棶棰?, {"confidence": "high"})
-        assert cache.should_skip("ETC鎵ｈ垂鏈夐棶棰?) is True
+        cache.record("ETC扣费有问题", {"confidence": "high"})
+        assert cache.should_skip("ETC扣费有问题") is True
 
     def test_different_not_skipped(self):
         cache = QueryCache(similarity_threshold=0.8, min_interval=5.0)
-        cache.record("ETC鎵ｈ垂鏈夐棶棰?, {"confidence": "high"})
-        assert cache.should_skip("钃濈墮杩炴帴涓嶄笂") is False
+        cache.record("ETC扣费有问题", {"confidence": "high"})
+        assert cache.should_skip("蓝牙连接不上") is False
 
     def test_get_recent_hit(self):
         cache = QueryCache(similarity_threshold=0.8, min_interval=5.0)
-        cache.record("ETC鎵ｈ垂鏈夐棶棰?, {"confidence": "high"})
-        cached = cache.get_recent("ETC鎵ｈ垂鏈夐棶棰?)
+        cache.record("ETC扣费有问题", {"confidence": "high"})
+        cached = cache.get_recent("ETC扣费有问题")
         assert cached is not None
         assert cached["confidence"] == "high"
 
     def test_get_recent_miss(self):
         cache = QueryCache(similarity_threshold=0.8, min_interval=5.0)
-        cache.record("ETC鎵ｈ垂鏈夐棶棰?, {"confidence": "high"})
-        assert cache.get_recent("钃濈墮杩炴帴涓嶄笂") is None
+        cache.record("ETC扣费有问题", {"confidence": "high"})
+        assert cache.get_recent("蓝牙连接不上") is None
 
     def test_expired_entry_ignored(self):
         cache = QueryCache(similarity_threshold=0.8, min_interval=0.01)
@@ -106,9 +106,9 @@ class TestContextWindow:
 
     def test_add_and_get(self):
         ctx = ContextWindow(max_size=3)
-        ctx.add("ETC鎵ｈ垂鏈夐棶棰?)
-        ctx.add("閫€娆句粈涔堟椂鍊欏埌璐?)
-        assert ctx.get_context() == ["ETC鎵ｈ垂鏈夐棶棰?, "閫€娆句粈涔堟椂鍊欏埌璐?]
+        ctx.add("ETC扣费有问题")
+        ctx.add("退款什么时候到账")
+        assert ctx.get_context() == ["ETC扣费有问题", "退款什么时候到账"]
 
     def test_max_size_overflow(self):
         ctx = ContextWindow(max_size=3)
@@ -121,23 +121,23 @@ class TestContextWindow:
 
     def test_resolve_pronoun_with_context(self):
         ctx = ContextWindow(max_size=3)
-        ctx.add("ETC鎵ｈ垂鏈夐棶棰?)
-        ctx.add("閫€娆句粈涔堟椂鍊欏埌璐?)
-        resolved = ctx.resolve_pronoun("閭ｄ釜鎬庝箞澶勭悊")
-        assert "ETC鎵ｈ垂鏈夐棶棰? in resolved
-        assert "閫€娆句粈涔堟椂鍊欏埌璐? in resolved
-        assert "閭ｄ釜鎬庝箞澶勭悊" in resolved
+        ctx.add("ETC扣费有问题")
+        ctx.add("退款什么时候到账")
+        resolved = ctx.resolve_pronoun("那个怎么处理")
+        assert "ETC扣费有问题" in resolved
+        assert "退款什么时候到账" in resolved
+        assert "那个怎么处理" in resolved
 
     def test_resolve_no_pronoun(self):
         ctx = ContextWindow(max_size=3)
-        ctx.add("ETC鎵ｈ垂鏈夐棶棰?)
-        result = ctx.resolve_pronoun("钃濈墮杩炴帴涓嶄笂")
-        assert result == "钃濈墮杩炴帴涓嶄笂"
+        ctx.add("ETC扣费有问题")
+        result = ctx.resolve_pronoun("蓝牙连接不上")
+        assert result == "蓝牙连接不上"
 
     def test_resolve_empty_context(self):
         ctx = ContextWindow(max_size=3)
-        result = ctx.resolve_pronoun("閭ｄ釜鎬庝箞澶勭悊")
-        assert result == "閭ｄ釜鎬庝箞澶勭悊"
+        result = ctx.resolve_pronoun("那个怎么处理")
+        assert result == "那个怎么处理"
 
     def test_clear(self):
         ctx = ContextWindow(max_size=3)
@@ -207,15 +207,15 @@ class TestVADFeedAudio:
 class TestAccumulatorCheckTimeout:
     def test_timeout_triggers_flush(self):
         acc = QueryAccumulator(max_sentences=5, silence_timeout=0.05)
-        acc.add("ETC鎵ｈ垂")
+        acc.add("ETC扣费")
         time.sleep(0.06)
         result = acc.check_timeout()
-        assert result == ["ETC鎵ｈ垂"]
+        assert result == ["ETC扣费"]
         assert acc.pending_count == 0
 
     def test_no_timeout_returns_none(self):
         acc = QueryAccumulator(max_sentences=5, silence_timeout=2.0)
-        acc.add("ETC鎵ｈ垂")
+        acc.add("ETC扣费")
         result = acc.check_timeout()
         assert result is None
 

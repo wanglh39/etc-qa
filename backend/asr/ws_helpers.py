@@ -1,4 +1,4 @@
-﻿import os
+import os
 import re
 import tempfile
 from collections import deque
@@ -8,15 +8,15 @@ from utils.logger import get_logger
 logger = get_logger("asr.websocket")
 
 _GREETING_PATTERNS = re.compile(
-    r"^(浣犲ソ|鎮ㄥソ|鍠倈涓轰綘濂絴涓轰綘|鍡瘄鍝巪閭ｄ釜|灏辨槸|鎴戞兂闂竴涓媩璇烽棶涓€涓媩涓嶅ソ鎰忔€潀鎵撴壈浜唡鍦ㄥ悧)[鍟婂悧鍚у憿鍝囧摝鍛€]*[锛屻€傦紵锛併€侊紱锛氣€*$"
+    r"^(你好|您好|喂|为你好|为你|嗯|哎|那个|就是|我想问一下|请问一下|不好意思|打扰了|在吗)[啊吗吧呢哇哦呀]*[，。？！、；：…]*$"
 )
 
 _CORRECTION_PATTERNS = re.compile(
-    r"^(涓嶅|涓嶆槸|鎼為敊浜唡璇撮敊浜唡涓嶅ソ鎰忔€潀绾犳涓€涓媩鏇存涓€涓媩鎴戦噸璇磡閲嶆柊璇?"
+    r"^(不对|不是|搞错了|说错了|不好意思|纠正一下|更正一下|我重说|重新说)"
 )
 
 _PRONOUN_PATTERNS = re.compile(
-    r"(閭ｄ釜|杩欎釜|瀹億浠東濂箌涓婇潰|鍒氭墠|鍓嶈竟|鍓嶉潰|鍒氬垰璇寸殑|鍒氬垰鎻愬埌鐨?"
+    r"(那个|这个|它|他|她|上面|刚才|前边|前面|刚刚说的|刚刚提到的)"
 )
 
 
@@ -56,7 +56,7 @@ def _do_query(text: str, category_l1: str | None = None) -> dict | None:
         result = service.query(text, category_l1)
         return result.model_dump()
     except Exception as e:
-        logger.error(f"娴佸紡妫€绱㈠け璐? {e}")
+        logger.error(f"流式检索失败: {e}")
         return None
 
 
@@ -79,7 +79,7 @@ def _do_diarize_segment(audio_buffer: bytes, sample_rate: int) -> list[dict]:
 
         return diarizer.diarize(tmp_path)
     except Exception as e:
-        logger.warning(f"娴佸紡璇磋瘽浜哄垎绂诲け璐? {e}")
+        logger.warning(f"流式说话人分离失败: {e}")
         return []
     finally:
         if tmp_path and os.path.exists(tmp_path):

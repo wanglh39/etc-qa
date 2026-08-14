@@ -1,4 +1,4 @@
-﻿from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 
 from db.milvus_client import MilvusQA
 from rag.bm25_index import BM25Index
@@ -78,7 +78,7 @@ class RecallEngine:
         )
         vec_results = vec_future.result()
         bm25_results = bm25_future.result()
-        logger.info(f"骞惰鍙洖瀹屾垚: vector={len(vec_results)}鏉?bm25={len(bm25_results)}鏉?query='{query_text[:30]}'")
+        logger.info(f"并行召回完成: vector={len(vec_results)}条 bm25={len(bm25_results)}条 query='{query_text[:30]}'")
 
         if self.merge_method == "weighted_rrf":
             return self.weighted_rrf_merge(vec_results, bm25_results)

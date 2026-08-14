@@ -1,4 +1,4 @@
-﻿from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import asr.streaming as streaming_module
 from asr.streaming import (
@@ -30,13 +30,13 @@ class MockCallback(StreamingCallback):
 class TestStreamingCallback:
     def test_on_partial(self):
         cb = MockCallback()
-        cb.on_partial("浣犲ソ")
-        assert cb.partials == ["浣犲ソ"]
+        cb.on_partial("你好")
+        assert cb.partials == ["你好"]
 
     def test_on_final(self):
         cb = MockCallback()
-        cb.on_final("ETC鎵ｈ垂", is_end=True)
-        assert cb.finals == [{"text": "ETC鎵ｈ垂", "is_end": True}]
+        cb.on_final("ETC扣费", is_end=True)
+        assert cb.finals == [{"text": "ETC扣费", "is_end": True}]
 
 
 class TestLocalStreamingBackend:
@@ -121,7 +121,7 @@ class TestStreamingASRService:
             svc.start_stream(MockCallback())
             assert False
         except RuntimeError as e:
-            assert "鏈惎鐢? in str(e)
+            assert "未启用" in str(e)
 
     @patch("asr.streaming.get_config")
     def test_health(self, mock_cfg):
@@ -243,7 +243,7 @@ class TestLocalStreamingSendAudio:
         mock_cfg.return_value = {"asr": {"streaming": {"local_model": "fake", "device": "cpu"}}}
         backend = LocalStreamingBackend()
         backend._model = MagicMock()
-        backend._model.generate.return_value = [{"text": "ETC鎵ｈ垂"}]
+        backend._model.generate.return_value = [{"text": "ETC扣费"}]
         backend._running = True
         cb = MockCallback()
         backend._callback = cb
@@ -370,7 +370,7 @@ class TestStreamingASRServiceWarmup:
         mock_cfg.return_value = {"asr": {"streaming": {"enabled": True, "mode": "local"}}}
         svc = StreamingASRService()
         mock_backend = MagicMock()
-        mock_backend.warmup.side_effect = RuntimeError("funasr鏈畨瑁?)
+        mock_backend.warmup.side_effect = RuntimeError("funasr未安装")
         svc._create_backend = MagicMock(return_value=mock_backend)
         svc.warmup()
         assert svc._backend is mock_backend

@@ -1,4 +1,4 @@
-﻿import os
+import os
 import threading
 import time
 
@@ -79,8 +79,8 @@ class ASRService:
                 try:
                     from funasr.auto.auto_model_vllm import AutoModelVLLM
                 except ImportError as e:
-                    raise RuntimeError(f"vLLM妯″紡瀵煎叆澶辫触: {e}锛岄渶瑕佸畨瑁? pip install vllm>=0.12.0 funasr")
-                logger.info(f"鍔犺浇ASR妯″瀷(vLLM鍔犻€?: {model_name}, tensor_parallel_size={self._tensor_parallel_size}")
+                    raise RuntimeError(f"vLLM模式导入失败: {e}，需要安装: pip install vllm>=0.12.0 funasr")
+                logger.info(f"加载ASR模型(vLLM加速): {model_name}, tensor_parallel_size={self._tensor_parallel_size}")
                 self._model = AutoModelVLLM(
                     model=model_name,
                     tensor_parallel_size=self._tensor_parallel_size,
@@ -89,16 +89,16 @@ class ASRService:
                 try:
                     from funasr import AutoModel
                 except ImportError as e:
-                    raise RuntimeError(f"funasr瀵煎叆澶辫触(缂簕e.name})锛岃杩愯: pip install funasr torchaudio")
+                    raise RuntimeError(f"funasr导入失败(缺{e.name})，请运行: pip install funasr torchaudio")
                 import torch
                 torch.set_num_threads(1)
-                logger.info(f"鍔犺浇ASR妯″瀷: {model_name}, device={self._device}")
+                logger.info(f"加载ASR模型: {model_name}, device={self._device}")
                 self._model = AutoModel(
                     model=model_name,
                     device=self._device,
                 )
 
-            logger.info(f"ASR妯″瀷鍔犺浇瀹屾垚: {model_name} (vllm={self._use_vllm})")
+            logger.info(f"ASR模型加载完成: {model_name} (vllm={self._use_vllm})")
 
     def _get_diarizer(self) -> SpeakerDiarizer:
         if self._diarizer is None:
@@ -145,10 +145,10 @@ class ASRService:
     @traceable(name="asr_transcribe", run_type="chain")
     def transcribe(self, audio_path: str, enable_diarize: bool = True) -> ASRResponse:
         if not self._enabled:
-            raise RuntimeError("ASR鏈惎鐢紝璇峰湪config/asr.yaml涓厤缃產sr.enabled=true")
+            raise RuntimeError("ASR未启用，请在config/asr.yaml中配置asr.enabled=true")
 
         if not os.path.exists(audio_path):
-            raise FileNotFoundError(f"闊抽鏂囦欢涓嶅瓨鍦? {audio_path}")
+            raise FileNotFoundError(f"音频文件不存在: {audio_path}")
 
         self._load_model()
 
@@ -160,7 +160,7 @@ class ASRService:
         hotword_str = self._get_hotword_str()
         if hotword_str:
             generate_kwargs["hotword"] = hotword_str
-            logger.debug(f"ASR鐑瘝: {hotword_str}")
+            logger.debug(f"ASR热词: {hotword_str}")
         result = self._model.generate(**generate_kwargs)
         elapsed_ms = int((time.time() - t0) * 1000)
 
@@ -185,7 +185,7 @@ class ASRService:
             try:
                 diarize_segments = diarizer.diarize(audio_path)
             except Exception as e:
-                logger.warning(f"璇磋瘽浜哄垎绂诲け璐ワ紝璺宠繃: {e}")
+                logger.warning(f"说话人分离失败，跳过: {e}")
 
         segments = self._merge_asr_diarize(text, diarize_segments)
 
@@ -216,7 +216,7 @@ class ASRService:
             self._model = None
         diarizer = self._get_diarizer()
         diarizer.reload()
-        logger.info("ASR妯″瀷鍜岃璇濅汉鍒嗙妯″瀷宸插嵏杞斤紝涓嬫璋冪敤鏃堕噸鏂板姞杞?)
+        logger.info("ASR模型和说话人分离模型已卸载，下次调用时重新加载")
 
 
 _asr_service: ASRService | None = None

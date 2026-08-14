@@ -1,4 +1,4 @@
-﻿import os
+import os
 import time
 
 import pytest
@@ -34,7 +34,7 @@ def wait_for_mysql(host="localhost", port=3306, user="root", password="123456",
 @pytest.fixture(scope="session")
 def mysql_conn():
     if not wait_for_mysql():
-        pytest.skip("MySQL涓嶅彲鐢紝璺宠繃闆嗘垚娴嬭瘯")
+        pytest.skip("MySQL不可用，跳过集成测试")
     from db.mysql_client import MySQLClient
     mysql = MySQLClient()
     yield mysql

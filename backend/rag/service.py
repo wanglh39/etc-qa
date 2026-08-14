@@ -1,4 +1,4 @@
-﻿import time
+import time
 
 from agent.graph import preprocess_agent
 from agent.state import AgentState
@@ -72,7 +72,7 @@ class QAService:
             result = preprocess_agent.invoke(state.model_dump())
             standardized = result.get("question", raw_question) or raw_question
         except Exception as e:
-            logger.warning(f"LLM鏍囧噯鍖栧け璐ワ紝闄嶇骇鐢ㄥ師闂: {e}")
+            logger.warning(f"LLM标准化失败，降级用原问题: {e}")
             standardized = raw_question
 
         if len(self._standardize_cache) >= self._STANDARDIZE_CACHE_SIZE:

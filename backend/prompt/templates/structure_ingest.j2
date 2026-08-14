@@ -1,34 +1,46 @@
-﻿{# prompt_key: structure_ingest
-   description: 灏嗗伐鍗曟暟鎹鐞嗕负鐭ヨ瘑搴撴爣鍑嗘牸寮?   variables: enterprise_name, question, answer, context, category_tree, classify_examples, reference_examples, must_preserve_kws_str
+{# prompt_key: structure_ingest
+   description: 将工单数据处理为知识库标准格式
+   variables: enterprise_name, question, answer, context, category_tree, classify_examples, reference_examples, must_preserve_kws_str
 #}
-浣犳槸{{enterprise_name}}瀹㈡湇鐭ヨ瘑搴撶鐞嗗憳銆傝灏嗕互涓嬪伐鍗曟暟鎹鐞嗕负鐭ヨ瘑搴撴爣鍑嗘牸寮忥紝杈撳嚭JSON銆?
-## 杈撳嚭瀛楁璇存槑
-- question锛氱煡璇嗗簱鏍囧噯闂锛堟敼鍐欏悗鐩存帴鍚戦噺鍖栧瓨鍏ilvus锛屽繀椤讳笌鐜版湁闂椋庢牸涓€鑷达級
-- answer锛氬瀹㈣瘽鏈紙闈㈠悜瀹㈡埛鐨勫洖绛旓紝绠€娲佹竻鏅帮紝鍖呭惈鍏抽敭澶勭悊缁撴灉锛?- category_l1锛氫竴绾у垎绫伙紙浠庡垎绫讳綋绯讳腑閫夋嫨锛?- category_l2锛氫簩绾у垎绫伙紙浠庡垎绫讳綋绯讳腑閫夋嫨锛?- internal_process锛氬唴閮ㄥ鐞嗗姙娉曞強娴佺▼锛堢粰瀹㈡湇鐪嬬殑鎿嶄綔姝ラ锛?- feedback_dept锛氭秹鍙婂弽棣堥儴闂?寰俊缇?宸ュ崟妯℃澘
-- category_confidence锛氬垎绫荤疆淇″害锛?-1锛屽垎绫昏秺纭畾瓒婇珮锛?.5浠ヤ笅琛ㄧず涓嶇‘瀹氾級
+你是{{enterprise_name}}客服知识库管理员。请将以下工单数据处理为知识库标准格式，输出JSON。
 
-## 鍒嗙被浣撶郴
+## 输出字段说明
+- question：知识库标准问题（改写后直接向量化存入Milvus，必须与现有问题风格一致）
+- answer：对客话术（面向客户的回答，简洁清晰，包含关键处理结果）
+- category_l1：一级分类（从分类体系中选择）
+- category_l2：二级分类（从分类体系中选择）
+- internal_process：内部处理办法及流程（给客服看的操作步骤）
+- feedback_dept：涉及反馈部门/微信群/工单模板
+- category_confidence：分类置信度（0-1，分类越确定越高，0.5以下表示不确定）
+
+## 分类体系
 {{category_tree}}
 
-## 鍒嗙被閫夋嫨瑙勫垯
-鏍规嵁闂鏍稿績璇夋眰閫夋嫨鏈€鍖归厤鐨勫垎绫伙紝涓嶈榛樿閫夌涓€涓細
-- 鍏堝垽鏂棶棰樺睘浜庡摢涓笟鍔℃澘鍧楋紙鍞悗/鍞墠/璐︽埛/璐㈠姟...锛夛紝鍐嶉€変簩绾у垎绫?{{classify_examples}}
+## 分类选择规则
+根据问题核心诉求选择最匹配的分类，不要默认选第一个：
+- 先判断问题属于哪个业务板块（售后/售前/账户/财务...），再选二级分类
+{{classify_examples}}
 
-## 闂鏀瑰啓瑙勫垯
-1. 闀垮害5-30瀛楋紝绠€鐭洿鎺ワ紝鎻愰棶寮?2. 鏍煎紡锛氫富璇?璇夋眰/鐤戦棶锛屽"XX鎬庝箞鍔炵悊锛?銆?XX鏄粈涔堝師鍥狅紵"
-3. 鍘绘帀鍙欒堪鎬ф弿杩帮紙"鎴戜笂涓湀..."銆?鍚屼竴涓矾娈?.."绛夎儗鏅級锛屼繚鐣欐牳蹇冭瘔姹?4. 銆愬繀椤讳繚鐣欍€戝師闂涓殑鏍稿績涓氬姟鍏抽敭璇嶏細{{must_preserve_kws_str}}绛夛紝涓€涓兘涓嶈兘涓?5. 銆愮姝㈠紩鍏ャ€戜笉寰楀嚟绌哄紩鍏ュ師闂鏈彁鍙婄殑鍏ㄦ柊涓氬姟姒傚康
-6. 淇濇寔鍘熼棶棰樼殑鏍稿績鎰忓浘涓嶅彉锛屼笉瑕佸亸绉诲埌鍏朵粬璇夋眰
+## 问题改写规则
+1. 长度5-30字，简短直接，提问式
+2. 格式：主语+诉求/疑问，如"XX怎么办理？"、"XX是什么原因？"
+3. 去掉叙述性描述（"我上个月..."、"同一个路段..."等背景），保留核心诉求
+4. 【必须保留】原问题中的核心业务关键词：{{must_preserve_kws_str}}等，一个都不能丢
+5. 【禁止引入】不得凭空引入原问题未提及的全新业务概念
+6. 保持原问题的核心意图不变，不要偏移到其他诉求
 
-## 绛旀缁撴瀯鍖栬鍒?1. answer鏄潰鍚戝鎴风殑鏈€缁堣瘽鏈紝绠€娲佹竻鏅帮紝鍖呭惈鍏抽敭澶勭悊缁撴灉
-2. internal_process鏄鏈嶅唴閮ㄦ搷浣滄楠わ紝瀹㈡埛鐪嬩笉鍒?3. feedback_dept浠庡伐鍗曚笂涓嬫枃涓殑"娴佽浆鑷?瀛楁鎻愬彇锛屾病鏈夊垯鐣欑┖
-4. "寰匵X宀?.."鏄唴閮ㄦ祦绋嬫斁internal_process锛屼笉鏄痑nswer
+## 答案结构化规则
+1. answer是面向客户的最终话术，简洁清晰，包含关键处理结果
+2. internal_process是客服内部操作步骤，客户看不到
+3. feedback_dept从工单上下文中的"流转至"字段提取，没有则留空
+4. "待XX岗..."是内部流程放internal_process，不是answer
 
-## 鍙傝€冪ず渚嬶紙鏉ヨ嚜鐪熷疄鐭ヨ瘑搴擄級
+## 参考示例（来自真实知识库）
 {{reference_examples}}
 
-## 宸ュ崟鏁版嵁
-闂鎻忚堪锛歿{question}}
-澶勭悊缁撴灉锛歿{answer}}
+## 工单数据
+问题描述：{{question}}
+处理结果：{{answer}}
 {{context}}
 
-## 杈撳嚭JSON
+## 输出JSON

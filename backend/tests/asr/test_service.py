@@ -1,4 +1,4 @@
-﻿import builtins
+import builtins
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -9,45 +9,45 @@ from asr.service import ASRService, _apply_corrections, _load_corrections, get_a
 
 class TestApplyCorrections:
     def test_replaces_words(self):
-        result = _apply_corrections("瑙ｅ咖ETC鎵ｈ垂寮傚父", {"瑙ｅ咖": "瑙ｆ偁"})
-        assert result == "瑙ｆ偁ETC鎵ｈ垂寮傚父"
+        result = _apply_corrections("解忧ETC扣费异常", {"解忧": "解悠"})
+        assert result == "解悠ETC扣费异常"
 
     def test_no_corrections(self):
-        result = _apply_corrections("ETC鎵ｈ垂寮傚父", {})
-        assert result == "ETC鎵ｈ垂寮傚父"
+        result = _apply_corrections("ETC扣费异常", {})
+        assert result == "ETC扣费异常"
 
     def test_apply_corrections_etc_spaces(self):
-        result = _apply_corrections("E T C鎵ｈ垂", {"E T C": "ETC"})
-        assert result == "ETC鎵ｈ垂"
+        result = _apply_corrections("E T C扣费", {"E T C": "ETC"})
+        assert result == "ETC扣费"
 
     def test_apply_corrections_obu_spaces(self):
-        result = _apply_corrections("O B U璁惧", {"O B U": "OBU"})
-        assert result == "OBU璁惧"
+        result = _apply_corrections("O B U设备", {"O B U": "OBU"})
+        assert result == "OBU设备"
 
     def test_apply_corrections_lowercase_etc_spaces(self):
-        result = _apply_corrections("e t c鎵ｈ垂", {"e t c": "ETC"})
-        assert result == "ETC鎵ｈ垂"
+        result = _apply_corrections("e t c扣费", {"e t c": "ETC"})
+        assert result == "ETC扣费"
 
     def test_apply_corrections_multiple_space_corrections(self):
         corrections = {"E T C": "ETC", "O B U": "OBU"}
-        result = _apply_corrections("E T C鎵ｈ垂鍜孫 B U璁惧", corrections)
-        assert result == "ETC鎵ｈ垂鍜孫BU璁惧"
+        result = _apply_corrections("E T C扣费和O B U设备", corrections)
+        assert result == "ETC扣费和OBU设备"
 
     def test_apply_corrections_space_correction_at_end(self):
-        result = _apply_corrections("鎵ｈ垂E T C", {"E T C": "ETC"})
-        assert result == "鎵ｈ垂ETC"
+        result = _apply_corrections("扣费E T C", {"E T C": "ETC"})
+        assert result == "扣费ETC"
 
     def test_apply_corrections_no_match_preserves_text(self):
-        result = _apply_corrections("ETC鎵ｈ垂", {"E T C": "ETC"})
-        assert result == "ETC鎵ｈ垂"
+        result = _apply_corrections("ETC扣费", {"E T C": "ETC"})
+        assert result == "ETC扣费"
 
 
 class TestLoadCorrections:
     def test_from_business_config(self):
-        with patch("asr.service.get_business_config", return_value={"瑙ｅ咖": "瑙ｆ偁"}), \
+        with patch("asr.service.get_business_config", return_value={"解忧": "解悠"}), \
              patch("asr.service.get_config", return_value={}):
             result = _load_corrections()
-            assert result == {"瑙ｅ咖": "瑙ｆ偁"}
+            assert result == {"解忧": "解悠"}
 
     def test_from_yaml_config(self):
         with patch("asr.service.get_business_config", return_value=None), \
@@ -77,7 +77,7 @@ class TestASRService:
             svc.transcribe("fake.wav")
             assert False
         except RuntimeError as e:
-            assert "ASR鏈惎鐢? in str(e)
+            assert "ASR未启用" in str(e)
 
     @patch("asr.service.get_config")
     def test_file_not_found(self, mock_cfg):
@@ -127,17 +127,17 @@ class TestASRService:
         mock_cfg.return_value = {"asr": {"enabled": True, "model": "test", "device": "cpu"}}
         svc = ASRService()
         mock_model = MagicMock()
-        mock_model.generate.return_value = [{"text": "瑙ｅ咖ETC鎵ｈ垂寮傚父", "confidence": 0.95}]
+        mock_model.generate.return_value = [{"text": "解忧ETC扣费异常", "confidence": 0.95}]
         svc._model = mock_model
 
-        with patch("asr.service.get_business_config", return_value={"瑙ｅ咖": "瑙ｆ偁"}):
+        with patch("asr.service.get_business_config", return_value={"解忧": "解悠"}):
             import os
             import tempfile
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
                 tmp_path = f.name
             try:
                 result = svc.transcribe(tmp_path)
-                assert "瑙ｆ偁" in result.text
+                assert "解悠" in result.text
                 assert result.confidence == 0.95
             finally:
                 os.unlink(tmp_path)
@@ -167,7 +167,7 @@ class TestASRService:
         mock_cfg.return_value = {"asr": {"enabled": True, "model": "test", "device": "cpu"}}
         svc = ASRService()
         mock_model = MagicMock()
-        mock_model.generate.return_value = [{"text": "ETC闂"}]
+        mock_model.generate.return_value = [{"text": "ETC问题"}]
         svc._model = mock_model
 
         with patch("asr.service.get_business_config", return_value=None):
@@ -177,7 +177,7 @@ class TestASRService:
                 tmp_path = f.name
             try:
                 result = svc.transcribe(tmp_path)
-                assert result.text == "ETC闂"
+                assert result.text == "ETC问题"
                 assert result.confidence == 1.0
             finally:
                 os.unlink(tmp_path)
@@ -251,7 +251,7 @@ class TestASRServiceVLLM:
                 svc._load_model()
                 assert False
             except RuntimeError as e:
-                assert "vLLM妯″紡瀵煎叆澶辫触" in str(e)
+                assert "vLLM模式导入失败" in str(e)
 
     @patch("asr.service.get_config")
     def test_vllm_finetuned_path_used(self, mock_cfg):
@@ -310,7 +310,7 @@ class TestASRServiceVLLM:
                 svc._load_model()
                 assert False
             except RuntimeError as e:
-                assert "funasr瀵煎叆澶辫触" in str(e)
+                assert "funasr导入失败" in str(e)
 
 
 class TestGetASRService:
@@ -327,7 +327,7 @@ class TestMergeASRDiarize:
     def test_empty_diarize(self, mock_cfg):
         mock_cfg.return_value = {"asr": {"enabled": True, "model": "test", "device": "cpu"}}
         svc = ASRService()
-        result = svc._merge_asr_diarize("ETC鎵ｈ垂寮傚父", [])
+        result = svc._merge_asr_diarize("ETC扣费异常", [])
         assert result == []
 
     @patch("asr.service.get_config")
@@ -335,18 +335,18 @@ class TestMergeASRDiarize:
         mock_cfg.return_value = {"asr": {"enabled": True, "model": "test", "device": "cpu"}}
         svc = ASRService()
         segments = svc._merge_asr_diarize(
-            "ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊",
+            "ETC扣费异常怎么处理",
             [{"start": 0.0, "end": 3.0, "speaker": "SPEAKER_00"}],
         )
         assert len(segments) == 1
         assert segments[0].speaker == "SPEAKER_00"
-        assert segments[0].text == "ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊"
+        assert segments[0].text == "ETC扣费异常怎么处理"
 
     @patch("asr.service.get_config")
     def test_two_speakers(self, mock_cfg):
         mock_cfg.return_value = {"asr": {"enabled": True, "model": "test", "device": "cpu"}}
         svc = ASRService()
-        text = "ETC鎵ｈ垂寮傚父鎬庝箞澶勭悊閲嶅鎵ｈ垂鍙互鐢宠閫€娆?
+        text = "ETC扣费异常怎么处理重复扣费可以申请退款"
         segments = svc._merge_asr_diarize(
             text,
             [
@@ -378,7 +378,7 @@ class TestASRServiceDiarize:
         mock_cfg.return_value = {"asr": {"enabled": True, "model": "test", "device": "cpu"}}
         svc = ASRService()
         mock_model = MagicMock()
-        mock_model.generate.return_value = [{"text": "ETC鎵ｈ垂寮傚父", "confidence": 0.95}]
+        mock_model.generate.return_value = [{"text": "ETC扣费异常", "confidence": 0.95}]
         svc._model = mock_model
 
         mock_diarizer = MagicMock()
@@ -405,7 +405,7 @@ class TestASRServiceDiarize:
         mock_cfg.return_value = {"asr": {"enabled": True, "model": "test", "device": "cpu"}}
         svc = ASRService()
         mock_model = MagicMock()
-        mock_model.generate.return_value = [{"text": "ETC鎵ｈ垂寮傚父", "confidence": 0.95}]
+        mock_model.generate.return_value = [{"text": "ETC扣费异常", "confidence": 0.95}]
         svc._model = mock_model
 
         mock_diarizer = MagicMock()
@@ -428,7 +428,7 @@ class TestASRServiceDiarize:
         mock_cfg.return_value = {"asr": {"enabled": True, "model": "test", "device": "cpu"}}
         svc = ASRService()
         mock_model = MagicMock()
-        mock_model.generate.return_value = [{"text": "ETC鎵ｈ垂寮傚父", "confidence": 0.95}]
+        mock_model.generate.return_value = [{"text": "ETC扣费异常", "confidence": 0.95}]
         svc._model = mock_model
 
         mock_diarizer = MagicMock()
@@ -443,7 +443,7 @@ class TestASRServiceDiarize:
         try:
             with patch("asr.service.get_business_config", return_value=None):
                 result = svc.transcribe(tmp_path)
-            assert result.text == "ETC鎵ｈ垂寮傚父"
+            assert result.text == "ETC扣费异常"
             assert result.segments == []
         finally:
             os.unlink(tmp_path)

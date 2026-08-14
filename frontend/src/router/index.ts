@@ -139,13 +139,45 @@ const router = createRouter({
   routes
 })
 
-// 全局路由守卫（可选，保留原有权限逻辑）
+// 角色 → 默认首页
+function getDefaultPath(role: string): string {
+  switch (role) {
+    case 'admin':
+      return DEFAULT_ADMIN_PATH
+    case 'service':
+      return DEFAULT_SERVICE_PATH
+    case 'dept':
+      return `/dept/handle/${localStorage.getItem('userDept') || 'aftersale'}`
+    default:
+      return '/login'
+  }
+}
+
+// 全局路由守卫：登录态 + 角色权限
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
+  const role = localStorage.getItem('userRole')
+
+  // 未登录 → 跳登录页
   if (to.path !== '/login' && !token) {
     ElMessage.warning('请先登录系统')
     return next('/login')
   }
+
+  // 已登录但角色信息缺失（数据异常）→ 清理并重新登录
+  if (token && !role) {
+    localStorage.clear()
+    ElMessage.warning('登录信息已失效，请重新登录')
+    return next('/login')
+  }
+
+  // 角色权限校验：roleAuth 未设置或 'all' 表示所有已登录角色可访问
+  const roleAuth = to.meta.roleAuth as string | undefined
+  if (roleAuth && roleAuth !== 'all' && roleAuth !== role) {
+    ElMessage.warning('无权访问该页面')
+    return next(getDefaultPath(role!))
+  }
+
   next()
 })
 

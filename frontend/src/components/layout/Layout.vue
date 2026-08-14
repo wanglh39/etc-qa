@@ -3,7 +3,7 @@
     <!-- 左侧侧边栏 -->
     <el-aside width="230px" class="sidebar">
       <div class="logo-box">
-        <h2>工单管理系统</h2>
+        <h2>客服话术系统</h2>
       </div>
       <el-menu
         router
@@ -27,13 +27,17 @@
             <el-icon><DataLine /></el-icon>
             <span>数据看板</span>
           </el-menu-item>
+          <el-menu-item index="/workbench/admin/config">
+            <el-icon><Tools /></el-icon>
+            <span>配置管理</span>
+          </el-menu-item>
         </template>
 
         <!-- 客服菜单 -->
         <template v-else-if="currentRole === 'service'">
-          <el-menu-item index="/workbench/smart">
-            <el-icon><ChatDotRound /></el-icon>
-            <span>智能问答工作台</span>
+          <el-menu-item index="/service">
+            <el-icon><Service /></el-icon>
+            <span>客服工作台</span>
           </el-menu-item>
         </template>
 
@@ -99,7 +103,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Setting, Timer, DataLine, ChatDotRound, Ticket, Monitor, Money, ArrowLeft } from '@element-plus/icons-vue'
+import { Setting, Timer, DataLine, Ticket, Monitor, Money, ArrowLeft, Tools, Service } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
@@ -126,7 +130,7 @@ const roleText = computed(() => {
 
 // 判断是否显示返回按钮
 const showBackBtn = computed(() => {
-  const homePaths = ['/workbench/smart', '/workbench/admin/auditList', '/dept/handle/aftersale', '/dept/handle/ops', '/dept/handle/finance']
+  const homePaths = ['/service', '/workbench/admin/auditList', '/dept/handle/aftersale', '/dept/handle/ops', '/dept/handle/finance']
   return !homePaths.includes(route.path)
 })
 
@@ -137,7 +141,7 @@ const goBack = () => {
   } else {
     // 兜底逻辑
     if (currentRole.value === 'admin') router.push('/workbench/admin/auditList')
-    else if (currentRole.value === 'service') router.push('/workbench/smart')
+    else if (currentRole.value === 'service') router.push('/service')
     else router.push('/dept/handle/aftersale')
   }
 }

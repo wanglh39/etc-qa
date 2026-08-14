@@ -4,7 +4,7 @@ import { ElMessage } from 'element-plus'
 const Layout = () => import('@/components/layout/Layout.vue')
 
 // 区分角色默认首页
-const DEFAULT_SERVICE_PATH = '/workbench/smart'
+const DEFAULT_SERVICE_PATH = '/service'
 const DEFAULT_ADMIN_PATH = '/workbench/admin/auditList'
 
 const routes: RouteRecordRaw[] = [
@@ -22,14 +22,6 @@ const routes: RouteRecordRaw[] = [
     component: Layout,
     redirect: DEFAULT_SERVICE_PATH,
     children: [
-      // 2.1 智能问答工作台（客服默认首页）
-      {
-        path: 'workbench/smart',
-        name: 'SmartWorkbench',
-        component: () => import('@/pages/workbench/SmartWorkbench.vue'),
-        meta: { title: '智能问答工作台', roleAuth: 'all' }
-      },
-
       // 管理员菜单页面
       {
         path: 'workbench/admin/auditList',
@@ -48,6 +40,12 @@ const routes: RouteRecordRaw[] = [
         name: 'DashboardNew',
         component: () => import('@/pages/dashboard/index.vue'),
         meta: { title: '数据看板', roleAuth: 'admin' }
+      },
+      {
+        path: 'workbench/admin/config',
+        name: 'ConfigManage',
+        component: () => import('@/pages/system/config.vue'),
+        meta: { title: '配置管理', roleAuth: 'admin' }
       },
       {
         path: 'workbench/admin/pendingDetail',
@@ -124,7 +122,7 @@ const routes: RouteRecordRaw[] = [
         path: 'service',
         name: 'Service',
         component: () => import('@/pages/service/index.vue'),
-        meta: { title: '服务管理', roleAuth: 'all', hidden: true }
+        meta: { title: '客服工作台', roleAuth: 'service' }
       },
       {
         path: 'audit',

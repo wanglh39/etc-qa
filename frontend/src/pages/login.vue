@@ -1,7 +1,7 @@
 <template>
   <div class="login-container">
     <el-card class="login-card" shadow="hover">
-      <h2 class="title">工单管理系统登录</h2>
+      <h2 class="title">客服话术系统</h2>
 
       <el-form
         ref="loginFormRef"
@@ -31,8 +31,6 @@
           </el-button>
         </el-form-item>
       </el-form>
-
-      <p class="tip-text">测试账号：admin/123456、service/123456、dept/123456</p>
     </el-card>
   </div>
 </template>
@@ -84,7 +82,7 @@ const handleLogin = async () => {
       if (res.role === 'admin') {
         router.push('/workbench/admin/auditList')
       } else if (res.role === 'service') {
-        router.push('/workbench/smart')
+        router.push('/service')
       } else {
         router.push(`/dept/handle/${res.dept}`)
       }
@@ -129,12 +127,5 @@ const handleLogin = async () => {
   width: 100%;
   height: 44px;
   font-size: 16px;
-}
-
-.tip-text {
-  margin: 20px 0 0;
-  text-align: center;
-  font-size: 13px;
-  color: #909399;
 }
 </style>

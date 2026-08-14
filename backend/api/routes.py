@@ -49,6 +49,7 @@ from rag.service import QAService
 from utils.auth_middleware import get_current_user, require_role
 from utils.config_center import get_business_config, invalidate_cache
 from utils.logger import get_logger
+from utils.rate_limit import limiter
 
 logger = get_logger("api.routes")
 
@@ -103,6 +104,20 @@ def _parse_raw_data(raw_data: str | None) -> dict:
         return parsed if isinstance(parsed, dict) else {}
     except (json.JSONDecodeError, TypeError):
         return {}
+
+
+_SECRET_KEY_FRAGMENTS = ("api_key", "password", "secret", "token", "access_key")
+
+
+def _redact_secrets(obj):
+    if isinstance(obj, dict):
+        return {
+            k: ("***" if any(f in str(k).lower() for f in _SECRET_KEY_FRAGMENTS) else _redact_secrets(v))
+            for k, v in obj.items()
+        }
+    if isinstance(obj, list):
+        return [_redact_secrets(v) for v in obj]
+    return obj
 
 
 def _fmt_dt(v) -> str | None:
@@ -167,7 +182,9 @@ def _build_category_tree() -> list[dict]:
 
 
 @router.post("/query", response_model=QueryResponse)
-def query_qa(req: QueryRequest):
+def query_qa(req: QueryRequest, user: dict = Depends(get_current_user)):
+    if not limiter.check(f"query:{user.get('sub')}", 30, 60):
+        raise HTTPException(status_code=429, detail="请求过于频繁，请稍后再试")
     if service is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
     result = service.query(req.question, req.category_l1)
@@ -183,7 +200,9 @@ def add_qa(req: AddQARequest):
 
 
 @router.post("/agent/process", response_model=AgentProcessResponse)
-def agent_process(req: AgentProcessRequest):
+def agent_process(req: AgentProcessRequest, user: dict = Depends(get_current_user)):
+    if not limiter.check(f"agent:{user.get('sub')}", 20, 60):
+        raise HTTPException(status_code=429, detail="请求过于频繁，请稍后再试")
     initial_state = AgentState(
         raw_question=req.question,
         raw_answer=req.answer or "",
@@ -240,10 +259,10 @@ def update_config(key: str, value: dict):
     return {"key": key, "message": "配置已更新，缓存已刷新"}
 
 
-@router.get("/config/{key}")
+@router.get("/config/{key}", dependencies=[Depends(require_role("admin"))])
 def get_config_value(key: str):
     result = get_business_config(key)
-    return {"key": key, "value": result}
+    return {"key": key, "value": _redact_secrets(result)}
 
 
 @router.post("/config/reload", dependencies=[Depends(require_role("admin"))])
@@ -382,9 +401,12 @@ def stats_trend(days: int = Query(7, ge=1, le=90)):
 
 @router.get("/work_orders", response_model=WorkOrderListResponse)
 def list_work_orders(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
-                     status: str | None = None, dept: str | None = None):
+                     status: str | None = None, dept: str | None = None,
+                     user: dict = Depends(get_current_user)):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
+    if user.get("role") == "dept":
+        dept = user.get("dept")
     result = mysql_client.get_work_order_list(page=page, page_size=page_size,
                                               status=status, dept=dept)
     items = [WorkOrderListItem(**_serialize_row(row)) for row in result["items"]]
@@ -406,22 +428,26 @@ def create_work_order(req: WorkOrderCreateRequest):
 
 
 @router.get("/work_orders/{wo_id}", response_model=WorkOrderDetailResponse)
-def get_work_order(wo_id: int):
+def get_work_order(wo_id: int, user: dict = Depends(get_current_user)):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
     row = mysql_client.get_work_order_detail(wo_id)
     if row is None:
         raise HTTPException(status_code=404, detail="工单不存在")
+    if user.get("role") == "dept" and row.get("dept") != user.get("dept"):
+        raise HTTPException(status_code=403, detail="无权访问该工单")
     return _work_order_to_detail(row)
 
 
 @router.put("/work_orders/{wo_id}/reply", response_model=WorkOrderDetailResponse)
-def reply_work_order(wo_id: int, req: WorkOrderReplyRequest):
+def reply_work_order(wo_id: int, req: WorkOrderReplyRequest, user: dict = Depends(get_current_user)):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
     row = mysql_client.get_work_order_detail(wo_id)
     if row is None:
         raise HTTPException(status_code=404, detail="工单不存在")
+    if user.get("role") == "dept" and row.get("dept") != user.get("dept"):
+        raise HTTPException(status_code=403, detail="无权访问该工单")
     data = _parse_raw_data(row.get("raw_data"))
     data["handle_remark"] = req.handle_remark
     if req.back_dept:

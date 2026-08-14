@@ -16,6 +16,9 @@ from api.auth import router as auth_router
 from api.routes import router
 from app import create_service
 from utils.config import get_config
+from utils.password import check_password_policy
+
+check_password_policy()
 
 cfg = get_config()
 server_cfg = cfg.get("server", {})

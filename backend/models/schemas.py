@@ -1,9 +1,9 @@
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class QueryRequest(BaseModel):
-    question: str
+    question: str = Field(..., max_length=500)
     category_l1: str | None = None
 
 
@@ -28,12 +28,12 @@ class QueryResponse(BaseModel):
 
 
 class AddQARequest(BaseModel):
-    question: str
-    answer: str
-    category_l1: str | None = None
-    category_l2: str | None = None
-    internal_process: str | None = None
-    feedback_dept: str | None = None
+    question: str = Field(..., max_length=500)
+    answer: str = Field(..., max_length=5000)
+    category_l1: str | None = Field(None, max_length=50)
+    category_l2: str | None = Field(None, max_length=50)
+    internal_process: str | None = Field(None, max_length=2000)
+    feedback_dept: str | None = Field(None, max_length=50)
 
 
 class AddQAResponse(BaseModel):
@@ -42,10 +42,10 @@ class AddQAResponse(BaseModel):
 
 
 class AgentProcessRequest(BaseModel):
-    question: str
-    answer: str | None = ""
-    context: str | None = ""
-    user_id: str | None = None
+    question: str = Field(..., max_length=500)
+    answer: str | None = Field("", max_length=5000)
+    context: str | None = Field("", max_length=5000)
+    user_id: str | None = Field(None, max_length=64)
 
 
 class AgentProcessResponse(BaseModel):
@@ -108,8 +108,8 @@ class QADetailResponse(BaseModel):
 
 
 class QASearchRequest(BaseModel):
-    keyword: str
-    category_l1: str | None = None
+    keyword: str = Field(..., max_length=200)
+    category_l1: str | None = Field(None, max_length=50)
     status: str | None = None
     page: int = 1
     page_size: int = 20
@@ -184,15 +184,15 @@ class PromptKeySummary(BaseModel):
 
 
 class WorkOrderCreateRequest(BaseModel):
-    service_id: str = ""
-    customer_name: str = ""
-    phone: str = ""
-    problem_type: str = ""
-    next_dept: str = ""
-    return_dept: str = ""
-    receive_user: str = ""
-    priority: str = "mid"
-    detail_desc: str = ""
+    service_id: str = Field("", max_length=64)
+    customer_name: str = Field("", max_length=64)
+    phone: str = Field("", max_length=32)
+    problem_type: str = Field("", max_length=32)
+    next_dept: str = Field("", max_length=32)
+    return_dept: str = Field("", max_length=32)
+    receive_user: str = Field("", max_length=64)
+    priority: str = Field("mid", max_length=16)
+    detail_desc: str = Field("", max_length=5000)
 
 
 class WorkOrderDetailResponse(BaseModel):
@@ -215,8 +215,8 @@ class WorkOrderDetailResponse(BaseModel):
 
 
 class WorkOrderReplyRequest(BaseModel):
-    handle_remark: str = ""
-    back_dept: str = ""
+    handle_remark: str = Field("", max_length=5000)
+    back_dept: str = Field("", max_length=32)
 
 
 class AuditLogItem(BaseModel):
@@ -237,15 +237,15 @@ class AuditLogListResponse(BaseModel):
 
 
 class CategoryCreateRequest(BaseModel):
-    label: str
+    label: str = Field(..., max_length=50)
     parent_id: int | None = None
-    description: str = ""
+    description: str = Field("", max_length=500)
 
 
 class CategoryUpdateRequest(BaseModel):
-    label: str
+    label: str = Field(..., max_length=50)
     parent_id: int | None = None
-    description: str = ""
+    description: str = Field("", max_length=500)
 
 
 class TrendResponse(BaseModel):

@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 
 import jwt
 
+from utils.password import verify_password
+
 SECRET_KEY = os.environ.get("ETC_QA_JWT_SECRET", "etc-qa-jwt-secret-key-dev")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
@@ -33,6 +35,6 @@ def verify_token(token: str) -> dict:
 
 def authenticate(username: str, password: str) -> dict | None:
     user = USERS.get(username)
-    if user and user["password"] == password:
+    if user and verify_password(password, user["password"]):
         return {"username": username, "role": user["role"], "dept": user["dept"]}
     return None

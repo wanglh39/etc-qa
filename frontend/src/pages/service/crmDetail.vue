@@ -13,8 +13,6 @@
         <el-descriptions-item label="客户手机号">{{ orderInfo.phone }}</el-descriptions-item>
         <el-descriptions-item label="问题分类">{{ getTypeName(orderInfo.problem_type) }}</el-descriptions-item>
         <el-descriptions-item label="转交本处理部门">{{ getDeptName(orderInfo.next_dept) }}</el-descriptions-item>
-        <el-descriptions-item label="处理完成后回流部门">{{ getDeptName(orderInfo.return_dept) }}</el-descriptions-item>
-        <el-descriptions-item label="指定处理人">{{ orderInfo.receive_user }}</el-descriptions-item>
         <el-descriptions-item label="工单优先级">{{ getPriorityText(orderInfo.priority) }}</el-descriptions-item>
         <el-descriptions-item label="客户原始问题描述" span="2">
           {{ orderInfo.detail_desc }}
@@ -43,9 +41,8 @@
       </el-form-item>
 
       <el-form-item>
-        <!-- 业务部门提交回复，办结回流 -->
         <el-button type="success" :loading="submitting" @click="completeAndReturn">
-          提交处理回复，工单回流指定部门
+          提交处理回复
         </el-button>
         <el-button @click="$router.back()">取消，返回列表</el-button>
       </el-form-item>
@@ -75,8 +72,6 @@ const orderInfo = ref<WorkOrderDetail>({
   phone: '',
   problem_type: '',
   next_dept: '',
-  return_dept: '',
-  receive_user: '',
   priority: '',
   detail_desc: '',
   handle_remark: ''
@@ -89,7 +84,7 @@ const handleForm = ref({
 
 // 回复必填校验
 const handleRules = ref({
-  handleRemark: [{ required: true, message: '请填写本部门处理回复后再提交回流', trigger: 'blur' }]
+  handleRemark: [{ required: true, message: '请填写本部门处理回复', trigger: 'blur' }]
 })
 
 // 页面加载：根据路由id读取客服创建的工单数据
@@ -108,7 +103,7 @@ const loadOrderData = async () => {
   }
 }
 
-// 业务部门提交回复，工单回流
+// 业务部门提交回复
 const completeAndReturn = async () => {
   if (!handleFormRef.value) return
   await handleFormRef.value.validate(async (valid: boolean) => {
@@ -116,10 +111,9 @@ const completeAndReturn = async () => {
     submitting.value = true
     try {
       await replyWorkOrder(orderInfo.value.id, {
-        handle_remark: handleForm.value.handleRemark,
-        back_dept: orderInfo.value.return_dept
+        handle_remark: handleForm.value.handleRemark
       })
-      ElMessage.success('处理回复提交成功，工单已自动回流至预设部门')
+      ElMessage.success('处理回复提交成功')
       router.push('/crm/list')
     } catch {
       ElMessage.error('提交处理回复失败')

@@ -6,8 +6,6 @@ export interface WorkOrderCreateParams {
   phone: string
   problem_type: string
   next_dept: string
-  return_dept: string
-  receive_user: string
   priority: string
   detail_desc: string
 }
@@ -22,8 +20,6 @@ export interface WorkOrderDetail {
   phone: string
   problem_type: string
   next_dept: string
-  return_dept: string
-  receive_user: string
   priority: string
   detail_desc: string
   handle_remark: string
@@ -33,7 +29,6 @@ export interface WorkOrderDetail {
 
 export interface WorkOrderReplyParams {
   handle_remark: string
-  back_dept?: string
 }
 
 export function createWorkOrder(data: WorkOrderCreateParams) {

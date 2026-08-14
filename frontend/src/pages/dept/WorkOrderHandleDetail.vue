@@ -81,8 +81,6 @@ const orderInfo = ref<WorkOrderDetail>({
   phone: '',
   problem_type: '',
   next_dept: '',
-  return_dept: '',
-  receive_user: '',
   priority: '',
   detail_desc: '',
   handle_remark: ''
@@ -116,8 +114,7 @@ const handleFinish = async () => {
   submitting.value = true
   try {
     await replyWorkOrder(orderInfo.value.id, {
-      handle_remark: remarkText.value,
-      back_dept: orderInfo.value.return_dept
+      handle_remark: remarkText.value
     })
     ElMessage.success('工单办结完成')
     router.back()

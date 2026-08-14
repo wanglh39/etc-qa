@@ -45,23 +45,6 @@
         </el-select>
       </el-form-item>
 
-      <!-- 客服指定：业务处理完成后，工单回流到哪个部门 -->
-      <el-form-item label="办结回流部门" prop="returnDept">
-        <el-select v-model="formData.returnDept" placeholder="业务处理完毕退回部门" style="width:100%">
-          <el-option label="客服接待部" value="service"></el-option>
-          <el-option label="售后处理部" value="aftersale"></el-option>
-          <el-option label="技术运维部" value="ops"></el-option>
-          <el-option label="财务部" value="finance"></el-option>
-          <el-option label="市场部" value="market"></el-option>
-          <el-option label="人事部" value="human"></el-option>
-        </el-select>
-      </el-form-item>
-
-      <!-- 客服指定：对应部门处理人 -->
-      <el-form-item label="指定处理人员" prop="receiveUser">
-        <el-input v-model="formData.receiveUser" placeholder="填写对应部门处理员工号/姓名"></el-input>
-      </el-form-item>
-
       <el-form-item label="工单优先级" prop="priority">
         <el-radio-group v-model="formData.priority">
           <el-radio value="low">低</el-radio>
@@ -99,8 +82,6 @@ const formData = ref({
   phone: '',
   problemType: '',
   nextDept: '',      // 转交处理部门（业务部门）
-  returnDept: '',    // 业务处理完成后回流部门
-  receiveUser: '',   // 业务部门处理人
   priority: 'mid',
   detailDesc: ''     // 客户原始问题
 })
@@ -114,8 +95,6 @@ const formRules = ref({
   ],
   problemType: [{ required: true, message: '需要选择问题分类', trigger: 'change' }],
   nextDept: [{ required: true, message: '请选择转交处理部门', trigger: 'change' }],
-  returnDept: [{ required: true, message: '请选择办结回流部门', trigger: 'change' }],
-  receiveUser: [{ required: true, message: '请填写处理人员', trigger: 'blur' }],
   detailDesc: [{ required: true, message: '填写客户问题详情', trigger: 'blur' }]
 })
 
@@ -135,8 +114,6 @@ const submitWorkOrder = async () => {
         phone: formData.value.phone,
         problem_type: formData.value.problemType,
         next_dept: formData.value.nextDept,
-        return_dept: formData.value.returnDept,
-        receive_user: formData.value.receiveUser,
         priority: formData.value.priority,
         detail_desc: formData.value.detailDesc
       })

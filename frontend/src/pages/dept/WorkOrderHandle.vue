@@ -167,7 +167,7 @@ const openDetail = (row: WorkOrderListItem) => {
 // 办结工单操作
 const handleFinish = async (row: WorkOrderListItem) => {
   try {
-    await replyWorkOrder(row.id, { handle_remark: '快速办结', back_dept: '' })
+    await replyWorkOrder(row.id, { handle_remark: '快速办结' })
     ElMessage.success(`工单${row.external_id}已办结`)
     getTableList()
   } catch {

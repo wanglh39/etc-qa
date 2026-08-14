@@ -6,11 +6,15 @@ from fastapi.testclient import TestClient
 
 from api.routes import router, set_mysql_client, set_service, set_work_order_client
 from models.schemas import CandidateResult, QueryResponse
+from utils.auth_middleware import get_current_user
+
+_MOCK_USER = {"sub": "test_user", "role": "admin"}
 
 
 @pytest.fixture
 def app():
     application = FastAPI()
+    application.dependency_overrides[get_current_user] = lambda: _MOCK_USER
     application.include_router(router, prefix="/api/v1")
     return application
 
@@ -87,12 +91,6 @@ class TestAddQAE2E:
         assert resp.status_code == 200
         assert resp.json()["qa_id"] == 42
 
-
-class TestHealthE2E:
-    def test_health(self, client):
-        resp = client.get("/api/v1/health")
-        assert resp.status_code == 200
-        assert resp.json()["status"] == "ok"
 
 
 class TestQAListE2E:

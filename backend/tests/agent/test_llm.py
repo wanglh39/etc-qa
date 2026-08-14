@@ -33,6 +33,8 @@ class TestGetLLM:
             base_url="https://api.deepseek.com",
             temperature=0.1,
             max_tokens=1024,
+            timeout=10,
+            max_retries=1,
         )
 
     @patch("agent.llm.get_config")

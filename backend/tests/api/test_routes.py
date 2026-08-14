@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from api.routes import agent_process, health, query_qa, set_mysql_client, set_service
+from api.routes import agent_process, query_qa, set_mysql_client, set_service
 from models.schemas import AgentProcessRequest, QASearchRequest, QueryRequest
 
 MOCK_SERVICE_RESPONSE = {
@@ -13,6 +13,8 @@ MOCK_SERVICE_RESPONSE = {
     "total_candidates": 0,
 }
 
+MOCK_USER = {"sub": "test_user", "role": "admin"}
+
 
 class TestQueryAPI:
     def test_query_returns_response(self):
@@ -21,14 +23,14 @@ class TestQueryAPI:
         set_service(mock_service)
 
         req = QueryRequest(question="ETC扣费异常")
-        result = query_qa(req)
+        result = query_qa(req, MOCK_USER)
         assert result.confidence == "high"
 
     def test_query_without_service(self):
         set_service(None)
         req = QueryRequest(question="test")
         with pytest.raises(Exception):
-            query_qa(req)
+            query_qa(req, MOCK_USER)
 
     @patch("api.routes.work_order_client")
     @patch("api.routes.mysql_client")
@@ -47,7 +49,7 @@ class TestQueryAPI:
         mock_wo.create_work_order.return_value = "WO123"
 
         req = QueryRequest(question="ETC扣费异常")
-        result = query_qa(req)
+        result = query_qa(req, MOCK_USER)
         mock_wo.create_work_order.assert_not_called()
 
 
@@ -72,14 +74,9 @@ class TestAgentProcessAPI:
         }
 
         req = AgentProcessRequest(question="ETC扣费异常", answer="核实后退款")
-        result = agent_process(req)
+        result = agent_process(req, MOCK_USER)
         assert result.category_l1 == "账单问题"
 
-
-class TestHealthAPI:
-    def test_health_check(self):
-        result = health()
-        assert result["status"] == "ok"
 
 
 class TestQAListAPI:
@@ -192,12 +189,14 @@ class TestStatsAPI:
 class TestCategoriesAPI:
     def test_get_categories(self):
         mock_mysql = MagicMock()
+        mock_mysql.list_categories.return_value = []
         mock_mysql.get_category_tree.return_value = {"账单问题": ["ETC扣费", "发票问题"]}
         set_mysql_client(mock_mysql)
 
         from api.routes import get_categories
         result = get_categories()
-        assert "账单问题" in result["categories"]
+        labels = [n["label"] for n in result["categories"]]
+        assert "账单问题" in labels
 
 
 class TestWorkOrderListAPI:
@@ -213,5 +212,5 @@ class TestWorkOrderListAPI:
         set_mysql_client(mock_mysql)
 
         from api.routes import list_work_orders
-        result = list_work_orders(page=1, page_size=20)
+        result = list_work_orders(page=1, page_size=20, user=MOCK_USER)
         assert result.total == 1

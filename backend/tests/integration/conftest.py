@@ -123,7 +123,9 @@ def real_app(qa_service, mysql_conn):
     vm._mysql = mysql_conn
     vm._cols_cache = None
     from fastapi import FastAPI
+    from utils.auth_middleware import get_current_user
     app = FastAPI()
+    app.dependency_overrides[get_current_user] = lambda: {"sub": "test_user", "role": "admin"}
     app.include_router(routes.router, prefix="/api/v1")
     return app
 

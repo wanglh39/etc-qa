@@ -27,7 +27,7 @@ llm_registry:
     max_tokens_limit: 8192
   deepseek-v4-pro:
     provider: deepseek
-    structured_method: function_calling
+    structured_method: none
     max_tokens_limit: 8192
   gpt-4o:
     provider: openai

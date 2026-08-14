@@ -45,7 +45,7 @@ export const mockKnowledgeList: KnowledgeItem[] = [
 
 const service = axios.create({
   baseURL: '/api',
-  timeout: 8000
+  timeout: 60000
 })
 
 service.interceptors.request.use((config) => {

@@ -12,7 +12,8 @@
     ],
     "final_question": "ETC扣费异常怎么处理",
     "category_l1": "售后业务",
-    "keyword": "扣费异常"
+    "keyword": "扣费异常",
+    "expected_qa_id": 228
   },
   {
     "filename": "sample_02.wav",
@@ -25,7 +26,8 @@
     ],
     "final_question": "ETC退款需要多长时间",
     "category_l1": "售后业务",
-    "keyword": "退款"
+    "keyword": "退款",
+    "expected_qa_id": 229
   },
   {
     "filename": "sample_03.wav",
@@ -40,7 +42,8 @@
     ],
     "final_question": "ETC黑名单怎么解除",
     "category_l1": "售后业务",
-    "keyword": "黑名单"
+    "keyword": "黑名单",
+    "expected_qa_id": 246
   },
   {
     "filename": "sample_04.wav",
@@ -55,7 +58,8 @@
     ],
     "final_question": "ETC设备没电了怎么办",
     "category_l1": "售后业务",
-    "keyword": "设备异常"
+    "keyword": "设备异常",
+    "expected_qa_id": 27
   },
   {
     "filename": "sample_05.wav",
@@ -68,7 +72,8 @@
     ],
     "final_question": "ETC注销流程是什么",
     "category_l1": "售后业务",
-    "keyword": "业务变更"
+    "keyword": "业务变更",
+    "expected_qa_id": 184
   },
   {
     "filename": "sample_06.wav",
@@ -83,7 +88,8 @@
     ],
     "final_question": "如何办理ETC新办",
     "category_l1": "售前业务",
-    "keyword": "新办"
+    "keyword": "新办",
+    "expected_qa_id": 9
   },
   {
     "filename": "sample_07.wav",
@@ -98,7 +104,8 @@
     ],
     "final_question": "ETC蓝牙连接不上怎么解决",
     "category_l1": "售后业务",
-    "keyword": "设备异常"
+    "keyword": "设备异常",
+    "expected_qa_id": 432
   },
   {
     "filename": "sample_08.wav",
@@ -111,7 +118,8 @@
     ],
     "final_question": "ETC发票怎么开具",
     "category_l1": "售后业务",
-    "keyword": "发票"
+    "keyword": "发票",
+    "expected_qa_id": 114
   },
   {
     "filename": "sample_09.wav",
@@ -126,7 +134,8 @@
     ],
     "final_question": "ETC充值失败怎么办",
     "category_l1": "售后业务",
-    "keyword": "充值"
+    "keyword": "充值",
+    "expected_qa_id": null
   },
   {
     "filename": "sample_10.wav",
@@ -141,7 +150,8 @@
     ],
     "final_question": "ETC抬杆失败如何处理",
     "category_l1": "售后业务",
-    "keyword": "通行异常"
+    "keyword": "通行异常",
+    "expected_qa_id": 445
   },
   {
     "filename": "sample_11.wav",
@@ -156,7 +166,8 @@
     ],
     "final_question": "ETC重复扣费怎么退款",
     "category_l1": "售后业务",
-    "keyword": "扣费异常"
+    "keyword": "扣费异常",
+    "expected_qa_id": 228
   },
   {
     "filename": "sample_12.wav",
@@ -169,7 +180,8 @@
     ],
     "final_question": "ETC设备OBU是什么",
     "category_l1": "售后业务",
-    "keyword": "设备异常"
+    "keyword": "设备异常",
+    "expected_qa_id": null
   },
   {
     "filename": "sample_13.wav",
@@ -184,7 +196,8 @@
     ],
     "final_question": "ETC账户冻结怎么办",
     "category_l1": "售后业务",
-    "keyword": "账户"
+    "keyword": "账户",
+    "expected_qa_id": 434
   },
   {
     "filename": "sample_14.wav",
@@ -199,7 +212,8 @@
     ],
     "final_question": "ETC逾期未还款怎么处理",
     "category_l1": "售后业务",
-    "keyword": "逾期"
+    "keyword": "逾期",
+    "expected_qa_id": 195
   },
   {
     "filename": "sample_15.wav",
@@ -212,7 +226,8 @@
     ],
     "final_question": "ETC客服热线是多少",
     "category_l1": "售前业务",
-    "keyword": "客服热线"
+    "keyword": "客服热线",
+    "expected_qa_id": 1
   },
   {
     "filename": "sample_16.wav",
@@ -227,7 +242,8 @@
     ],
     "final_question": "ETC激活失败怎么办",
     "category_l1": "售后业务",
-    "keyword": "业务变更"
+    "keyword": "业务变更",
+    "expected_qa_id": 99
   },
   {
     "filename": "sample_17.wav",
@@ -240,7 +256,8 @@
     ],
     "final_question": "ETC挂失怎么办理",
     "category_l1": "售后业务",
-    "keyword": "业务变更"
+    "keyword": "业务变更",
+    "expected_qa_id": null
   },
   {
     "filename": "sample_18.wav",
@@ -255,7 +272,8 @@
     ],
     "final_question": "ETC对公账户怎么开通",
     "category_l1": "售前业务",
-    "keyword": "对公"
+    "keyword": "对公",
+    "expected_qa_id": 126
   },
   {
     "filename": "sample_19.wav",
@@ -270,7 +288,8 @@
     ],
     "final_question": "ETC押金怎么退",
     "category_l1": "售后业务",
-    "keyword": "押金"
+    "keyword": "押金",
+    "expected_qa_id": 443
   },
   {
     "filename": "sample_20.wav",
@@ -283,6 +302,7 @@
     ],
     "final_question": "ETC周卡怎么办理",
     "category_l1": "售前业务",
-    "keyword": "套餐"
+    "keyword": "套餐",
+    "expected_qa_id": 282
   }
 ]

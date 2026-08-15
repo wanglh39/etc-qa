@@ -1,9 +1,44 @@
-from unittest.mock import MagicMock, patch
+import asyncio
+from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from fastapi import HTTPException
 
-from api.routes import agent_process, query_qa, set_mysql_client, set_service
-from models.schemas import AgentProcessRequest, QASearchRequest, QueryRequest
+from api.routes import (
+    _current_operator,
+    _fmt_dt,
+    _parse_raw_data,
+    _serialize_row,
+    agent_process,
+    asr_query,
+    audit_history,
+    create_category,
+    create_work_order,
+    delete_category,
+    get_categories,
+    get_work_order,
+    query_qa,
+    reply_work_order,
+    rollback_prompt,
+    set_mysql_client,
+    set_service,
+    stats_trend,
+    update_category,
+    update_qa_status,
+)
+from asr.models import ASRResponse
+from models.schemas import (
+    AgentProcessRequest,
+    CategoryCreateRequest,
+    CategoryUpdateRequest,
+    PromptRollbackRequest,
+    QASearchRequest,
+    QueryRequest,
+    UpdateStatusRequest,
+    WorkOrderCreateRequest,
+    WorkOrderReplyRequest,
+)
 
 MOCK_SERVICE_RESPONSE = {
     "query": "ETC扣费异常",
@@ -52,6 +87,14 @@ class TestQueryAPI:
         result = query_qa(req, MOCK_USER)
         mock_wo.create_work_order.assert_not_called()
 
+    @patch("api.routes.limiter")
+    def test_query_rate_limited(self, mock_limiter):
+        mock_limiter.check.return_value = False
+        req = QueryRequest(question="test")
+        with pytest.raises(HTTPException) as exc:
+            query_qa(req, MOCK_USER)
+        assert exc.value.status_code == 429
+
 
 class TestAgentProcessAPI:
     @patch("api.routes.ingest_agent")
@@ -76,6 +119,14 @@ class TestAgentProcessAPI:
         req = AgentProcessRequest(question="ETC扣费异常", answer="核实后退款")
         result = agent_process(req, MOCK_USER)
         assert result.category_l1 == "账单问题"
+
+    @patch("api.routes.limiter")
+    def test_agent_process_rate_limited(self, mock_limiter):
+        mock_limiter.check.return_value = False
+        req = AgentProcessRequest(question="test")
+        with pytest.raises(HTTPException) as exc:
+            agent_process(req, MOCK_USER)
+        assert exc.value.status_code == 429
 
 
 
@@ -198,6 +249,38 @@ class TestCategoriesAPI:
         labels = [n["label"] for n in result["categories"]]
         assert "账单问题" in labels
 
+    def test_get_categories_with_rows(self):
+        mock_mysql = MagicMock()
+        mock_mysql.list_categories.return_value = [
+            {"id": 1, "label": "账单问题", "parent_id": None, "description": "desc"},
+            {"id": 2, "label": "ETC扣费", "parent_id": 1, "description": None},
+        ]
+        set_mysql_client(mock_mysql)
+
+        result = get_categories()
+        roots = result["categories"]
+        root = next(n for n in roots if n["label"] == "账单问题")
+        child_labels = [c["label"] for c in root["children"]]
+        assert "ETC扣费" in child_labels
+        mock_mysql.get_category_tree.assert_not_called()
+
+    def test_get_categories_with_empty_label(self):
+        mock_mysql = MagicMock()
+        mock_mysql.list_categories.return_value = []
+        mock_mysql.get_category_tree.return_value = {"": ["子类"], "账单问题": ["ETC"]}
+        set_mysql_client(mock_mysql)
+
+        result = get_categories()
+        labels = [n["label"] for n in result["categories"]]
+        assert "账单问题" in labels
+        assert "" not in labels
+
+    def test_get_categories_no_mysql(self):
+        set_mysql_client(None)
+        with pytest.raises(HTTPException) as exc:
+            get_categories()
+        assert exc.value.status_code == 500
+
 
 class TestWorkOrderListAPI:
     def test_list_work_orders(self):
@@ -214,3 +297,477 @@ class TestWorkOrderListAPI:
         from api.routes import list_work_orders
         result = list_work_orders(page=1, page_size=20, user=MOCK_USER)
         assert result.total == 1
+
+
+class TestSerializeRow:
+    def test_serialize_datetime(self):
+        row = {"id": 1, "created_at": datetime(2024, 1, 1, 12, 0, 0)}
+        result = _serialize_row(row)
+        assert result["created_at"] == "2024-01-01 12:00:00"
+        assert result["id"] == 1
+
+    def test_serialize_non_datetime(self):
+        row = {"id": 1, "name": "测试"}
+        result = _serialize_row(row)
+        assert result["name"] == "测试"
+        assert result["id"] == 1
+
+
+class TestCurrentOperator:
+    def test_with_valid_bearer_token(self):
+        with patch("utils.jwt_utils.verify_token", return_value={"sub": "user1"}):
+            req = MagicMock()
+            req.headers.get.return_value = "Bearer abc"
+            assert _current_operator(req) == "user1"
+
+    def test_with_invalid_bearer_token(self):
+        with patch("utils.jwt_utils.verify_token", side_effect=Exception("bad token")):
+            req = MagicMock()
+            req.headers.get.return_value = "Bearer bad"
+            assert _current_operator(req) == "admin"
+
+    def test_without_auth(self):
+        req = MagicMock()
+        req.headers.get.return_value = ""
+        assert _current_operator(req) == "admin"
+
+    def test_with_non_bearer_auth(self):
+        req = MagicMock()
+        req.headers.get.return_value = "Basic xyz"
+        assert _current_operator(req) == "admin"
+
+
+class TestParseRawData:
+    def test_parse_valid_dict(self):
+        assert _parse_raw_data('{"a": 1}') == {"a": 1}
+
+    def test_parse_none(self):
+        assert _parse_raw_data(None) == {}
+
+    def test_parse_empty(self):
+        assert _parse_raw_data("") == {}
+
+    def test_parse_invalid_json(self):
+        assert _parse_raw_data("not json") == {}
+
+    def test_parse_non_dict(self):
+        assert _parse_raw_data("[1, 2]") == {}
+
+
+class TestFmtDt:
+    def test_fmt_datetime(self):
+        assert _fmt_dt(datetime(2024, 1, 1, 12, 0, 0)) == "2024-01-01 12:00:00"
+
+    def test_fmt_none(self):
+        assert _fmt_dt(None) is None
+
+    def test_fmt_string(self):
+        assert _fmt_dt("2024-01-01") == "2024-01-01"
+
+
+class TestUpdateQAStatusAPI:
+    @patch("api.routes.get_business_config")
+    def test_update_status_deprecated(self, mock_cfg):
+        mock_cfg.return_value = ["active", "deprecated", "archived"]
+        mock_mysql = MagicMock()
+        set_mysql_client(mock_mysql)
+        mock_service = MagicMock()
+        set_service(mock_service)
+        req = UpdateStatusRequest(qa_id=1, status="deprecated")
+        request = MagicMock()
+        request.headers.get.return_value = ""
+        result = update_qa_status(req, request)
+        assert result.status == "deprecated"
+        mock_mysql.update_qa_status.assert_called_once_with(1, "deprecated")
+        mock_service.invalidate_active_ids_cache.assert_called_once()
+        mock_mysql.insert_audit_log.assert_not_called()
+
+    @patch("api.routes.get_business_config")
+    def test_update_status_active_with_audit(self, mock_cfg):
+        mock_cfg.return_value = ["active", "deprecated", "archived"]
+        mock_mysql = MagicMock()
+        mock_mysql.get_qa_detail.return_value = {"question": "q", "answer": "a"}
+        set_mysql_client(mock_mysql)
+        set_service(MagicMock())
+        req = UpdateStatusRequest(qa_id=1, status="active")
+        request = MagicMock()
+        request.headers.get.return_value = ""
+        result = update_qa_status(req, request)
+        assert result.status == "active"
+        mock_mysql.insert_audit_log.assert_called_once()
+        call_kwargs = mock_mysql.insert_audit_log.call_args.kwargs
+        assert call_kwargs["result"] == "pass"
+        assert call_kwargs["qa_id"] == 1
+
+    @patch("api.routes.get_business_config")
+    def test_update_status_archived_with_audit(self, mock_cfg):
+        mock_cfg.return_value = ["active", "deprecated", "archived"]
+        mock_mysql = MagicMock()
+        mock_mysql.get_qa_detail.return_value = {"question": "q", "answer": "a"}
+        set_mysql_client(mock_mysql)
+        set_service(MagicMock())
+        req = UpdateStatusRequest(qa_id=1, status="archived")
+        request = MagicMock()
+        request.headers.get.return_value = ""
+        result = update_qa_status(req, request)
+        assert result.status == "archived"
+        call_kwargs = mock_mysql.insert_audit_log.call_args.kwargs
+        assert call_kwargs["result"] == "reject"
+
+    @patch("api.routes.get_business_config")
+    def test_update_status_invalid(self, mock_cfg):
+        mock_cfg.return_value = ["active", "deprecated", "archived"]
+        set_mysql_client(MagicMock())
+        req = UpdateStatusRequest(qa_id=1, status="invalid")
+        with pytest.raises(HTTPException) as exc:
+            update_qa_status(req, MagicMock())
+        assert exc.value.status_code == 400
+
+    def test_update_status_no_mysql(self):
+        set_mysql_client(None)
+        req = UpdateStatusRequest(qa_id=1, status="active")
+        with pytest.raises(HTTPException) as exc:
+            update_qa_status(req, MagicMock())
+        assert exc.value.status_code == 500
+
+    @patch("api.routes.get_business_config")
+    def test_update_status_no_service(self, mock_cfg):
+        mock_cfg.return_value = ["active", "deprecated", "archived"]
+        set_mysql_client(MagicMock())
+        set_service(None)
+        req = UpdateStatusRequest(qa_id=1, status="deprecated")
+        result = update_qa_status(req, MagicMock())
+        assert result.status == "deprecated"
+
+
+class TestCreateCategoryAPI:
+    def test_create_category_success(self):
+        mock_mysql = MagicMock()
+        mock_mysql.create_category.return_value = 5
+        set_mysql_client(mock_mysql)
+        req = CategoryCreateRequest(label="新分类")
+        result = create_category(req)
+        assert result["id"] == 5
+        assert result["message"] == "分类已创建"
+
+    def test_create_category_no_mysql(self):
+        set_mysql_client(None)
+        req = CategoryCreateRequest(label="x")
+        with pytest.raises(HTTPException) as exc:
+            create_category(req)
+        assert exc.value.status_code == 500
+
+
+class TestUpdateCategoryAPI:
+    def test_update_category_success(self):
+        mock_mysql = MagicMock()
+        mock_mysql.update_category.return_value = True
+        set_mysql_client(mock_mysql)
+        req = CategoryUpdateRequest(label="改后")
+        result = update_category(1, req)
+        assert result["id"] == 1
+        assert result["message"] == "分类已更新"
+
+    def test_update_category_not_found(self):
+        mock_mysql = MagicMock()
+        mock_mysql.update_category.return_value = False
+        set_mysql_client(mock_mysql)
+        req = CategoryUpdateRequest(label="x")
+        with pytest.raises(HTTPException) as exc:
+            update_category(999, req)
+        assert exc.value.status_code == 404
+
+    def test_update_category_no_mysql(self):
+        set_mysql_client(None)
+        req = CategoryUpdateRequest(label="x")
+        with pytest.raises(HTTPException) as exc:
+            update_category(1, req)
+        assert exc.value.status_code == 500
+
+
+class TestDeleteCategoryAPI:
+    def test_delete_category_success(self):
+        mock_mysql = MagicMock()
+        mock_mysql.delete_category.return_value = True
+        set_mysql_client(mock_mysql)
+        result = delete_category(1)
+        assert result["id"] == 1
+        assert result["message"] == "分类已删除"
+
+    def test_delete_category_not_found(self):
+        mock_mysql = MagicMock()
+        mock_mysql.delete_category.return_value = False
+        set_mysql_client(mock_mysql)
+        with pytest.raises(HTTPException) as exc:
+            delete_category(999)
+        assert exc.value.status_code == 404
+
+    def test_delete_category_no_mysql(self):
+        set_mysql_client(None)
+        with pytest.raises(HTTPException) as exc:
+            delete_category(1)
+        assert exc.value.status_code == 500
+
+
+class TestAuditHistoryAPI:
+    def test_audit_history_success(self):
+        mock_mysql = MagicMock()
+        mock_mysql.get_audit_history.return_value = {
+            "items": [{"id": 1, "qa_id": 10, "question": "q", "answer": "a",
+                       "result": "pass", "operator": "admin", "created_at": "2024-01-01"}],
+            "total": 1, "page": 1, "page_size": 20,
+        }
+        set_mysql_client(mock_mysql)
+        result = audit_history(page=1, page_size=20)
+        assert result.total == 1
+        assert len(result.items) == 1
+        assert result.items[0].operator == "admin"
+
+    def test_audit_history_no_mysql(self):
+        set_mysql_client(None)
+        with pytest.raises(HTTPException) as exc:
+            audit_history()
+        assert exc.value.status_code == 500
+
+
+class TestStatsTrendAPI:
+    def test_stats_trend_success(self):
+        today = datetime.now().strftime("%Y-%m-%d")
+        mock_mysql = MagicMock()
+        mock_mysql.get_trend.return_value = {"items": [{"d": today, "cnt": 3}]}
+        mock_mysql.get_qa_trend.return_value = {"items": [{"d": today, "cnt": 1}]}
+        set_mysql_client(mock_mysql)
+        result = stats_trend(days=7)
+        assert len(result.dates) == 7
+        assert len(result.work_order_counts) == 7
+        assert len(result.qa_new_counts) == 7
+        assert result.work_order_counts[-1] == 3
+        assert result.qa_new_counts[-1] == 1
+
+    def test_stats_trend_no_mysql(self):
+        set_mysql_client(None)
+        with pytest.raises(HTTPException) as exc:
+            stats_trend()
+        assert exc.value.status_code == 500
+
+
+class TestCreateWorkOrderAPI:
+    def test_create_work_order_success(self):
+        mock_mysql = MagicMock()
+        mock_mysql.insert_work_order_full.return_value = 42
+        set_mysql_client(mock_mysql)
+        req = WorkOrderCreateRequest(next_dept="账单组", customer_name="张三", detail_desc="扣费异常")
+        result = create_work_order(req)
+        assert result.id == 42
+        assert result.status == "submitted"
+        assert result.dept == "账单组"
+        assert result.customer_name == "张三"
+        assert result.detail_desc == "扣费异常"
+        mock_mysql.insert_work_order_full.assert_called_once()
+
+    def test_create_work_order_no_mysql(self):
+        set_mysql_client(None)
+        req = WorkOrderCreateRequest()
+        with pytest.raises(HTTPException) as exc:
+            create_work_order(req)
+        assert exc.value.status_code == 500
+
+
+class TestGetWorkOrderAPI:
+    def test_get_work_order_success(self):
+        mock_mysql = MagicMock()
+        mock_mysql.get_work_order_detail.return_value = {
+            "id": 1, "external_id": "WO1", "raw_data": '{"service_id":"s1","customer_name":"张三"}',
+            "status": "submitted", "dept": "账单组",
+        }
+        set_mysql_client(mock_mysql)
+        result = get_work_order(1, user={"sub": "u", "role": "admin"})
+        assert result.id == 1
+        assert result.customer_name == "张三"
+
+    def test_get_work_order_not_found(self):
+        mock_mysql = MagicMock()
+        mock_mysql.get_work_order_detail.return_value = None
+        set_mysql_client(mock_mysql)
+        with pytest.raises(HTTPException) as exc:
+            get_work_order(999, user={"sub": "u", "role": "admin"})
+        assert exc.value.status_code == 404
+
+    def test_get_work_order_dept_forbidden(self):
+        mock_mysql = MagicMock()
+        mock_mysql.get_work_order_detail.return_value = {"id": 1, "dept": "其他部门"}
+        set_mysql_client(mock_mysql)
+        with pytest.raises(HTTPException) as exc:
+            get_work_order(1, user={"sub": "u", "role": "dept", "dept": "账单组"})
+        assert exc.value.status_code == 403
+
+    def test_get_work_order_no_mysql(self):
+        set_mysql_client(None)
+        with pytest.raises(HTTPException) as exc:
+            get_work_order(1, user={"sub": "u", "role": "admin"})
+        assert exc.value.status_code == 500
+
+
+class TestReplyWorkOrderAPI:
+    def test_reply_work_order_success_with_back_dept(self):
+        mock_mysql = MagicMock()
+        mock_mysql.get_work_order_detail.side_effect = [
+            {"id": 1, "external_id": "WO1", "raw_data": "{}", "status": "submitted", "dept": "账单组"},
+            {"id": 1, "external_id": "WO1", "raw_data": '{"handle_remark":"已处理","back_dept":"客服组"}',
+             "status": "processed", "dept": "账单组"},
+        ]
+        set_mysql_client(mock_mysql)
+        req = WorkOrderReplyRequest(handle_remark="已处理", back_dept="客服组")
+        result = reply_work_order(1, req, user={"sub": "u", "role": "admin"})
+        assert result.id == 1
+        assert result.status == "processed"
+        mock_mysql.update_work_order_reply.assert_called_once()
+        call_args = mock_mysql.update_work_order_reply.call_args
+        assert call_args.args[0] == 1
+        assert call_args.args[2] == "processed"
+
+    def test_reply_work_order_success_no_back_dept(self):
+        mock_mysql = MagicMock()
+        mock_mysql.get_work_order_detail.side_effect = [
+            {"id": 1, "raw_data": "{}", "status": "submitted", "dept": "账单组"},
+            {"id": 1, "raw_data": '{"handle_remark":"ok"}', "status": "processed", "dept": "账单组"},
+        ]
+        set_mysql_client(mock_mysql)
+        req = WorkOrderReplyRequest(handle_remark="ok")
+        result = reply_work_order(1, req, user={"sub": "u", "role": "admin"})
+        assert result.id == 1
+        mock_mysql.update_work_order_reply.assert_called_once()
+
+    def test_reply_work_order_not_found(self):
+        mock_mysql = MagicMock()
+        mock_mysql.get_work_order_detail.return_value = None
+        set_mysql_client(mock_mysql)
+        req = WorkOrderReplyRequest(handle_remark="x")
+        with pytest.raises(HTTPException) as exc:
+            reply_work_order(999, req, user={"sub": "u", "role": "admin"})
+        assert exc.value.status_code == 404
+
+    def test_reply_work_order_dept_forbidden(self):
+        mock_mysql = MagicMock()
+        mock_mysql.get_work_order_detail.return_value = {"id": 1, "dept": "其他"}
+        set_mysql_client(mock_mysql)
+        req = WorkOrderReplyRequest(handle_remark="x")
+        with pytest.raises(HTTPException) as exc:
+            reply_work_order(1, req, user={"sub": "u", "role": "dept", "dept": "账单组"})
+        assert exc.value.status_code == 403
+
+    def test_reply_work_order_no_mysql(self):
+        set_mysql_client(None)
+        req = WorkOrderReplyRequest(handle_remark="x")
+        with pytest.raises(HTTPException) as exc:
+            reply_work_order(1, req, user={"sub": "u", "role": "admin"})
+        assert exc.value.status_code == 500
+
+
+class TestASRQueryAPI:
+    def _make_file(self, filename="test.wav", content=b"audio"):
+        f = MagicMock()
+        f.filename = filename
+        f.read = AsyncMock(return_value=content)
+        return f
+
+    @patch("api.routes.get_asr_service")
+    def test_asr_query_success(self, mock_get):
+        mock_asr = MagicMock()
+        mock_asr._enabled = True
+        mock_asr.transcribe.return_value = ASRResponse(text="ETC扣费", confidence=0.9)
+        mock_get.return_value = mock_asr
+        mock_service = MagicMock()
+        mock_service.query.return_value = MagicMock(
+            query="ETC扣费", standardized_query="ETC", confidence="high",
+            candidates=[], total_candidates=0,
+        )
+        set_service(mock_service)
+        result = asyncio.run(asr_query(self._make_file(), "账单问题"))
+        assert result.asr_text == "ETC扣费"
+        assert result.query == "ETC扣费"
+        assert result.confidence == "high"
+        mock_service.query.assert_called_once_with("ETC扣费", "账单问题")
+
+    @patch("api.routes.get_asr_service")
+    def test_asr_query_empty_text(self, mock_get):
+        mock_asr = MagicMock()
+        mock_asr._enabled = True
+        mock_asr.transcribe.return_value = ASRResponse(text="   ", confidence=0.5)
+        mock_get.return_value = mock_asr
+        set_service(MagicMock())
+        result = asyncio.run(asr_query(self._make_file()))
+        assert result.asr_text == ""
+        assert result.query == ""
+
+    @patch("api.routes.get_asr_service")
+    def test_asr_query_disabled(self, mock_get):
+        mock_asr = MagicMock()
+        mock_asr._enabled = False
+        mock_get.return_value = mock_asr
+        with pytest.raises(HTTPException) as exc:
+            asyncio.run(asr_query(self._make_file()))
+        assert exc.value.status_code == 503
+
+    @patch("api.routes.get_asr_service")
+    def test_asr_query_no_service(self, mock_get):
+        mock_asr = MagicMock()
+        mock_asr._enabled = True
+        mock_get.return_value = mock_asr
+        set_service(None)
+        with pytest.raises(HTTPException) as exc:
+            asyncio.run(asr_query(self._make_file()))
+        assert exc.value.status_code == 500
+
+    @patch("api.routes.get_asr_service")
+    def test_asr_query_file_not_found(self, mock_get):
+        mock_asr = MagicMock()
+        mock_asr._enabled = True
+        mock_asr.transcribe.side_effect = FileNotFoundError("missing file")
+        mock_get.return_value = mock_asr
+        set_service(MagicMock())
+        with pytest.raises(HTTPException) as exc:
+            asyncio.run(asr_query(self._make_file()))
+        assert exc.value.status_code == 404
+
+    @patch("api.routes.get_asr_service")
+    def test_asr_query_runtime_error(self, mock_get):
+        mock_asr = MagicMock()
+        mock_asr._enabled = True
+        mock_asr.transcribe.side_effect = RuntimeError("model err")
+        mock_get.return_value = mock_asr
+        set_service(MagicMock())
+        with pytest.raises(HTTPException) as exc:
+            asyncio.run(asr_query(self._make_file()))
+        assert exc.value.status_code == 503
+
+    @patch("api.routes.get_asr_service")
+    def test_asr_query_generic_error(self, mock_get):
+        mock_asr = MagicMock()
+        mock_asr._enabled = True
+        mock_asr.transcribe.side_effect = ValueError("boom")
+        mock_get.return_value = mock_asr
+        set_service(MagicMock())
+        with pytest.raises(HTTPException) as exc:
+            asyncio.run(asr_query(self._make_file()))
+        assert exc.value.status_code == 500
+
+
+class TestRollbackPromptAPI:
+    def test_rollback_prompt_success(self):
+        with patch("api.routes.get_version_manager") as mock_vm:
+            mock_vm.return_value.rollback.return_value = {
+                "prompt_key": "judge", "version": 1, "status": "active",
+            }
+            req = PromptRollbackRequest(prompt_key="judge", target_version=1)
+            result = rollback_prompt(req)
+            assert result["prompt_key"] == "judge"
+            assert result["version"] == 1
+
+    def test_rollback_prompt_error(self):
+        with patch("api.routes.get_version_manager") as mock_vm:
+            mock_vm.return_value.rollback.return_value = {"error": "无可回滚版本"}
+            req = PromptRollbackRequest(prompt_key="judge", target_version=1)
+            with pytest.raises(HTTPException) as exc:
+                rollback_prompt(req)
+            assert exc.value.status_code == 400

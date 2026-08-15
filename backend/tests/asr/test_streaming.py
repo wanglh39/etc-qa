@@ -10,6 +10,11 @@ from asr.streaming import (
     get_streaming_service,
 )
 
+import sys
+
+if "funasr" not in sys.modules:
+    sys.modules["funasr"] = MagicMock()
+
 
 class MockCallback(StreamingCallback):
     def __init__(self):
@@ -374,3 +379,363 @@ class TestStreamingASRServiceWarmup:
         svc._create_backend = MagicMock(return_value=mock_backend)
         svc.warmup()
         assert svc._backend is mock_backend
+
+
+class TestPseudoStreamingBackend:
+    @patch("asr.streaming.get_config")
+    def test_start(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend()
+        cb = MockCallback()
+        with patch.object(backend, "_load_model"):
+            backend._model = MagicMock()
+            backend.start(cb)
+        assert backend._callback is cb
+        assert backend._running is True
+        assert backend._audio_buffer == bytearray()
+        assert backend._silence_samples == 0
+
+    @patch("asr.streaming.get_config")
+    def test_send_audio_not_running(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend()
+        backend._running = False
+        backend.send_audio(b"\x00" * 100)
+
+    @patch("asr.streaming.get_config")
+    def test_send_audio_no_model(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend()
+        backend._running = True
+        backend._model = None
+        backend.send_audio(b"\x00" * 100)
+
+
+class TestPseudoStreamingLoadModel:
+    @patch("asr.streaming.get_config")
+    def test_load_model_success(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend()
+        with patch("funasr.AutoModel") as mock_auto:
+            mock_auto.return_value = MagicMock()
+            backend._load_model()
+        assert backend._model is not None
+
+    @patch("asr.streaming.get_config")
+    def test_load_model_already_loaded(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend()
+        existing = MagicMock()
+        backend._model = existing
+        backend._load_model()
+        assert backend._model is existing
+
+    @patch("asr.streaming.get_config")
+    def test_load_model_import_error(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend()
+        import builtins
+        real_import = builtins.__import__
+        def mock_import(name, *args, **kwargs):
+            if name == "funasr":
+                raise ImportError("not installed")
+            return real_import(name, *args, **kwargs)
+        with patch("builtins.__import__", side_effect=mock_import):
+            try:
+                backend._load_model()
+                assert False
+            except RuntimeError as e:
+                assert "funasr" in str(e)
+
+
+class TestPseudoStreamingProcessUtterance:
+    @patch("asr.streaming.get_config")
+    def test_empty_buffer_returns(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend()
+        backend._audio_buffer = bytearray()
+        backend._process_utterance()
+        assert backend._audio_buffer == bytearray()
+
+    @patch("asr.streaming.get_config")
+    def test_buffer_too_short_clears(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend(min_utterance_ms=300, sample_rate=16000)
+        backend._audio_buffer = bytearray(b"\x00" * 100)
+        backend._silence_samples = 500
+        backend._process_utterance()
+        assert backend._audio_buffer == bytearray()
+        assert backend._silence_samples == 0
+
+    @patch("asr.streaming.get_config")
+    def test_with_result_calls_on_final(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend(min_utterance_ms=300, sample_rate=16000)
+        backend._audio_buffer = bytearray(b"\x00" * 9600)
+        backend._model = MagicMock()
+        backend._model.generate.return_value = [{"text": "ETC扣费"}]
+        cb = MockCallback()
+        backend._callback = cb
+        with patch("soundfile.write"):
+            backend._process_utterance()
+        assert len(cb.finals) == 1
+        assert cb.finals[0]["text"] == "ETC扣费"
+        assert cb.finals[0]["is_end"] is False
+        assert backend._audio_buffer == bytearray()
+        assert backend._silence_samples == 0
+
+    @patch("asr.streaming.get_config")
+    def test_with_hotwords(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend(
+            min_utterance_ms=300, sample_rate=16000, hotwords=["ETC", "OBU"]
+        )
+        backend._audio_buffer = bytearray(b"\x00" * 9600)
+        backend._model = MagicMock()
+        backend._model.generate.return_value = []
+        with patch("soundfile.write"):
+            backend._process_utterance()
+        kwargs = backend._model.generate.call_args[1]
+        assert "hotword" in kwargs
+        assert kwargs["hotword"] == "ETC OBU"
+
+    @patch("asr.streaming.get_config")
+    def test_exception_calls_on_error(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend(min_utterance_ms=300, sample_rate=16000)
+        backend._audio_buffer = bytearray(b"\x00" * 9600)
+        backend._model = MagicMock()
+        backend._model.generate.side_effect = RuntimeError("model error")
+        cb = MockCallback()
+        backend._callback = cb
+        with patch("soundfile.write"):
+            backend._process_utterance()
+        assert len(cb.errors) == 1
+        assert "model error" in cb.errors[0]
+        assert backend._audio_buffer == bytearray()
+
+    @patch("asr.streaming.get_config")
+    def test_empty_result_text_no_callback(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend(min_utterance_ms=300, sample_rate=16000)
+        backend._audio_buffer = bytearray(b"\x00" * 9600)
+        backend._model = MagicMock()
+        backend._model.generate.return_value = [{"text": ""}]
+        cb = MockCallback()
+        backend._callback = cb
+        with patch("soundfile.write"):
+            backend._process_utterance()
+        assert len(cb.finals) == 0
+
+    @patch("asr.streaming.get_config")
+    def test_no_callback_no_error(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend(min_utterance_ms=300, sample_rate=16000)
+        backend._audio_buffer = bytearray(b"\x00" * 9600)
+        backend._model = MagicMock()
+        backend._model.generate.return_value = [{"text": "ETC扣费"}]
+        backend._callback = None
+        with patch("soundfile.write"):
+            backend._process_utterance()
+        assert backend._audio_buffer == bytearray()
+
+
+class TestPseudoStreamingSendAudio:
+    @patch("asr.streaming.get_config")
+    def test_silence_triggers_process_utterance(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend(
+            sample_rate=16000,
+            silence_threshold=0.01,
+            silence_duration_ms=100,
+            min_utterance_ms=300,
+        )
+        backend._model = MagicMock()
+        backend._running = True
+        with patch.object(backend, "_process_utterance") as mock_proc:
+            backend.send_audio(b"\x00" * 3200)
+            assert mock_proc.call_count == 1
+
+    @patch("asr.streaming.get_config")
+    def test_no_silence_does_not_trigger(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend(
+            sample_rate=16000,
+            silence_threshold=0.01,
+            silence_duration_ms=500,
+        )
+        backend._model = MagicMock()
+        backend._running = True
+        chunk = b"\x00\x40" * 1600
+        with patch.object(backend, "_process_utterance") as mock_proc:
+            backend.send_audio(chunk)
+            assert mock_proc.call_count == 0
+        assert backend._silence_samples == 0
+
+    @patch("asr.streaming.get_config")
+    def test_partial_silence_accumulates(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend(
+            sample_rate=16000,
+            silence_threshold=0.01,
+            silence_duration_ms=100,
+        )
+        backend._model = MagicMock()
+        backend._running = True
+        with patch.object(backend, "_process_utterance") as mock_proc:
+            backend.send_audio(b"\x00" * 1600)
+            assert mock_proc.call_count == 0
+            assert backend._silence_samples == 800
+            backend.send_audio(b"\x00" * 1600)
+            assert mock_proc.call_count == 1
+
+    @patch("asr.streaming.get_config")
+    def test_not_running_returns(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend()
+        backend._running = False
+        backend._model = MagicMock()
+        backend.send_audio(b"\x00" * 100)
+
+    @patch("asr.streaming.get_config")
+    def test_no_model_returns(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend()
+        backend._running = True
+        backend._model = None
+        backend.send_audio(b"\x00" * 100)
+
+
+class TestPseudoStreamingStop:
+    @patch("asr.streaming.get_config")
+    def test_stop_with_buffer_processes(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend()
+        backend._running = True
+        backend._audio_buffer = bytearray(b"\x00" * 100)
+        cb = MockCallback()
+        backend._callback = cb
+        with patch.object(backend, "_process_utterance") as mock_proc:
+            backend.stop()
+        assert backend._running is False
+        assert mock_proc.call_count == 1
+        assert len(cb.finals) == 1
+        assert cb.finals[-1]["is_end"] is True
+
+    @patch("asr.streaming.get_config")
+    def test_stop_empty_buffer_skips_process(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend()
+        backend._running = True
+        backend._audio_buffer = bytearray()
+        cb = MockCallback()
+        backend._callback = cb
+        with patch.object(backend, "_process_utterance") as mock_proc:
+            backend.stop()
+        assert backend._running is False
+        assert mock_proc.call_count == 0
+        assert len(cb.finals) == 1
+        assert cb.finals[-1]["is_end"] is True
+
+    @patch("asr.streaming.get_config")
+    def test_stop_no_callback(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {}}
+        backend = PseudoStreamingBackend()
+        backend._running = True
+        backend._audio_buffer = bytearray()
+        backend._callback = None
+        backend.stop()
+        assert backend._running is False
+
+
+class TestStreamingASRServiceCreateBackend:
+    @patch("asr.streaming.get_config")
+    def test_create_backend_alicloud(self, mock_cfg):
+        mock_cfg.return_value = {
+            "asr": {
+                "streaming": {
+                    "enabled": True,
+                    "mode": "alicloud",
+                    "alicloud": {
+                        "app_key": "test_key",
+                        "access_key_id": "test_id",
+                        "access_key_secret": "test_secret",
+                        "sample_rate": 8000,
+                        "format": "opu",
+                    },
+                }
+            }
+        }
+        svc = StreamingASRService()
+        backend = svc._create_backend()
+        assert isinstance(backend, AliCloudStreamingBackend)
+        assert backend._app_key == "test_key"
+        assert backend._access_key_id == "test_id"
+        assert backend._access_key_secret == "test_secret"
+        assert backend._sample_rate == 8000
+        assert backend._format == "opu"
+
+    @patch("asr.streaming.get_config")
+    def test_create_backend_pseudo(self, mock_cfg):
+        mock_cfg.return_value = {
+            "asr": {
+                "streaming": {
+                    "enabled": True,
+                    "mode": "pseudo",
+                    "silence_threshold": 0.02,
+                    "silence_duration_ms": 600,
+                    "min_utterance_ms": 400,
+                },
+                "model": "FunAudioLLM/Fun-ASR-Nano-2512",
+                "device": "cuda",
+                "sample_rate": 16000,
+            }
+        }
+        svc = StreamingASRService()
+        backend = svc._create_backend()
+        assert isinstance(backend, PseudoStreamingBackend)
+        assert backend._model_name == "FunAudioLLM/Fun-ASR-Nano-2512"
+        assert backend._device == "cuda"
+        assert backend._sample_rate == 16000
+        assert backend._silence_threshold == 0.02
+        assert backend._silence_duration_ms == 600
+        assert backend._min_utterance_ms == 400
+
+    @patch("asr.streaming.get_config")
+    def test_create_backend_local(self, mock_cfg):
+        mock_cfg.return_value = {
+            "asr": {
+                "streaming": {
+                    "enabled": True,
+                    "mode": "local",
+                    "local_model": "paraformer-zh-streaming",
+                    "device": "cpu",
+                    "hotwords": ["ETC"],
+                }
+            }
+        }
+        svc = StreamingASRService()
+        backend = svc._create_backend()
+        assert isinstance(backend, LocalStreamingBackend)
+        assert backend._model_name == "paraformer-zh-streaming"
+        assert backend._device == "cpu"
+        assert backend._hotwords == ["ETC"]
+
+
+class TestStreamingASRServiceSendAudio:
+    @patch("asr.streaming.get_config")
+    def test_send_audio_with_backend(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {"streaming": {"enabled": True, "mode": "local"}}}
+        svc = StreamingASRService()
+        mock_backend = MagicMock()
+        svc._backend = mock_backend
+        chunk = b"\x00" * 100
+        svc.send_audio(chunk)
+        mock_backend.send_audio.assert_called_once_with(chunk)
+
+    @patch("asr.streaming.get_config")
+    def test_send_audio_no_backend(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {"streaming": {"enabled": True, "mode": "local"}}}
+        svc = StreamingASRService()
+        svc._backend = None
+        svc.send_audio(b"\x00" * 100)

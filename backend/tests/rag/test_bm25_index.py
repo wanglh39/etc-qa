@@ -37,3 +37,11 @@ class TestBM25Index:
         result = bm25.search("办理ETC", top_k=2)
         ids = [qid for qid, _ in result]
         assert 2 in ids
+
+    def test_add_document_appends_and_rebuilds(self):
+        bm25 = BM25Index()
+        bm25.build([{"id": 1, "question": "ETC扣费异常如何处理"}])
+        bm25.add_document(2, "如何办理ETC新办")
+        result = bm25.search("办理ETC新办", top_k=2)
+        ids = [qid for qid, _ in result]
+        assert 2 in ids

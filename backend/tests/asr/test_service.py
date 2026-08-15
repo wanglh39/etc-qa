@@ -1,4 +1,5 @@
 import builtins
+import importlib
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -458,3 +459,137 @@ class TestASRServiceDiarize:
 
         h = svc.health()
         assert h.diarize_enabled is True
+
+
+class TestTraceableImportFallback:
+    def test_traceable_fallback_when_langsmith_missing(self):
+        original_langsmith = sys.modules.get("langsmith")
+        original_import = builtins.__import__
+
+        def blocking_import(name, *args, **kwargs):
+            if name == "langsmith":
+                raise ImportError("No module named 'langsmith'")
+            return original_import(name, *args, **kwargs)
+
+        try:
+            sys.modules.pop("langsmith", None)
+            with patch("builtins.__import__", side_effect=blocking_import):
+                importlib.reload(svc_module)
+            traceable = svc_module.traceable
+
+            @traceable(name="test", run_type="chain")
+            def func(x):
+                return x
+            assert func(1) == 1
+
+            @traceable()
+            def func2(x):
+                return x * 2
+            assert func2(2) == 4
+        finally:
+            if original_langsmith is not None:
+                sys.modules["langsmith"] = original_langsmith
+            importlib.reload(svc_module)
+
+
+class TestGetHotwordStr:
+    @patch("asr.service.get_config")
+    def test_hotwords_as_list(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {"enabled": True, "hotwords": ["ETC", "OBU"]}}
+        svc = ASRService()
+        result = svc._get_hotword_str()
+        assert result == "ETC OBU"
+
+    @patch("asr.service.get_config")
+    def test_hotwords_from_business_config_as_list(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {"enabled": True, "hotwords": []}}
+        svc = ASRService()
+        with patch("asr.service.get_business_config", return_value=["ETC", "OBU"]):
+            result = svc._get_hotword_str()
+        assert result == "ETC OBU"
+
+    @patch("asr.service.get_config")
+    def test_hotwords_as_string(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {"enabled": True, "hotwords": "ETC OBU"}}
+        svc = ASRService()
+        result = svc._get_hotword_str()
+        assert result == "ETC OBU"
+
+    @patch("asr.service.get_config")
+    def test_hotwords_empty_returns_none(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {"enabled": True, "hotwords": []}}
+        svc = ASRService()
+        with patch("asr.service.get_business_config", return_value=[]):
+            result = svc._get_hotword_str()
+        assert result is None
+
+    @patch("asr.service.get_config")
+    def test_hotwords_empty_string_returns_none(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {"enabled": True, "hotwords": ""}}
+        svc = ASRService()
+        result = svc._get_hotword_str()
+        assert result is None
+
+
+class TestLoadModelDoubleCheck:
+    @patch("asr.service.get_config")
+    def test_model_already_loaded_skips_lock(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {"enabled": True, "model": "test", "device": "cpu"}}
+        svc = ASRService()
+        existing_model = MagicMock()
+        svc._model = existing_model
+        mock_lock = MagicMock()
+        svc._lock = mock_lock
+        svc._load_model()
+        mock_lock.__enter__.assert_not_called()
+        assert svc._model is existing_model
+
+    @patch("asr.service.get_config")
+    def test_double_check_lock_fast_return(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {"enabled": True, "model": "test", "device": "cpu"}}
+        svc = ASRService()
+        svc._model = None
+        mock_lock = MagicMock()
+
+        def enter_set_model(*args, **kwargs):
+            svc._model = MagicMock()
+            return MagicMock()
+
+        mock_lock.__enter__.side_effect = enter_set_model
+        mock_lock.__exit__.return_value = False
+        svc._lock = mock_lock
+        svc._load_model()
+        assert svc._model is not None
+
+
+class TestLoadModelFunASR:
+    @patch("asr.service.get_config")
+    def test_load_model_funasr_success(self, mock_cfg):
+        mock_cfg.return_value = {"asr": {"enabled": True, "model": "test-model", "device": "cpu"}}
+        mock_automodel_cls = MagicMock()
+        mock_torch = MagicMock()
+        fake_funasr = MagicMock(AutoModel=mock_automodel_cls)
+        with patch.dict(sys.modules, {"funasr": fake_funasr, "torch": mock_torch}):
+            svc = ASRService()
+            svc._load_model()
+            mock_automodel_cls.assert_called_once_with(model="test-model", device="cpu")
+            mock_torch.set_num_threads.assert_called_once_with(1)
+            assert svc._model is not None
+
+    @patch("asr.service.get_config")
+    def test_load_model_funasr_finetuned_path(self, mock_cfg):
+        mock_cfg.return_value = {
+            "asr": {
+                "enabled": True,
+                "model": "base-model",
+                "finetuned_path": "/path/to/finetuned",
+                "device": "cpu",
+            }
+        }
+        mock_automodel_cls = MagicMock()
+        mock_torch = MagicMock()
+        fake_funasr = MagicMock(AutoModel=mock_automodel_cls)
+        with patch.dict(sys.modules, {"funasr": fake_funasr, "torch": mock_torch}):
+            svc = ASRService()
+            svc._load_model()
+            mock_automodel_cls.assert_called_once_with(model="/path/to/finetuned", device="cpu")

@@ -1,3 +1,5 @@
+import asyncio
+import sys
 import time
 from unittest.mock import MagicMock, patch
 
@@ -253,3 +255,52 @@ class TestSessionState:
         from enum import Enum
         assert isinstance(SessionState.IDLE, Enum)
         assert isinstance(SessionState.LISTENING, SessionState)
+
+
+class TestVADLoadModel:
+    def test_load_model_success(self):
+        detector = VADSilenceDetector(silence_threshold=2.0)
+        mock_model = MagicMock()
+        mock_get_speech_timestamps = MagicMock()
+        mock_utils = [mock_get_speech_timestamps, MagicMock()]
+        mock_torch = MagicMock()
+        mock_torch.hub.load.return_value = (mock_model, mock_utils)
+        with patch.dict(sys.modules, {"torch": mock_torch}):
+            asyncio.run(detector._load_model())
+        assert detector._model is mock_model
+        assert detector._get_speech_timestamps is mock_get_speech_timestamps
+
+    def test_load_model_failure(self):
+        detector = VADSilenceDetector(silence_threshold=2.0)
+        mock_torch = MagicMock()
+        mock_torch.hub.load.side_effect = RuntimeError("load failed")
+        with patch.dict(sys.modules, {"torch": mock_torch}):
+            asyncio.run(detector._load_model())
+        assert detector._model is None
+        assert detector._get_speech_timestamps is None
+
+    def test_load_model_import_error(self):
+        detector = VADSilenceDetector(silence_threshold=2.0)
+        original_import = __import__
+
+        def blocking_import(name, *args, **kwargs):
+            if name == "torch":
+                raise ImportError("No module named 'torch'")
+            return original_import(name, *args, **kwargs)
+
+        with patch("builtins.__import__", side_effect=blocking_import):
+            asyncio.run(detector._load_model())
+        assert detector._model is None
+
+    def test_load_model_already_loaded_skips(self):
+        detector = VADSilenceDetector(silence_threshold=2.0)
+        existing_model = MagicMock()
+        existing_get_speech = MagicMock()
+        detector._model = existing_model
+        detector._get_speech_timestamps = existing_get_speech
+        mock_torch = MagicMock()
+        with patch.dict(sys.modules, {"torch": mock_torch}):
+            asyncio.run(detector._load_model())
+        mock_torch.hub.load.assert_not_called()
+        assert detector._model is existing_model
+        assert detector._get_speech_timestamps is existing_get_speech

@@ -22,7 +22,7 @@ logger = get_logger("rag.service")
 
 
 class QAService:
-    _STANDARDIZE_CACHE_SIZE = 500
+    _STANDARDIZE_CACHE_SIZE = 2000
 
     def __init__(self, recall: RecallEngine, threshold: ThresholdJudge,
                  reranker: Reranker, mysql: MySQLClient):
@@ -67,13 +67,19 @@ class QAService:
         if raw_question in self._standardize_cache:
             return self._standardize_cache[raw_question]
 
-        try:
-            state = AgentState(raw_question=raw_question)
-            result = preprocess_agent.invoke(state.model_dump())
-            standardized = result.get("question", raw_question) or raw_question
-        except Exception as e:
-            logger.warning(f"LLM标准化失败，降级用原问题: {e}")
-            standardized = raw_question
+        llm_standardize_enabled = get_config().get("llm", {}).get("standardize_enabled", True)
+        if llm_standardize_enabled:
+            try:
+                state = AgentState(raw_question=raw_question)
+                result = preprocess_agent.invoke(state.model_dump())
+                standardized = result.get("question", raw_question) or raw_question
+            except Exception as e:
+                logger.warning(f"LLM标准化失败，降级用原问题: {e}")
+                standardized = raw_question
+        else:
+            from agent.processors.standardize_query import _rule_based_standardize
+            standardized = _rule_based_standardize(raw_question)
+            logger.info(f"规则标准化(跳过LLM): '{raw_question}' -> '{standardized}'")
 
         if len(self._standardize_cache) >= self._STANDARDIZE_CACHE_SIZE:
             oldest_key = next(iter(self._standardize_cache))

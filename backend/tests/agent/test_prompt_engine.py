@@ -287,6 +287,44 @@ class TestPromptEngineShadowAndEdgeCases:
         result = engine.render("empty_db_key", "fallback: {{enterprise_name}}")
         assert result == "fallback: ETC"
 
+    @patch("agent.prompt_engine.get_business_config")
+    @patch("agent.prompt_engine.MySQLClient")
+    def test_render_template_syntax_error_degrades(self, mock_mysql_cls, mock_cfg):
+        from jinja2 import TemplateSyntaxError
+
+        mock_cfg.side_effect = lambda key, default=None: "ETC" if key == "enterprise_name" else default
+        mock_mysql = MagicMock()
+        mock_mysql.get_prompt_template.return_value = ""
+        mock_mysql_cls.return_value = mock_mysql
+
+        engine = PromptEngine()
+        with patch.object(engine._env, "from_string", side_effect=TemplateSyntaxError("syntax error", 1)):
+            result = engine.render("bad_syntax_key", "fallback: {enterprise_name}", enterprise_name="ETC")
+        assert "ETC" in result
+
+    @patch("agent.prompt_engine.get_business_config")
+    @patch("agent.prompt_engine.MySQLClient")
+    def test_run_shadow_record_exception_logged(self, mock_mysql_cls, mock_cfg):
+        mock_cfg.side_effect = lambda key, default=None: {
+            "enterprise_name": "ETC",
+            "brand_keywords": ["ETC"],
+            "must_preserve_kws": [],
+            "forbidden_new_kws": [],
+        }.get(key, default)
+        mock_mysql = MagicMock()
+        mock_mysql.get_prompt_template.return_value = ""
+        mock_mysql_cls.return_value = mock_mysql
+
+        mock_vm = MagicMock()
+        mock_vm.get_shadow_template.return_value = "shadow: {{enterprise_name}}"
+
+        with patch("prompt.version_manager.get_version_manager", return_value=mock_vm), \
+             patch("prompt.shadow_recorder.record_shadow", side_effect=Exception("record error")):
+            engine = PromptEngine()
+            engine.enable_shadow(True)
+            result = engine.render("shadow_record_err_key", "主模板: {{enterprise_name}}")
+            assert result == "主模板: ETC"
+
 
 class TestPromptEngineFileTemplate:
     def setup_method(self):
@@ -416,6 +454,21 @@ class TestPromptEngineFileTemplate:
             text = engine._load_file_template(key)
             assert text != "", f"{key}.j2应存在且非空"
             assert "{{enterprise_name}}" in text, f"{key}.j2应包含enterprise_name变量"
+
+    @patch("agent.prompt_engine.get_business_config")
+    @patch("agent.prompt_engine.MySQLClient")
+    def test_load_file_template_read_exception(self, mock_mysql_cls, mock_cfg):
+        from pathlib import Path
+
+        mock_cfg.side_effect = lambda key, default=None: "ETC" if key == "enterprise_name" else default
+        mock_mysql = MagicMock()
+        mock_mysql_cls.return_value = mock_mysql
+
+        engine = PromptEngine()
+        with patch.object(Path, "is_file", return_value=True), \
+             patch.object(Path, "read_text", side_effect=OSError("read error")):
+            text = engine._load_file_template("judge")
+        assert text == ""
 
 
 class TestGetPromptEngine:

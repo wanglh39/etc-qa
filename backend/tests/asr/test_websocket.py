@@ -1074,3 +1074,285 @@ class TestWSOnFinalCorrections:
         final_msgs = [m for m in ws.sent if m.get("type") == "final"]
         assert len(final_msgs) >= 1
         assert final_msgs[0]["text"] == "E T C扣费"
+
+
+class TestSetStateCreateTaskFailure:
+    def test_set_state_create_task_failure(self):
+        ws = MockWebSocket()
+        mock_loop = MagicMock()
+        mock_loop.create_task.side_effect = RuntimeError("create_task failed")
+        with patch("asyncio.get_event_loop", return_value=mock_loop):
+            with patch("asr.websocket.get_config", return_value=_make_cfg()):
+                with patch("asr.streaming.get_streaming_service") as mock_get:
+                    mock_svc = MagicMock()
+                    mock_svc.mode = "local"
+                    mock_get.return_value = mock_svc
+                    ws.receive_queue = [{"bytes": b"\x00" * 3200}, WebSocketDisconnect()]
+                    loop = _get_loop()
+                    try:
+                        loop.run_until_complete(asr_stream(ws))
+                    except Exception:
+                        pass
+                    _clean_pending(loop)
+        state_changes = [m for m in ws.sent if m.get("type") == "state_change"]
+        assert len(state_changes) == 0
+        ready_msgs = [m for m in ws.sent if m.get("type") == "ready"]
+        assert len(ready_msgs) == 1
+
+
+class TestOnPartialExceptBranch:
+    def test_on_partial_create_task_failure(self):
+        ws = MockWebSocket()
+        cfg = _make_cfg()
+        captured = {}
+        mock_loop = MagicMock()
+        mock_loop.create_task.side_effect = RuntimeError("create_task failed")
+
+        def start_stream(cb):
+            captured["cb"] = cb
+
+        def send_audio(data):
+            cb = captured.get("cb")
+            if cb:
+                cb.on_partial("你好")
+
+        with patch("asyncio.get_event_loop", return_value=mock_loop):
+            with patch("asr.websocket.get_config", return_value=cfg):
+                with patch("asr.streaming.get_streaming_service") as mock_get:
+                    mock_svc = MagicMock()
+                    mock_svc.mode = "local"
+                    mock_svc.start_stream = start_stream
+                    mock_svc.send_audio = send_audio
+                    mock_get.return_value = mock_svc
+                    ws.receive_queue = [{"bytes": b"\x00" * 3200}, WebSocketDisconnect()]
+                    loop = _get_loop()
+                    try:
+                        loop.run_until_complete(asr_stream(ws))
+                        loop.run_until_complete(asyncio.sleep(0.05))
+                    except Exception:
+                        pass
+                    _clean_pending(loop)
+        partials = [m for m in ws.sent if m.get("type") == "partial"]
+        assert len(partials) == 0
+
+
+class TestOnFinalExceptBranch:
+    def test_on_final_create_task_failure(self):
+        ws = MockWebSocket()
+        cfg = _make_cfg(auto_query=True)
+        captured = {}
+        mock_loop = MagicMock()
+        mock_loop.create_task.side_effect = RuntimeError("create_task failed")
+
+        def start_stream(cb):
+            captured["cb"] = cb
+
+        def send_audio(data):
+            cb = captured.get("cb")
+            if cb:
+                cb.on_final("ETC扣费查询")
+
+        with patch("asyncio.get_event_loop", return_value=mock_loop):
+            with patch("asr.websocket.get_config", return_value=cfg):
+                with patch("asr.streaming.get_streaming_service") as mock_get:
+                    with patch("asr.websocket._do_query", return_value={"answer": "测试"}):
+                        mock_svc = MagicMock()
+                        mock_svc.mode = "local"
+                        mock_svc.start_stream = start_stream
+                        mock_svc.send_audio = send_audio
+                        mock_get.return_value = mock_svc
+                        ws.receive_queue = [{"bytes": b"\x00" * 3200}, WebSocketDisconnect()]
+                        loop = _get_loop()
+                        try:
+                            loop.run_until_complete(asr_stream(ws))
+                            loop.run_until_complete(asyncio.sleep(0.05))
+                        except Exception:
+                            pass
+                        _clean_pending(loop)
+        finals = [m for m in ws.sent if m.get("type") == "final"]
+        assert len(finals) == 0
+
+
+class TestOnErrorExceptBranch:
+    def test_on_error_create_task_failure(self):
+        ws = MockWebSocket()
+        cfg = _make_cfg()
+        captured = {}
+        mock_loop = MagicMock()
+        mock_loop.create_task.side_effect = RuntimeError("create_task failed")
+
+        def start_stream(cb):
+            captured["cb"] = cb
+
+        def send_audio(data):
+            cb = captured.get("cb")
+            if cb:
+                cb.on_error("ASR错误")
+
+        with patch("asyncio.get_event_loop", return_value=mock_loop):
+            with patch("asr.websocket.get_config", return_value=cfg):
+                with patch("asr.streaming.get_streaming_service") as mock_get:
+                    mock_svc = MagicMock()
+                    mock_svc.mode = "local"
+                    mock_svc.start_stream = start_stream
+                    mock_svc.send_audio = send_audio
+                    mock_get.return_value = mock_svc
+                    ws.receive_queue = [{"bytes": b"\x00" * 3200}, WebSocketDisconnect()]
+                    loop = _get_loop()
+                    try:
+                        loop.run_until_complete(asr_stream(ws))
+                        loop.run_until_complete(asyncio.sleep(0.05))
+                    except Exception:
+                        pass
+                    _clean_pending(loop)
+        errors = [m for m in ws.sent if m.get("type") == "error"]
+        assert len(errors) == 0
+
+
+class TestVADTriggerDiarize:
+    def _run_vad_diarize(self, segments_return, speaker_map_label=None,
+                        diarize_default_customer="SPEAKER_00"):
+        ws = MockWebSocket()
+        cfg = _make_cfg(
+            vad_trigger_enabled=True,
+            vad_silence_threshold=0.05,
+            diarize_trigger_enabled=True,
+            diarize_audio_window=5.0,
+            diarize_default_customer=diarize_default_customer,
+            accumulate_mode="accumulate",
+            accumulate_max_sentences=5,
+            auto_query=True,
+        )
+        captured = {}
+
+        def start_stream(cb):
+            captured["cb"] = cb
+
+        call_count = [0]
+
+        def send_audio(data):
+            call_count[0] += 1
+            cb = captured.get("cb")
+            if cb and call_count[0] == 1:
+                cb.on_final("ETC扣费查询")
+
+        receive_queue = []
+        if speaker_map_label is not None:
+            receive_queue.append(
+                {"text": json.dumps({"type": "label_speaker", "speaker": speaker_map_label[0], "label": speaker_map_label[1]})}
+            )
+        receive_queue.extend([
+            {"bytes": b"\x00" * 3200},
+            {"bytes": b"\x00" * 3200},
+            WebSocketDisconnect(),
+        ])
+
+        with patch("asr.websocket.get_config", return_value=cfg):
+            with patch("asr.streaming.get_streaming_service") as mock_get:
+                with patch("asr.websocket._do_query", return_value={"answer": "测试"}):
+                    with patch("asr.websocket.VADSilenceDetector._load_model", return_value=None):
+                        with patch("asr.websocket.VADSilenceDetector.feed_audio"):
+                            with patch("asr.websocket.VADSilenceDetector.check_silence", return_value=True):
+                                with patch("asr.websocket._do_diarize_segment", return_value=segments_return):
+                                    mock_svc = MagicMock()
+                                    mock_svc.mode = "local"
+                                    mock_svc.start_stream = start_stream
+                                    mock_svc.send_audio = send_audio
+                                    mock_get.return_value = mock_svc
+                                    ws.receive_queue = receive_queue
+                                    loop = _get_loop()
+                                    try:
+                                        loop.run_until_complete(asr_stream(ws))
+                                        loop.run_until_complete(asyncio.sleep(0.1))
+                                    except Exception:
+                                        pass
+                                    _clean_pending(loop)
+        return ws
+
+    def test_vad_diarize_customer_speaker_no_map(self):
+        ws = self._run_vad_diarize(
+            segments_return=[{"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00"}],
+        )
+        types = [m["type"] for m in ws.sent]
+        assert "query_result" in types
+
+    def test_vad_diarize_agent_speaker_no_map_filtered(self):
+        ws = self._run_vad_diarize(
+            segments_return=[{"start": 0.0, "end": 1.0, "speaker": "SPEAKER_01"}],
+            diarize_default_customer="SPEAKER_00",
+        )
+        types = [m["type"] for m in ws.sent]
+        filtered_msgs = [m for m in ws.sent if m.get("type") == "filtered"]
+        assert any(m.get("reason") == "speaker_mismatch" for m in filtered_msgs)
+
+    def test_vad_diarize_customer_speaker_with_map(self):
+        ws = self._run_vad_diarize(
+            segments_return=[{"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00"}],
+            speaker_map_label=("SPEAKER_00", "customer"),
+        )
+        types = [m["type"] for m in ws.sent]
+        assert "query_result" in types
+
+    def test_vad_diarize_agent_speaker_with_map_filtered(self):
+        ws = self._run_vad_diarize(
+            segments_return=[{"start": 0.0, "end": 1.0, "speaker": "SPEAKER_01"}],
+            speaker_map_label=("SPEAKER_00", "customer"),
+        )
+        filtered_msgs = [m for m in ws.sent if m.get("type") == "filtered"]
+        assert any(m.get("reason") == "speaker_mismatch" for m in filtered_msgs)
+
+
+class TestWSErrorHandlerSendFailure:
+    def test_error_handler_send_json_failure(self):
+        class FailingSendWebSocket(MockWebSocket):
+            async def send_json(self, data):
+                raise RuntimeError("send failed")
+
+        ws = FailingSendWebSocket()
+        cfg = _make_cfg()
+        with patch("asr.websocket.get_config", return_value=cfg):
+            with patch("asr.streaming.get_streaming_service") as mock_get:
+                mock_svc = MagicMock()
+                mock_svc.mode = "local"
+                mock_svc.start_stream = MagicMock(side_effect=RuntimeError("启动失败"))
+                mock_get.return_value = mock_svc
+                ws.receive_queue = [WebSocketDisconnect()]
+                loop = _get_loop()
+                try:
+                    loop.run_until_complete(asr_stream(ws))
+                except Exception:
+                    pass
+                    _clean_pending(loop)
+        assert ws.accepted is True
+
+
+class TestSendQueryResultCacheHitFailure:
+    def test_cache_hit_send_failure_passes(self):
+        mock_ws = AsyncMock()
+        mock_ws.send_json.side_effect = RuntimeError("send failed")
+        cache = QueryCache(similarity_threshold=0.8, min_interval=5.0)
+        cache.record("ETC扣费", {"confidence": "high"})
+        with patch("asr.websocket._do_query", return_value=None):
+            asyncio.run(_send_query_result(mock_ws, "ETC扣费", cache=cache))
+        assert mock_ws.send_json.call_count == 1
+
+
+class TestSendQueryResultSendFailure:
+    def test_send_result_failure_passes(self):
+        mock_ws = AsyncMock()
+        mock_ws.send_json.side_effect = RuntimeError("send failed")
+        with patch("asr.websocket._do_query", return_value={"answer": "测试"}):
+            asyncio.run(_send_query_result(mock_ws, "ETC扣费"))
+        assert mock_ws.send_json.call_count == 1
+
+    def test_send_result_failure_with_on_sent(self):
+        mock_ws = AsyncMock()
+        mock_ws.send_json.side_effect = RuntimeError("send failed")
+        callback_called = []
+
+        def on_sent():
+            callback_called.append(True)
+
+        with patch("asr.websocket._do_query", return_value={"answer": "测试"}):
+            asyncio.run(_send_query_result(mock_ws, "ETC扣费", on_sent=on_sent))
+        assert callback_called == [True]

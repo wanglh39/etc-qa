@@ -134,6 +134,22 @@ class TestHydeRewriteStructuredDegradation:
             result = hyde_rewrite(state)
         assert len(result["hyde_questions"]) == 3
 
+    def test_structured_llm_success_returns_questions_slice(self):
+        mock_result = HydeRewriteOutput(questions=["问法1", "问法2", "问法3", "问法4"])
+        mock_structured_llm = MagicMock()
+        mock_structured_llm.invoke.return_value = mock_result
+        mock_pe = MagicMock()
+        mock_pe.return_value.render.return_value = "prompt"
+        with patch("agent.processors.hyde_rewrite.get_config", return_value=_mock_config()), \
+             patch("agent.processors.hyde_rewrite.get_business_config", side_effect=_mock_business_config()), \
+             patch("agent.processors.hyde_rewrite._judge_need_rewrite", return_value=(True, "需要改写")), \
+             patch("agent.processors.hyde_rewrite.get_structured_llm", return_value=(mock_structured_llm, True)), \
+             patch("agent.processors.hyde_rewrite.get_prompt_engine", return_value=mock_pe):
+            state = _make_state(question="ETC扣费异常", answer="核实退款")
+            result = hyde_rewrite(state)
+        assert result["hyde_questions"] == ["问法1", "问法2", "问法3"]
+        assert result["current_step"] == "hyde_rewrite"
+
 
 class TestHydeRewriteMainBranches:
     def test_empty_question_skips(self):

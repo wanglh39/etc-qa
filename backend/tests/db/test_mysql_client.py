@@ -556,6 +556,36 @@ class TestMySQLClientNewBranches:
         assert result["total"] == 2
 
     @patch("db.mysql_client.pymysql.connect")
+    def test_get_work_order_list_with_dept(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = {"cnt": 4}
+        mock_cursor.fetchall.return_value = [
+            {"id": 2, "external_id": "WO2", "raw_data": "data", "status": "submitted",
+             "dept": "账单组", "created_at": "2024-01-02", "updated_at": "2024-01-02"},
+        ]
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        result = client.get_work_order_list(dept="账单组")
+        assert result["total"] == 4
+        assert len(result["items"]) == 1
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_work_order_list_with_status_and_dept(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = {"cnt": 1}
+        mock_cursor.fetchall.return_value = []
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        result = client.get_work_order_list(status="submitted", dept="账单组")
+        assert result["total"] == 1
+
+    @patch("db.mysql_client.pymysql.connect")
     def test_get_category_tree_empty_l2(self, mock_connect):
         mock_cursor = MagicMock()
         mock_cursor.fetchall.return_value = [
@@ -792,3 +822,623 @@ class TestMySQLClientNewBranches:
         client = MySQLClient()
         result = client.get_category_tree()
         assert result["售后"] == ["账单"]
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_conn_close_exception(self, mock_connect):
+        dead_conn = MagicMock()
+        dead_conn.ping.side_effect = Exception("connection lost")
+        dead_conn.close.side_effect = Exception("close error")
+        new_conn = MagicMock()
+        mock_connect.return_value = new_conn
+
+        client = MySQLClient()
+        client._local.conn = dead_conn
+        conn = client._get_conn()
+        assert conn is new_conn
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_by_ids_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("query error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.get_by_ids([1])
+            assert False
+        except Exception:
+            pass
+        assert client._local.conn is None
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_work_orders_by_status_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("query error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.get_work_orders_by_status("submitted")
+            assert False
+        except Exception:
+            pass
+        assert client._local.conn is None
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_delete_work_orders_by_status_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("delete error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.delete_work_orders_by_status(["processed"])
+            assert False
+        except Exception:
+            pass
+        mock_conn.rollback.assert_called_once()
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_qa_list_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("query error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.get_qa_list()
+            assert False
+        except Exception:
+            pass
+        assert client._local.conn is None
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_search_qa_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("search error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.search_qa(keyword="ETC")
+            assert False
+        except Exception:
+            pass
+        assert client._local.conn is None
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_count_qa_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("count error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.count_qa()
+            assert False
+        except Exception:
+            pass
+        assert client._local.conn is None
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_count_work_orders_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("count error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.count_work_orders()
+            assert False
+        except Exception:
+            pass
+        assert client._local.conn is None
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_category_stats_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("stats error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.get_category_stats()
+            assert False
+        except Exception:
+            pass
+        assert client._local.conn is None
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_qa_detail_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("detail error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.get_qa_detail(1)
+            assert False
+        except Exception:
+            pass
+        assert client._local.conn is None
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_work_order_list_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("list error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.get_work_order_list()
+            assert False
+        except Exception:
+            pass
+        assert client._local.conn is None
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_category_tree_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("tree error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.get_category_tree()
+            assert False
+        except Exception:
+            pass
+        assert client._local.conn is None
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_insert_work_order_full(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.lastrowid = 77
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        wo_id = client.insert_work_order_full("EXT-002", "账单组", "工单内容")
+        assert wo_id == 77
+        mock_conn.commit.assert_called_once()
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_insert_work_order_full_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("insert full error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.insert_work_order_full("EXT-002", "账单组", "工单内容")
+            assert False
+        except Exception:
+            pass
+        mock_conn.rollback.assert_called_once()
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_work_order_detail(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = {
+            "id": 1, "external_id": "WO1", "raw_data": "工单内容", "status": "submitted",
+            "dept": "账单组", "created_at": "2024-01-01", "updated_at": "2024-01-01",
+        }
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        result = client.get_work_order_detail(1)
+        assert result["id"] == 1
+        assert result["external_id"] == "WO1"
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_work_order_detail_not_found(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = None
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        result = client.get_work_order_detail(999)
+        assert result is None
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_work_order_detail_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("detail error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.get_work_order_detail(1)
+            assert False
+        except Exception:
+            pass
+        assert client._local.conn is None
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_update_work_order_reply(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        client.update_work_order_reply(1, "回复内容", "processed")
+        mock_conn.commit.assert_called_once()
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_update_work_order_reply_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("reply error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.update_work_order_reply(1, "回复", "processed")
+            assert False
+        except Exception:
+            pass
+        mock_conn.rollback.assert_called_once()
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_insert_audit_log(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        client.insert_audit_log(1, "问题", "答案", "match", "operator01")
+        mock_conn.commit.assert_called_once()
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_insert_audit_log_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("audit insert error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.insert_audit_log(1, "问题", "答案", "match", "operator01")
+            assert False
+        except Exception:
+            pass
+        mock_conn.rollback.assert_called_once()
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_audit_history(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = {"cnt": 5}
+        mock_cursor.fetchall.return_value = [
+            {"id": 1, "qa_id": 10, "question": "问题", "answer": "答案",
+             "result": "match", "operator": "op01", "created_at": "2024-01-01"},
+        ]
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        result = client.get_audit_history(page=1, page_size=20)
+        assert result["total"] == 5
+        assert len(result["items"]) == 1
+        assert result["page"] == 1
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_audit_history_with_pagination(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = {"cnt": 30}
+        mock_cursor.fetchall.return_value = []
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        result = client.get_audit_history(page=2, page_size=10)
+        assert result["total"] == 30
+        assert result["page"] == 2
+        assert result["page_size"] == 10
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_audit_history_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("audit history error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.get_audit_history()
+            assert False
+        except Exception:
+            pass
+        assert client._local.conn is None
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_list_categories(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.return_value = [
+            {"id": 1, "label": "账单问题", "parent_id": None, "description": "账单类"},
+            {"id": 2, "label": "ETC扣费", "parent_id": 1, "description": "ETC扣费子类"},
+        ]
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        result = client.list_categories()
+        assert len(result) == 2
+        assert result[0]["label"] == "账单问题"
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_list_categories_empty(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.return_value = []
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        result = client.list_categories()
+        assert result == []
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_list_categories_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("list categories error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.list_categories()
+            assert False
+        except Exception:
+            pass
+        assert client._local.conn is None
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_create_category(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.lastrowid = 100
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        cat_id = client.create_category("新分类", None, "描述")
+        assert cat_id == 100
+        mock_conn.commit.assert_called_once()
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_create_category_with_parent(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.lastrowid = 101
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        cat_id = client.create_category("子分类", 1, "子类描述")
+        assert cat_id == 101
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_create_category_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("create category error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.create_category("新分类", None, "描述")
+            assert False
+        except Exception:
+            pass
+        mock_conn.rollback.assert_called_once()
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_update_category(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.rowcount = 1
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        result = client.update_category(1, "更新标签", None, "更新描述")
+        assert result is True
+        mock_conn.commit.assert_called_once()
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_update_category_not_found(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.rowcount = 0
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        result = client.update_category(999, "标签", None, "描述")
+        assert result is False
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_update_category_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("update category error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.update_category(1, "标签", None, "描述")
+            assert False
+        except Exception:
+            pass
+        mock_conn.rollback.assert_called_once()
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_delete_category(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.rowcount = 1
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        result = client.delete_category(1)
+        assert result is True
+        mock_conn.commit.assert_called_once()
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_delete_category_not_found(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.rowcount = 0
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        result = client.delete_category(999)
+        assert result is False
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_delete_category_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("delete category error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.delete_category(1)
+            assert False
+        except Exception:
+            pass
+        mock_conn.rollback.assert_called_once()
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_trend(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.return_value = [
+            {"d": "2024-01-01", "cnt": 5},
+            {"d": "2024-01-02", "cnt": 8},
+        ]
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        result = client.get_trend(days=7)
+        assert len(result["items"]) == 2
+        assert result["items"][0]["cnt"] == 5
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_trend_empty(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.return_value = []
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        result = client.get_trend(days=30)
+        assert result["items"] == []
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_trend_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("trend error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.get_trend()
+            assert False
+        except Exception:
+            pass
+        assert client._local.conn is None
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_qa_trend(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.return_value = [
+            {"d": "2024-01-01", "cnt": 3},
+            {"d": "2024-01-02", "cnt": 6},
+        ]
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        result = client.get_qa_trend(days=7)
+        assert len(result["items"]) == 2
+        assert result["items"][1]["cnt"] == 6
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_qa_trend_empty(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.return_value = []
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        result = client.get_qa_trend(days=14)
+        assert result["items"] == []
+
+    @patch("db.mysql_client.pymysql.connect")
+    def test_get_qa_trend_exception(self, mock_connect):
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = Exception("qa trend error")
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        client = MySQLClient()
+        try:
+            client.get_qa_trend()
+            assert False
+        except Exception:
+            pass
+        assert client._local.conn is None

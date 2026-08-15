@@ -205,6 +205,25 @@ class TestPlainLLMBranches:
             result = standardize_query(state)
         assert "ETC" in result["question"]
 
+    def test_plain_llm_confidence_too_low_rejects_rewrite(self):
+        state = _make_state(raw_question="我想问一下ETC注销的流程是什么呢")
+        state.question = "我想问一下ETC注销的流程是什么呢"
+        mock_structured_llm = MagicMock()
+        mock_structured_llm.invoke.return_value = "not StandardizeOutput"
+        mock_llm = MagicMock()
+        llm_json = json.dumps({"need_rewrite": True, "rewritten": "ETC注销流程是什么", "rewrite_confidence": 0.2})
+        mock_llm.invoke.return_value = MagicMock(content=llm_json)
+        mock_pe = MagicMock()
+        mock_pe.return_value.render.return_value = "prompt"
+        with patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)), \
+             patch("agent.processors.standardize_query.get_llm", return_value=mock_llm), \
+             patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe), \
+             patch("agent.processors.standardize_query.get_config", return_value=_mock_config()), \
+             patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()):
+            result = standardize_query(state)
+        assert result["question"] == "ETC注销的流程是什么呢"
+        assert result["rewrite_confidence"] == 0.2
+
 
 class TestIsAlreadyStandard:
     def test_length_out_of_range(self):

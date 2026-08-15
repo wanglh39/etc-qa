@@ -33,12 +33,14 @@ def create_service():
     torch.set_num_threads(1)
 
     print("加载Embedding模型...")
-    embed_model = SentenceTransformer(cfg["models"]["embed"]["path"])
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"  使用设备: {device}")
+    embed_model = SentenceTransformer(cfg["models"]["embed"]["path"], device=device)
 
     print("加载Reranker模型...")
     rerank_model = None
     if cfg["rerank"]["enabled"]:
-        rerank_model = CrossEncoder(cfg["models"]["rerank"]["path"])
+        rerank_model = CrossEncoder(cfg["models"]["rerank"]["path"], device=device)
 
     print("初始化数据库连接...")
     mysql = MySQLClient()
@@ -66,6 +68,13 @@ def create_service():
     routes.set_service(service)
     routes.set_work_order_client(wo_client)
     routes.set_mysql_client(mysql)
+
+    print("预热RAG检索...")
+    try:
+        service.query("ETC扣费异常怎么处理")
+        print("  RAG预热完成")
+    except Exception as e:
+        print(f"  RAG预热失败(不影响启动，首次查询时会重试): {e}")
 
     print("预热流式ASR模型...")
     from asr.streaming import get_streaming_service

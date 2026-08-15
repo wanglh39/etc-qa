@@ -514,6 +514,51 @@ class TestProcessStructuredResult:
         assert out["category_l1"] == "售后业务"
         assert out["category_l2"] == "售后业务类"
 
+    def test_category_l2_not_in_tree_takes_first(self):
+        _mock_tree()
+        result = StructureIngestOutput(
+            question="ETC问题",
+            answer="答案",
+            category_l1="售后业务",
+            category_l2="不存在的L2",
+            internal_process="",
+            feedback_dept="",
+            category_confidence=0.9,
+        )
+        state = _make_state(raw_question="ETC问题")
+        mock_cfg = MagicMock()
+        mock_cfg.get.return_value = {"auto": 0.8, "review": 0.5, "highlight": 0.3}
+        with patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg), \
+             patch("agent.processors.structure_ingest.get_business_config", side_effect=lambda k, d=None: {
+                 "forbidden_new_kws": [], "must_preserve_kws": [], "standardize": {},
+             }.get(k, d)):
+            out = _process_structured_result(result, "ETC问题", "答案", MOCK_TREE, "售后业务", "售后业务类", state)
+        assert out["category_l2"] == "售后业务类"
+
+    def test_hallucination_kws_rollback_to_original(self):
+        _mock_tree()
+        result = StructureIngestOutput(
+            question="ETC实名认证怎么办理",
+            answer="答案",
+            category_l1="售后业务",
+            category_l2="账单类",
+            internal_process="",
+            feedback_dept="",
+            category_confidence=0.9,
+        )
+        state = _make_state(raw_question="ETC怎么办理")
+        state.question = "ETC怎么办理"
+        mock_cfg = MagicMock()
+        mock_cfg.get.return_value = {"auto": 0.8, "review": 0.5, "highlight": 0.3}
+        with patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg), \
+             patch("agent.processors.structure_ingest.get_business_config", side_effect=lambda k, d=None: {
+                 "forbidden_new_kws": ["实名认证"], "must_preserve_kws": [], "standardize": {},
+             }.get(k, d)):
+            out = _process_structured_result(result, "ETC怎么办理", "答案", MOCK_TREE, "售后业务", "售后业务类", state)
+        assert out["question"] == "ETC怎么办理"
+        assert out["needs_review"] is True
+        assert any("改写引入不存在" in h for h in out["review_highlights"])
+
 
 class TestProcessParsedResult:
     def setup_method(self):
@@ -558,6 +603,28 @@ class TestProcessParsedResult:
              }.get(k, d)):
             out = _process_parsed_result(parsed, "ETC问题", "答案", MOCK_TREE, "售后业务", "售后业务类", state)
         assert out["category_confidence"] == 0.3
+
+    def test_l1_not_in_tree_falls_back_to_default(self):
+        _mock_tree()
+        parsed = {
+            "question": "ETC问题",
+            "answer": "答案",
+            "category_l1": "不存在的L1",
+            "category_l2": "任意",
+            "internal_process": "",
+            "feedback_dept": "",
+            "category_confidence": 0.9,
+        }
+        state = _make_state(raw_question="ETC问题")
+        mock_cfg = MagicMock()
+        mock_cfg.get.return_value = {"auto": 0.8, "review": 0.5, "highlight": 0.3}
+        with patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg), \
+             patch("agent.processors.structure_ingest.get_business_config", side_effect=lambda k, d=None: {
+                 "forbidden_new_kws": [], "must_preserve_kws": [], "standardize": {},
+             }.get(k, d)):
+            out = _process_parsed_result(parsed, "ETC问题", "答案", MOCK_TREE, "售后业务", "售后业务类", state)
+        assert out["category_l1"] == "售后业务"
+        assert out["category_l2"] == "售后业务类"
 
 
 class TestParseJson:

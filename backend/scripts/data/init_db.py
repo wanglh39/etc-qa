@@ -177,6 +177,62 @@ def init_mysql():
     """)
     conn.commit()
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS roles (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            role_key VARCHAR(50) NOT NULL UNIQUE,
+            role_name VARCHAR(100) NOT NULL,
+            description VARCHAR(500),
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(50) NOT NULL UNIQUE,
+            password_hash VARCHAR(255) NOT NULL,
+            role VARCHAR(50) NOT NULL DEFAULT 'service',
+            dept VARCHAR(50) DEFAULT '',
+            status VARCHAR(20) NOT NULL DEFAULT 'active',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """)
+    conn.commit()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS operation_log (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            operator VARCHAR(50) NOT NULL,
+            action VARCHAR(50) NOT NULL,
+            target_type VARCHAR(50),
+            target_id INT,
+            detail VARCHAR(500),
+            ip VARCHAR(50),
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """)
+    conn.commit()
+
+    from utils.password import hash_password
+    default_pwd_hash = hash_password("123456")
+    cursor.executemany(
+        "INSERT IGNORE INTO roles (role_key, role_name, description) VALUES (%s, %s, %s)",
+        [("superadmin", "超级管理员", "系统全权限，含账号/角色管理"),
+         ("admin", "业务管理员", "业务管理+内容管理，不含账号/角色"),
+         ("service", "客服", "一线客服处理"),
+         ("dept", "部门处理员", "业务部门工单处理")]
+    )
+    cursor.executemany(
+        "INSERT IGNORE INTO users (username, password_hash, role, dept, status) VALUES (%s, %s, %s, %s, %s)",
+        [("superadmin", default_pwd_hash, "superadmin", "", "active"),
+         ("admin", default_pwd_hash, "admin", "", "active"),
+         ("service", default_pwd_hash, "service", "", "active"),
+         ("dept", default_pwd_hash, "dept", "aftersale", "active")]
+    )
+    conn.commit()
+
     cursor.close()
     conn.close()
     print(f"  数据库 {MYSQL_DB} 和表 qa_pairs 创建完成")

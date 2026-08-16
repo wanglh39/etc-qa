@@ -13,28 +13,43 @@
         :default-active="route.path"
         class="side-menu"
       >
-        <!-- 管理员菜单 -->
-        <template v-if="currentRole === 'admin'">
-          <el-menu-item index="/workbench/admin/auditList">
-            <el-icon><Setting /></el-icon>
-            <span>待审核列表</span>
-          </el-menu-item>
-          <el-menu-item index="/workbench/admin/auditHistory">
-            <el-icon><Timer /></el-icon>
-            <span>审核历史</span>
-          </el-menu-item>
+        <!-- 超级管理员菜单 -->
+        <template v-if="currentRole === 'superadmin'">
           <el-menu-item index="/workbench/admin/dashboard">
             <el-icon><DataLine /></el-icon>
             <span>数据看板</span>
           </el-menu-item>
-          <el-menu-item index="/workbench/admin/config">
-            <el-icon><Tools /></el-icon>
-            <span>配置管理</span>
-          </el-menu-item>
-          <el-menu-item index="/workbench/admin/knowledge">
-            <el-icon><Document /></el-icon>
-            <span>知识库管理</span>
-          </el-menu-item>
+          <el-sub-menu index="system">
+            <template #title>
+              <el-icon><UserFilled /></el-icon>
+              <span>系统管理</span>
+            </template>
+            <el-menu-item index="/workbench/admin/account">账号管理</el-menu-item>
+            <el-menu-item index="/workbench/admin/role">角色管理</el-menu-item>
+            <el-menu-item index="/workbench/admin/operationLog">操作日志</el-menu-item>
+
+          </el-sub-menu>
+        </template>
+
+        <!-- 业务管理员菜单 -->
+        <template v-else-if="currentRole === 'admin'">
+          <el-sub-menu index="business">
+            <template #title>
+              <el-icon><Setting /></el-icon>
+              <span>业务管理</span>
+            </template>
+            <el-menu-item index="/workbench/admin/auditList">待审核列表</el-menu-item>
+            <el-menu-item index="/workbench/admin/auditHistory">审核历史</el-menu-item>
+            <el-menu-item index="/workbench/admin/dashboard">数据看板</el-menu-item>
+          </el-sub-menu>
+          <el-sub-menu index="content">
+            <template #title>
+              <el-icon><Document /></el-icon>
+              <span>内容管理</span>
+            </template>
+            <el-menu-item index="/workbench/admin/knowledge">知识库管理</el-menu-item>
+            <el-menu-item index="/workbench/admin/config">配置管理</el-menu-item>
+          </el-sub-menu>
         </template>
 
         <!-- 客服菜单 -->
@@ -107,7 +122,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Setting, Timer, DataLine, Ticket, Monitor, Money, ArrowLeft, Tools, Service, Document } from '@element-plus/icons-vue'
+import { Setting, DataLine, Ticket, Monitor, Money, ArrowLeft, Service, Document, UserFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
@@ -125,7 +140,8 @@ watch(() => localStorage.getItem('userRole'), (newVal) => {
 // 根据角色返回对应的中文名称
 const roleText = computed(() => {
   switch (currentRole.value) {
-    case 'admin': return '管理员'
+    case 'admin': return '业务管理员'
+    case 'superadmin': return '超级管理员'
     case 'service': return '客服'
     case 'dept': return '部门处理员'
     default: return '未知账号'
@@ -134,7 +150,7 @@ const roleText = computed(() => {
 
 // 判断是否显示返回按钮
 const showBackBtn = computed(() => {
-  const homePaths = ['/service', '/workbench/admin/auditList', '/dept/handle/aftersale', '/dept/handle/ops', '/dept/handle/finance']
+  const homePaths = ['/service', '/workbench/admin/auditList', '/workbench/admin/dashboard', '/dept/handle/aftersale', '/dept/handle/ops', '/dept/handle/finance']
   return !homePaths.includes(route.path)
 })
 

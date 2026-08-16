@@ -32,6 +32,17 @@ class RecallEngine:
         self.bm25_weight = cfg.get("bm25_weight", 0.3)
         self.query_prefix = get_config()["models"]["query_prefix"]
 
+    def update_config(self):
+        cfg = get_config()["recall"]
+        self.vector_top_k = cfg["vector_top_k"]
+        self.bm25_top_k = cfg["bm25_top_k"]
+        self.merge_method = cfg["merge_method"]
+        self.rrf_k = cfg["rrf_k"]
+        self.vector_weight = cfg.get("vector_weight", 0.7)
+        self.bm25_weight = cfg.get("bm25_weight", 0.3)
+        self.query_prefix = get_config()["models"]["query_prefix"]
+        logger.info(f"RecallEngine配置已热更新: top_k=({self.vector_top_k},{self.bm25_top_k}) weight=({self.vector_weight},{self.bm25_weight})")
+
     def encode_query(self, query_text: str):
         return self.embed_model.encode(
             [self.query_prefix + query_text], normalize_embeddings=True

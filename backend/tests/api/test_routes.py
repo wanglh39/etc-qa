@@ -14,18 +14,27 @@ from api.routes import (
     asr_query,
     audit_history,
     create_category,
+    create_role,
+    create_user,
     create_work_order,
     delete_category,
+    delete_role,
+    delete_user,
     get_categories,
     get_work_order,
+    list_roles,
+    list_users,
     query_qa,
     reply_work_order,
+    reset_password,
     rollback_prompt,
     set_mysql_client,
     set_service,
     stats_trend,
     update_category,
     update_qa_status,
+    update_role,
+    update_user,
 )
 from asr.models import ASRResponse
 from models.schemas import (
@@ -35,7 +44,12 @@ from models.schemas import (
     PromptRollbackRequest,
     QASearchRequest,
     QueryRequest,
+    ResetPasswordRequest,
+    RoleCreateRequest,
+    RoleUpdateRequest,
     UpdateStatusRequest,
+    UserCreateRequest,
+    UserUpdateRequest,
     WorkOrderCreateRequest,
     WorkOrderReplyRequest,
 )
@@ -771,3 +785,173 @@ class TestRollbackPromptAPI:
             with pytest.raises(HTTPException) as exc:
                 rollback_prompt(req)
             assert exc.value.status_code == 400
+
+
+class TestUserAPI:
+    MOCK_SUPER = {"sub": "superadmin", "role": "superadmin"}
+
+    def test_list_users(self):
+        mock_mysql = MagicMock()
+        mock_mysql.list_users.return_value = {
+            "items": [{"id": 1, "username": "admin", "role": "admin", "dept": "", "status": "active",
+                        "created_at": "2024-01-01", "updated_at": "2024-01-01"}],
+            "total": 1, "page": 1, "page_size": 20,
+        }
+        set_mysql_client(mock_mysql)
+        result = list_users(page=1, page_size=20)
+        assert result.total == 1
+        assert result.items[0].username == "admin"
+
+    def test_list_users_no_service(self):
+        set_mysql_client(None)
+        with pytest.raises(HTTPException) as exc:
+            list_users()
+        assert exc.value.status_code == 500
+
+    def test_create_user_success(self):
+        mock_mysql = MagicMock()
+        mock_mysql.get_user_by_username.return_value = None
+        mock_mysql.list_roles.return_value = [{"role_key": "admin"}, {"role_key": "service"}]
+        mock_mysql.create_user.return_value = 10
+        set_mysql_client(mock_mysql)
+        with patch("api.routes.hash_password", return_value="hashed"):
+            req = UserCreateRequest(username="newuser", password="pw123456", role="admin")
+            result = create_user(req, self.MOCK_SUPER)
+        assert result["user_id"] == 10
+
+    def test_create_user_duplicate(self):
+        mock_mysql = MagicMock()
+        mock_mysql.get_user_by_username.return_value = {"id": 1}
+        set_mysql_client(mock_mysql)
+        req = UserCreateRequest(username="admin", password="pw123456", role="admin")
+        with pytest.raises(HTTPException) as exc:
+            create_user(req, self.MOCK_SUPER)
+        assert exc.value.status_code == 409
+
+    def test_create_user_invalid_role(self):
+        mock_mysql = MagicMock()
+        mock_mysql.get_user_by_username.return_value = None
+        mock_mysql.list_roles.return_value = [{"role_key": "admin"}]
+        set_mysql_client(mock_mysql)
+        req = UserCreateRequest(username="x", password="pw123456", role="superadmin")
+        with pytest.raises(HTTPException) as exc:
+            create_user(req, self.MOCK_SUPER)
+        assert exc.value.status_code == 400
+
+    def test_update_user_success(self):
+        mock_mysql = MagicMock()
+        mock_mysql.update_user.return_value = True
+        set_mysql_client(mock_mysql)
+        req = UserUpdateRequest(role="service", status="disabled")
+        result = update_user(1, req, self.MOCK_SUPER)
+        assert result["user_id"] == 1
+
+    def test_update_user_not_found(self):
+        mock_mysql = MagicMock()
+        mock_mysql.update_user.return_value = False
+        set_mysql_client(mock_mysql)
+        req = UserUpdateRequest(role="service")
+        with pytest.raises(HTTPException) as exc:
+            update_user(99, req, self.MOCK_SUPER)
+        assert exc.value.status_code == 404
+
+    def test_reset_password_success(self):
+        mock_mysql = MagicMock()
+        mock_mysql.reset_password.return_value = True
+        set_mysql_client(mock_mysql)
+        with patch("api.routes.hash_password", return_value="hashed"):
+            req = ResetPasswordRequest(user_id=1, new_password="newpw123")
+            result = reset_password(1, req, self.MOCK_SUPER)
+        assert result["user_id"] == 1
+
+    def test_reset_password_id_mismatch(self):
+        mock_mysql = MagicMock()
+        set_mysql_client(mock_mysql)
+        req = ResetPasswordRequest(user_id=2, new_password="newpw123")
+        with pytest.raises(HTTPException) as exc:
+            reset_password(1, req, self.MOCK_SUPER)
+        assert exc.value.status_code == 400
+
+    def test_delete_user_success(self):
+        mock_mysql = MagicMock()
+        mock_mysql.delete_user.return_value = True
+        set_mysql_client(mock_mysql)
+        result = delete_user(1, self.MOCK_SUPER)
+        assert result["user_id"] == 1
+
+    def test_delete_user_not_found(self):
+        mock_mysql = MagicMock()
+        mock_mysql.delete_user.return_value = False
+        set_mysql_client(mock_mysql)
+        with pytest.raises(HTTPException) as exc:
+            delete_user(99, self.MOCK_SUPER)
+        assert exc.value.status_code == 404
+
+
+class TestRoleAPI:
+    MOCK_SUPER = {"sub": "superadmin", "role": "superadmin"}
+
+    def test_list_roles(self):
+        mock_mysql = MagicMock()
+        mock_mysql.list_roles.return_value = [
+            {"id": 1, "role_key": "admin", "role_name": "管理员", "description": "全权限", "created_at": "2024-01-01"},
+        ]
+        set_mysql_client(mock_mysql)
+        result = list_roles()
+        assert len(result) == 1
+        assert result[0].role_key == "admin"
+
+    def test_list_roles_no_service(self):
+        set_mysql_client(None)
+        with pytest.raises(HTTPException) as exc:
+            list_roles()
+        assert exc.value.status_code == 500
+
+    def test_create_role_success(self):
+        mock_mysql = MagicMock()
+        mock_mysql.create_role.return_value = 5
+        set_mysql_client(mock_mysql)
+        req = RoleCreateRequest(role_key="viewer", role_name="只读用户")
+        result = create_role(req, self.MOCK_SUPER)
+        assert result["role_id"] == 5
+
+    def test_create_role_duplicate(self):
+        mock_mysql = MagicMock()
+        mock_mysql.create_role.side_effect = Exception("Duplicate entry")
+        set_mysql_client(mock_mysql)
+        req = RoleCreateRequest(role_key="admin", role_name="管理员")
+        with pytest.raises(HTTPException) as exc:
+            create_role(req, self.MOCK_SUPER)
+        assert exc.value.status_code == 409
+
+    def test_update_role_success(self):
+        mock_mysql = MagicMock()
+        mock_mysql.update_role.return_value = True
+        set_mysql_client(mock_mysql)
+        req = RoleUpdateRequest(role_name="超级管理员")
+        result = update_role(1, req, self.MOCK_SUPER)
+        assert result["role_id"] == 1
+
+    def test_update_role_not_found(self):
+        mock_mysql = MagicMock()
+        mock_mysql.update_role.return_value = False
+        set_mysql_client(mock_mysql)
+        req = RoleUpdateRequest(role_name="x")
+        with pytest.raises(HTTPException) as exc:
+            update_role(99, req, self.MOCK_SUPER)
+        assert exc.value.status_code == 404
+
+    def test_delete_role_success(self):
+        mock_mysql = MagicMock()
+        mock_mysql.delete_role.return_value = True
+        set_mysql_client(mock_mysql)
+        result = delete_role(1, self.MOCK_SUPER)
+        assert result["role_id"] == 1
+
+    def test_delete_role_not_found(self):
+        mock_mysql = MagicMock()
+        mock_mysql.delete_role.return_value = False
+        set_mysql_client(mock_mysql)
+        with pytest.raises(HTTPException) as exc:
+            delete_role(99, self.MOCK_SUPER)
+        assert exc.value.status_code == 404

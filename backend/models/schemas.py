@@ -236,6 +236,24 @@ class AuditLogListResponse(BaseModel):
     page_size: int
 
 
+class OperationLogItem(BaseModel):
+    id: int
+    operator: str = ""
+    action: str = ""
+    target_type: str = ""
+    target_id: int | None = None
+    detail: str = ""
+    ip: str = ""
+    created_at: str | None = None
+
+
+class OperationLogListResponse(BaseModel):
+    items: list[OperationLogItem]
+    total: int
+    page: int
+    page_size: int
+
+
 class CategoryCreateRequest(BaseModel):
     label: str = Field(..., max_length=50)
     parent_id: int | None = None
@@ -266,3 +284,58 @@ class ASRQueryResponse(BaseModel):
     confidence: str = ""
     candidates: list[CandidateResult] = []
     total_candidates: int = 0
+
+
+class UserListItem(BaseModel):
+    id: int
+    username: str
+    role: str
+    dept: str = ""
+    status: str = "active"
+    created_at: str | None = None
+    updated_at: str | None = None
+
+
+class UserListResponse(BaseModel):
+    items: list[UserListItem]
+    total: int
+    page: int
+    page_size: int
+
+
+class UserCreateRequest(BaseModel):
+    username: str = Field(..., max_length=50)
+    password: str = Field(..., min_length=6, max_length=128)
+    role: str = Field(..., max_length=50)
+    dept: str = Field("", max_length=50)
+    status: str = Field("active", max_length=20)
+
+
+class UserUpdateRequest(BaseModel):
+    role: str | None = Field(None, max_length=50)
+    dept: str | None = Field(None, max_length=50)
+    status: str | None = Field(None, max_length=20)
+
+
+class ResetPasswordRequest(BaseModel):
+    user_id: int
+    new_password: str = Field(..., min_length=6, max_length=128)
+
+
+class RoleItem(BaseModel):
+    id: int
+    role_key: str
+    role_name: str
+    description: str = ""
+    created_at: str | None = None
+
+
+class RoleCreateRequest(BaseModel):
+    role_key: str = Field(..., max_length=50)
+    role_name: str = Field(..., max_length=100)
+    description: str = Field("", max_length=500)
+
+
+class RoleUpdateRequest(BaseModel):
+    role_name: str | None = Field(None, max_length=100)
+    description: str | None = Field(None, max_length=500)

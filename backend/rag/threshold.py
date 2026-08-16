@@ -23,6 +23,23 @@ class ThresholdJudge:
         self.mid_count = disp["mid_confidence"]
         self.low_count = disp["low_confidence"]
 
+    def update_config(self):
+        cfg = get_config()["threshold"]
+        self.mode = cfg.get("mode", "absolute")
+        self.high = cfg.get("high", 0.8)
+        self.low = cfg.get("low", 0.5)
+        self.min = cfg.get("min", 0.2)
+        self.gap_high = cfg.get("gap_high", 0.15)
+        self.gap_mid = cfg.get("gap_mid", 0.08)
+        self.gap_low = cfg.get("gap_low", 0.03)
+        self.floor_high = cfg.get("floor_high", 0.5)
+        self.floor_mid = cfg.get("floor_mid", 0.3)
+        self.floor_low = cfg.get("floor_low", 0.15)
+        disp = get_config()["display"]
+        self.high_count = disp["high_confidence"]
+        self.mid_count = disp["mid_confidence"]
+        self.low_count = disp["low_confidence"]
+
     def judge(self, candidates: list[tuple]) -> tuple[str, int]:
         if not candidates:
             return "none", self.low_count

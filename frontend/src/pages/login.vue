@@ -79,7 +79,9 @@ const handleLogin = async () => {
     ElMessage.success('登录成功')
 
     setTimeout(() => {
-      if (res.role === 'admin') {
+      if (res.role === 'superadmin') {
+        router.push('/workbench/admin/dashboard')
+      } else if (res.role === 'admin') {
         router.push('/workbench/admin/auditList')
       } else if (res.role === 'service') {
         router.push('/service')

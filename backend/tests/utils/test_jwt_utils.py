@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
 import time
+from unittest.mock import MagicMock, patch
 
 import jwt
 import pytest
 
-from utils.jwt_utils import ALGORITHM, SECRET_KEY, authenticate, create_token, verify_token
+from utils.jwt_utils import ALGORITHM, SECRET_KEY, authenticate, create_token, set_mysql_client, verify_token
 
 
 class TestCreateToken:
@@ -69,6 +70,10 @@ class TestVerifyToken:
 
 
 class TestAuthenticate:
+    def test_superadmin_default_password_success(self):
+        result = authenticate("superadmin", "123456")
+        assert result == {"username": "superadmin", "role": "superadmin", "dept": ""}
+
     def test_admin_default_password_success(self):
         result = authenticate("admin", "123456")
         assert result == {"username": "admin", "role": "admin", "dept": ""}
@@ -84,3 +89,54 @@ class TestAuthenticate:
     def test_dept_user_success(self):
         result = authenticate("dept", "123456")
         assert result == {"username": "dept", "role": "dept", "dept": "aftersale"}
+
+
+class TestAuthenticateDB:
+    def setup_method(self):
+        set_mysql_client(None)
+
+    def teardown_method(self):
+        set_mysql_client(None)
+
+    def test_db_active_user_returns_from_db(self):
+        mock_db = MagicMock()
+        mock_db.get_user_by_username.return_value = {
+            "username": "admin", "password_hash": "123456", "role": "admin", "dept": "ops", "status": "active"
+        }
+        set_mysql_client(mock_db)
+        with patch("utils.jwt_utils.verify_password", return_value=True):
+            result = authenticate("admin", "123456")
+        assert result == {"username": "admin", "role": "admin", "dept": "ops"}
+
+    def test_db_disabled_user_falls_back_to_hardcoded(self):
+        mock_db = MagicMock()
+        mock_db.get_user_by_username.return_value = {
+            "username": "admin", "password_hash": "xxx", "role": "admin", "dept": "", "status": "disabled"
+        }
+        set_mysql_client(mock_db)
+        result = authenticate("admin", "123456")
+        assert result == {"username": "admin", "role": "admin", "dept": ""}
+
+    def test_db_user_not_found_falls_back_to_hardcoded(self):
+        mock_db = MagicMock()
+        mock_db.get_user_by_username.return_value = None
+        set_mysql_client(mock_db)
+        result = authenticate("admin", "123456")
+        assert result == {"username": "admin", "role": "admin", "dept": ""}
+
+    def test_db_exception_falls_back_to_hardcoded(self):
+        mock_db = MagicMock()
+        mock_db.get_user_by_username.side_effect = Exception("DB down")
+        set_mysql_client(mock_db)
+        result = authenticate("admin", "123456")
+        assert result == {"username": "admin", "role": "admin", "dept": ""}
+
+    def test_db_password_mismatch_falls_back_to_hardcoded(self):
+        mock_db = MagicMock()
+        mock_db.get_user_by_username.return_value = {
+            "username": "admin", "password_hash": "wronghash", "role": "admin", "dept": "", "status": "active"
+        }
+        set_mysql_client(mock_db)
+        with patch("utils.jwt_utils.verify_password", side_effect=[False, True]):
+            result = authenticate("admin", "123456")
+        assert result == {"username": "admin", "role": "admin", "dept": ""}

@@ -16,6 +16,7 @@ from rag.reranker import Reranker
 from rag.service import QAService
 from rag.threshold import ThresholdJudge
 from utils.config import load_config, validate_config
+from utils.jwt_utils import set_mysql_client
 from utils.logger import get_logger
 
 logger = get_logger("app")
@@ -94,6 +95,7 @@ def create_service():
     routes.set_service(service)
     routes.set_work_order_client(wo_client)
     routes.set_mysql_client(mysql)
+    set_mysql_client(mysql)
 
     asr_enabled = cfg.get("asr", {}).get("enabled", False)
     if asr_enabled:

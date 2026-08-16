@@ -640,3 +640,237 @@ class MySQLClient:
             conn.rollback()
             self._reset_conn()
             raise
+
+    def list_users(self, page: int = 1, page_size: int = 20,
+                   role: str | None = None, status: str | None = None) -> dict:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            where_parts, params = [], []
+            if role:
+                where_parts.append("role = %s")
+                params.append(role)
+            if status:
+                where_parts.append("status = %s")
+                params.append(status)
+            where = (" WHERE " + " AND ".join(where_parts)) if where_parts else ""
+            cursor.execute(f"SELECT COUNT(*) as cnt FROM users{where}", params)
+            total = cursor.fetchone()["cnt"]
+            offset = (page - 1) * page_size
+            cursor.execute(
+                f"SELECT id, username, role, dept, status, created_at, updated_at "
+                f"FROM users{where} ORDER BY id ASC LIMIT %s OFFSET %s",
+                params + [page_size, offset],
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            return {"items": rows, "total": total, "page": page, "page_size": page_size}
+        except Exception:
+            self._reset_conn()
+            raise
+
+    def get_user_by_username(self, username: str) -> dict | None:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            cursor.execute(
+                "SELECT id, username, password_hash, role, dept, status FROM users WHERE username = %s",
+                (username,),
+            )
+            row = cursor.fetchone()
+            cursor.close()
+            return row
+        except Exception:
+            self._reset_conn()
+            raise
+
+    def create_user(self, username: str, password_hash: str, role: str,
+                    dept: str = "", status: str = "active") -> int:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO users (username, password_hash, role, dept, status) "
+                "VALUES (%s, %s, %s, %s, %s)",
+                (username, password_hash, role, dept, status),
+            )
+            conn.commit()
+            user_id = cursor.lastrowid
+            cursor.close()
+            return user_id
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def update_user(self, user_id: int, role: str | None = None,
+                    dept: str | None = None, status: str | None = None) -> bool:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            sets, params = [], []
+            if role is not None:
+                sets.append("role = %s")
+                params.append(role)
+            if dept is not None:
+                sets.append("dept = %s")
+                params.append(dept)
+            if status is not None:
+                sets.append("status = %s")
+                params.append(status)
+            if not sets:
+                cursor.close()
+                return False
+            params.append(user_id)
+            cursor.execute(f"UPDATE users SET {', '.join(sets)} WHERE id = %s", params)
+            conn.commit()
+            ok = cursor.rowcount > 0
+            cursor.close()
+            return ok
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def reset_password(self, user_id: int, password_hash: str) -> bool:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE users SET password_hash = %s WHERE id = %s", (password_hash, user_id))
+            conn.commit()
+            ok = cursor.rowcount > 0
+            cursor.close()
+            return ok
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def delete_user(self, user_id: int) -> bool:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+            conn.commit()
+            ok = cursor.rowcount > 0
+            cursor.close()
+            return ok
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def list_roles(self) -> list[dict]:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            cursor.execute("SELECT id, role_key, role_name, description, created_at FROM roles ORDER BY id ASC")
+            rows = cursor.fetchall()
+            cursor.close()
+            return rows
+        except Exception:
+            self._reset_conn()
+            raise
+
+    def create_role(self, role_key: str, role_name: str, description: str = "") -> int:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO roles (role_key, role_name, description) VALUES (%s, %s, %s)",
+                (role_key, role_name, description),
+            )
+            conn.commit()
+            role_id = cursor.lastrowid
+            cursor.close()
+            return role_id
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def update_role(self, role_id: int, role_name: str | None = None,
+                    description: str | None = None) -> bool:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            sets, params = [], []
+            if role_name is not None:
+                sets.append("role_name = %s")
+                params.append(role_name)
+            if description is not None:
+                sets.append("description = %s")
+                params.append(description)
+            if not sets:
+                cursor.close()
+                return False
+            params.append(role_id)
+            cursor.execute(f"UPDATE roles SET {', '.join(sets)} WHERE id = %s", params)
+            conn.commit()
+            ok = cursor.rowcount > 0
+            cursor.close()
+            return ok
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def delete_role(self, role_id: int) -> bool:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM roles WHERE id = %s", (role_id,))
+            conn.commit()
+            ok = cursor.rowcount > 0
+            cursor.close()
+            return ok
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def insert_operation_log(self, operator: str, action: str,
+                             target_type: str = "", target_id: int | None = None,
+                             detail: str = "", ip: str = ""):
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO operation_log (operator, action, target_type, target_id, detail, ip) "
+                "VALUES (%s, %s, %s, %s, %s, %s)",
+                (operator, action, target_type, target_id, detail, ip),
+            )
+            conn.commit()
+            cursor.close()
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+
+    def list_operation_logs(self, page: int = 1, page_size: int = 20,
+                            operator: str | None = None, action: str | None = None) -> dict:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            where = []
+            params = []
+            if operator:
+                where.append("operator = %s")
+                params.append(operator)
+            if action:
+                where.append("action = %s")
+                params.append(action)
+            where_clause = ("WHERE " + " AND ".join(where)) if where else ""
+            cursor.execute(f"SELECT COUNT(*) as cnt FROM operation_log {where_clause}", params)
+            total = cursor.fetchone()["cnt"]
+            offset = (page - 1) * page_size
+            cursor.execute(
+                f"SELECT id, operator, action, target_type, target_id, detail, ip, created_at "
+                f"FROM operation_log {where_clause} ORDER BY created_at DESC LIMIT %s OFFSET %s",
+                params + [page_size, offset],
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            return {"items": rows, "total": total, "page": page, "page_size": page_size}
+        except Exception:
+            self._reset_conn()
+            raise

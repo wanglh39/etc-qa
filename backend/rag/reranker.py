@@ -19,6 +19,11 @@ class Reranker:
         self.enabled = cfg["enabled"]
         self.top_k = cfg["top_k"]
 
+    def update_config(self):
+        cfg = get_config()["rerank"]
+        self.enabled = cfg["enabled"]
+        self.top_k = cfg["top_k"]
+
     @traceable(name="rerank", run_type="retriever")
     def rerank(self, query_text: str, candidates: list[tuple]) -> list[tuple]:
         if not self.enabled or not self.model or not candidates:

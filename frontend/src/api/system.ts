@@ -53,3 +53,118 @@ export function publishPrompt(promptKey: string, templateText: string, descripti
 export function rollbackPrompt(promptKey: string, targetVersion?: number) {
   return request.post('/prompts/rollback', { prompt_key: promptKey, target_version: targetVersion }).then((r) => r.data)
 }
+
+// ===== 账号管理 =====
+
+export interface UserListItem {
+  id: number
+  username: string
+  role: string
+  dept: string
+  status: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface UserListResponse {
+  items: UserListItem[]
+  total: number
+  page: number
+  page_size: number
+}
+
+export interface UserCreateRequest {
+  username: string
+  password: string
+  role: string
+  dept?: string
+  status?: string
+}
+
+export interface UserUpdateRequest {
+  role?: string
+  dept?: string
+  status?: string
+}
+
+export function getUserList(params: { page?: number; page_size?: number; role?: string; status?: string }) {
+  return request.get<UserListResponse>('/users', { params }).then((r) => r.data)
+}
+
+export function createUser(data: UserCreateRequest) {
+  return request.post('/users', data).then((r) => r.data)
+}
+
+export function updateUser(userId: number, data: UserUpdateRequest) {
+  return request.put(`/users/${userId}`, data).then((r) => r.data)
+}
+
+export function resetPassword(userId: number, newPassword: string) {
+  return request.put(`/users/${userId}/password`, { user_id: userId, new_password: newPassword }).then((r) => r.data)
+}
+
+export function deleteUser(userId: number) {
+  return request.delete(`/users/${userId}`).then((r) => r.data)
+}
+
+// ===== 角色管理 =====
+
+export interface RoleItem {
+  id: number
+  role_key: string
+  role_name: string
+  description: string
+  created_at?: string
+}
+
+export interface RoleCreateRequest {
+  role_key: string
+  role_name: string
+  description?: string
+}
+
+export interface RoleUpdateRequest {
+  role_name?: string
+  description?: string
+}
+
+export function getRoleList() {
+  return request.get<RoleItem[]>('/roles').then((r) => r.data)
+}
+
+export function createRole(data: RoleCreateRequest) {
+  return request.post('/roles', data).then((r) => r.data)
+}
+
+export function updateRole(roleId: number, data: RoleUpdateRequest) {
+  return request.put(`/roles/${roleId}`, data).then((r) => r.data)
+}
+
+export function deleteRole(roleId: number) {
+  return request.delete(`/roles/${roleId}`).then((r) => r.data)
+}
+
+// ===== 操作日志 =====
+
+export interface OperationLogItem {
+  id: number
+  operator: string
+  action: string
+  target_type: string
+  target_id: number | null
+  detail: string
+  ip: string
+  created_at: string
+}
+
+export interface OperationLogListResponse {
+  items: OperationLogItem[]
+  total: number
+  page: number
+  page_size: number
+}
+
+export function getOperationList(params: { page?: number; page_size?: number; operator?: string; action?: string }) {
+  return request.get<OperationLogListResponse>('/operations', { params }).then((r) => r.data)
+}
+

@@ -54,6 +54,25 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '知识库管理', roleAuth: 'admin' }
       },
       {
+        path: 'workbench/admin/account',
+        name: 'AccountManage',
+        component: () => import('@/pages/system/account.vue'),
+        meta: { title: '账号管理', roleAuth: 'superadmin' }
+      },
+      {
+        path: 'workbench/admin/role',
+        name: 'RoleManage',
+        component: () => import('@/pages/system/role.vue'),
+        meta: { title: '角色管理', roleAuth: 'superadmin' }
+      },
+      {
+        path: 'workbench/admin/operationLog',
+        name: 'OperationLog',
+        component: () => import('@/pages/system/operationLog.vue'),
+        meta: { title: '操作日志', roleAuth: 'superadmin' }
+      },
+      {
+
         path: 'workbench/admin/pendingDetail',
         name: 'PendingDetail',
         component: () => import('@/pages/audit/pendingDetail.vue'),
@@ -148,6 +167,8 @@ const router = createRouter({
 // 角色 → 默认首页
 function getDefaultPath(role: string): string {
   switch (role) {
+    case 'superadmin':
+      return '/workbench/admin/dashboard'
     case 'admin':
       return DEFAULT_ADMIN_PATH
     case 'service':
@@ -170,6 +191,22 @@ router.beforeEach((to, from, next) => {
     return next('/login')
   }
 
+  // token 过期检查：解码JWT看exp是否过期
+  if (to.path !== '/login' && token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      if (payload.exp && payload.exp * 1000 < Date.now()) {
+        localStorage.clear()
+        ElMessage.warning('登录已过期，请重新登录')
+        return next('/login')
+      }
+    } catch {
+      localStorage.clear()
+      ElMessage.warning('登录信息异常，请重新登录')
+      return next('/login')
+    }
+  }
+
   // 已登录但角色信息缺失（数据异常）→ 清理并重新登录
   if (token && !role) {
     localStorage.clear()
@@ -178,10 +215,13 @@ router.beforeEach((to, from, next) => {
   }
 
   // 角色权限校验：roleAuth 未设置或 'all' 表示所有已登录角色可访问
+  // superadmin 可访问所有 admin 页面
   const roleAuth = to.meta.roleAuth as string | undefined
   if (roleAuth && roleAuth !== 'all' && roleAuth !== role) {
-    ElMessage.warning('无权访问该页面')
-    return next(getDefaultPath(role!))
+    if (!(roleAuth === 'admin' && role === 'superadmin')) {
+      ElMessage.warning('无权访问该页面')
+      return next(getDefaultPath(role!))
+    }
   }
 
   next()

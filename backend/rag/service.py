@@ -35,6 +35,12 @@ class QAService:
         self._active_ids_ttl = get_config().get("cache", {}).get("active_ids_ttl", 30)
         self._standardize_cache = {}
 
+    def reload_config(self):
+        self.recall.update_config()
+        self.threshold.update_config()
+        self.reranker.update_config()
+        self._active_ids_cache = None
+
     def _get_active_ids(self) -> list[int]:
         now = time.time()
         if self._active_ids_cache is not None and (now - self._active_ids_ts) < self._active_ids_ttl:

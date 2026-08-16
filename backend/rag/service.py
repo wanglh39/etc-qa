@@ -47,6 +47,7 @@ class QAService:
         self._active_ids_cache = None
         self._active_ids_ts = 0
 
+    @traceable(name="add_knowledge", run_type="chain")
     def add_knowledge(self, req) -> int:
         qa_id = self.mysql.insert_qa(
             question=req.question,
@@ -56,12 +57,36 @@ class QAService:
             internal_process=req.internal_process or "",
             feedback_dept=req.feedback_dept or "",
         )
-        vector = self.recall.encode_query(req.question)
-        self.recall.milvus.insert(qa_id, vector, category_l1=req.category_l1 or "")
-        all_qa = self.mysql.get_all_questions()
-        self.recall.bm25.build(all_qa)
+        try:
+            vector = self.recall.encode_query(req.question)
+            self._insert_milvus_with_retry(qa_id, vector, req.category_l1 or "")
+        except Exception as e:
+            logger.error(f"向量库写入失败，回滚MySQL qa_id={qa_id}: {e}")
+            try:
+                self.mysql.delete_qa(qa_id)
+            except Exception as del_e:
+                logger.error(f"回滚MySQL失败! qa_id={qa_id} 残留数据需人工清理: {del_e}")
+            raise
+        try:
+            all_qa = self.mysql.get_all_questions()
+            self.recall.bm25.build(all_qa)
+        except Exception as e:
+            logger.warning(f"BM25索引重建失败(不影响已入库数据): {e}")
         self.invalidate_active_ids_cache()
         return qa_id
+
+    def _insert_milvus_with_retry(self, qa_id: int, vector: list[float],
+                                  category_l1: str, max_retries: int = 2):
+        for attempt in range(max_retries + 1):
+            try:
+                self.recall.milvus.insert(qa_id, vector, category_l1=category_l1)
+                return
+            except Exception as e:
+                if attempt < max_retries:
+                    logger.warning(f"Milvus写入失败(第{attempt+1}次)qa_id={qa_id}，重试: {e}")
+                    time.sleep(0.5 * (attempt + 1))
+                    continue
+                raise
 
     def _standardize(self, raw_question: str) -> str:
         if raw_question in self._standardize_cache:

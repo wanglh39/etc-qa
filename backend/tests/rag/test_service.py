@@ -1,3 +1,4 @@
+import pytest
 from unittest.mock import MagicMock, patch
 
 from rag.service import QAService
@@ -227,3 +228,43 @@ class TestQAServiceAddKnowledge:
         assert qa_id == 1
         call_kwargs = mock_mysql.insert_qa.call_args
         assert call_kwargs[1]["category_l1"] == ""
+
+    @patch("rag.service.time.sleep")
+    def test_add_knowledge_milvus_fail_rolls_back_mysql(self, mock_sleep):
+        svc, mock_recall, _, _, mock_mysql = _make_service()
+        mock_mysql.insert_qa.return_value = 42
+        mock_recall.encode_query.return_value = [0.1] * 1024
+        mock_recall.milvus.insert.side_effect = RuntimeError("milvus down")
+
+        req = MagicMock()
+        req.question = "q"
+        req.answer = "a"
+        req.category_l1 = "售后"
+        req.category_l2 = ""
+        req.internal_process = ""
+        req.feedback_dept = ""
+
+        with pytest.raises(RuntimeError):
+            svc.add_knowledge(req)
+        mock_mysql.delete_qa.assert_called_once_with(42)
+
+    @patch("rag.service.time.sleep")
+    def test_add_knowledge_milvus_retry_then_success(self, mock_sleep):
+        svc, mock_recall, _, _, mock_mysql = _make_service()
+        mock_mysql.insert_qa.return_value = 42
+        mock_recall.encode_query.return_value = [0.1] * 1024
+        mock_recall.milvus.insert.side_effect = [RuntimeError("transient"), None]
+        mock_mysql.get_all_questions.return_value = [{"id": 42, "question": "test"}]
+
+        req = MagicMock()
+        req.question = "q"
+        req.answer = "a"
+        req.category_l1 = "售后"
+        req.category_l2 = ""
+        req.internal_process = ""
+        req.feedback_dept = ""
+
+        qa_id = svc.add_knowledge(req)
+        assert qa_id == 42
+        assert mock_recall.milvus.insert.call_count == 2
+        mock_mysql.delete_qa.assert_not_called()

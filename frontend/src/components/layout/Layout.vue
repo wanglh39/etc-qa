@@ -31,6 +31,10 @@
             <el-icon><Tools /></el-icon>
             <span>配置管理</span>
           </el-menu-item>
+          <el-menu-item index="/workbench/admin/knowledge">
+            <el-icon><Document /></el-icon>
+            <span>知识库管理</span>
+          </el-menu-item>
         </template>
 
         <!-- 客服菜单 -->
@@ -103,7 +107,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Setting, Timer, DataLine, Ticket, Monitor, Money, ArrowLeft, Tools, Service } from '@element-plus/icons-vue'
+import { Setting, Timer, DataLine, Ticket, Monitor, Money, ArrowLeft, Tools, Service, Document } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()

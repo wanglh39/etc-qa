@@ -48,6 +48,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '配置管理', roleAuth: 'admin' }
       },
       {
+        path: 'workbench/admin/knowledge',
+        name: 'KnowledgeList',
+        component: () => import('@/pages/knowledge/list.vue'),
+        meta: { title: '知识库管理', roleAuth: 'admin' }
+      },
+      {
         path: 'workbench/admin/pendingDetail',
         name: 'PendingDetail',
         component: () => import('@/pages/audit/pendingDetail.vue'),

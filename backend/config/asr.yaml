@@ -1,5 +1,5 @@
 asr:
-  enabled: true
+  enabled: false
   model: "FunAudioLLM/Fun-ASR-Nano-2512"
   finetuned_path: ""
   max_duration_ms: 30000

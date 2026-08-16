@@ -4,9 +4,6 @@ from unittest.mock import MagicMock
 
 os.environ.setdefault("ETC_QA_ENV", "test")
 
-if "langsmith" in sys.modules:
-    sys.modules.pop("langsmith", None)
-
 
 def _noop_decorator(name=None, run_type=None):
     def decorator(func):
@@ -17,6 +14,16 @@ def _noop_decorator(name=None, run_type=None):
 _langsmith_mock = MagicMock()
 _langsmith_mock.traceable = _noop_decorator
 sys.modules["langsmith"] = _langsmith_mock
+
+_st_mock = MagicMock()
+sys.modules["sentence_transformers"] = _st_mock
+
+_pymilvus_mock = MagicMock()
+sys.modules["pymilvus"] = _pymilvus_mock
+
+
+_lc_openai_mock = MagicMock()
+sys.modules["langchain_openai"] = _lc_openai_mock
 
 
 from agent.state import AgentState

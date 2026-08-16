@@ -1,7 +1,13 @@
 import os
+import sys
 import time
+from unittest.mock import MagicMock
 
 import pytest
+
+for _mod in ["sentence_transformers", "pymilvus", "langchain_openai"]:
+    if _mod in sys.modules and isinstance(sys.modules[_mod], MagicMock):
+        del sys.modules[_mod]
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["OMP_NUM_THREADS"] = "1"

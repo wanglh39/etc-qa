@@ -10,7 +10,7 @@ llm:
   max_tokens: 256
   timeout: 3
   max_retries: 1
-  standardize_enabled: false
+  standardize_enabled: true
   # structured_method: "none"
 
 

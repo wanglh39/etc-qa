@@ -1,10 +1,11 @@
 import os
+from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
-from utils.logger import setup_logging
+from utils.logger import setup_logging, get_logger
 
 setup_logging()
 
@@ -22,8 +23,31 @@ check_password_policy()
 
 cfg = get_config()
 server_cfg = cfg.get("server", {})
+logger = get_logger("app")
 
-app = FastAPI(title=server_cfg.get("title", "ETC客服QA智能检索系统"), version=server_cfg.get("version", "1.0.0"))
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("应用启动中 (lifespan startup)...")
+    service = create_service()
+    app.state.service = service
+    logger.info("应用启动完成，开始接受请求")
+    yield
+    logger.info("应用关闭中 (lifespan shutdown)...")
+    try:
+        if hasattr(service, "recall") and hasattr(service.recall, "milvus"):
+            service.recall.milvus.close()
+            logger.info("Milvus连接已关闭")
+    except Exception as e:
+        logger.warning(f"关闭Milvus连接时出错: {e}")
+    logger.info("应用已关闭")
+
+
+app = FastAPI(
+    title=server_cfg.get("title", "ETC客服QA智能检索系统"),
+    version=server_cfg.get("version", "1.0.0"),
+    lifespan=lifespan,
+)
 
 allow_origins = server_cfg.get("cors_origins", [])
 _env_origins = os.environ.get("ETC_QA_CORS_ORIGINS")
@@ -37,8 +61,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-service = create_service()
 
 
 @app.get("/api/health")
@@ -57,5 +79,5 @@ if __name__ == "__main__":
         host=server_cfg.get("host", "0.0.0.0"),
         port=server_cfg.get("port", 8000),
         workers=workers,
-        reload=(workers == 1),
+        reload=server_cfg.get("reload", False),
     )

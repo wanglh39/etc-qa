@@ -190,6 +190,8 @@ def _is_already_standard(text: str) -> bool:
     min_len, max_len, _ = _get_standardize_limits()
     if len(text) < min_len or len(text) > max_len:
         return False
+    if re.search(r'[。.；;]', text):
+        return False
     has_subject = any(kw in text for kw in brand_keywords + subject_keywords)
     has_question_word = any(kw in text for kw in question_words)
     return has_subject and has_question_word

@@ -242,6 +242,13 @@ class TestIsAlreadyStandard:
              patch("agent.processors.standardize_query.get_config", return_value=_mock_config()):
             assert _is_already_standard("ETC扣费异常怎么处理") is True
 
+    def test_multi_sentence_not_standard(self):
+        with patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()), \
+             patch("agent.processors.standardize_query.get_config", return_value=_mock_config()):
+            assert _is_already_standard("啊。ETC扣费异常怎么处理") is False
+            assert _is_already_standard("ETC扣费异常。怎么处理") is False
+            assert _is_already_standard("ETC扣费异常;怎么处理") is False
+
 
 class TestPreservesKeywords:
     def test_brand_keyword_lost(self):

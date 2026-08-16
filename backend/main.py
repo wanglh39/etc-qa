@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.auth import router as auth_router
 from api.routes import router
+from asr.websocket import router as ws_router
 from app import create_service
 from utils.config import get_config
 from utils.password import check_password_policy
@@ -70,6 +71,7 @@ def health():
 
 app.include_router(auth_router, prefix="/api")
 app.include_router(router, prefix="/api")
+app.include_router(ws_router)
 
 
 if __name__ == "__main__":

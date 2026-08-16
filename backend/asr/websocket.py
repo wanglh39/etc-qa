@@ -310,6 +310,18 @@ async def asr_stream(websocket: WebSocket):
 
                 audio_chunks.append(audio_data)
                 service.send_audio(audio_data)
+
+                if accumulate_mode == "accumulate" and not vad_trigger_enabled:
+                    ready = accumulator.check_timeout()
+                    if ready:
+                        combined = "".join(ready)
+                        _set_state(SessionState.QUERY_READY)
+                        await _send_query_result(
+                            websocket, combined, category_l1, query_cache,
+                            on_sent=lambda: _set_state(SessionState.CANDIDATES_SHOWN),
+                        )
+                        context_window.add(combined)
+
                 if vad_trigger_enabled:
                     vad_detector.feed_audio(audio_data)
                     if vad_detector.check_silence() and accumulator.pending_count > 0:

@@ -1,6 +1,7 @@
 dedup:
   answer_threshold: 0.85
   question_threshold: 0.92
+enabled: true
 display:
   high_confidence: 3
   low_confidence: 10

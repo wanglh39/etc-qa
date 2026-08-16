@@ -1,5 +1,5 @@
 asr:
-  enabled: false
+  enabled: true
   model: "FunAudioLLM/Fun-ASR-Nano-2512"
   finetuned_path: ""
   max_duration_ms: 30000
@@ -42,7 +42,7 @@ asr:
     min_speakers: null
     max_speakers: null
   streaming:
-    enabled: ${ASR_STREAMING_ENABLED:false}
+    enabled: ${ASR_STREAMING_ENABLED:true}
     mode: ${ASR_STREAMING_MODE:pseudo}
     device: "cuda"
     local_model: "C:\\Users\\wlh19\\.cache\\modelscope\\hub\\models\\shuai1618\\paraformer-zh-streaming"
@@ -52,7 +52,7 @@ asr:
     speaker_filter: ""
     speaker_mode: "none"
     channel_customer_side: "left"
-    accumulate_mode: "sentence"
+    accumulate_mode: "accumulate"
     accumulate_max_sentences: 3
     accumulate_silence_timeout: 2.0
     dedup_enabled: true

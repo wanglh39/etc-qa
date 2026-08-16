@@ -10,10 +10,34 @@
         placeholder="输入或粘贴客户问题（对话记录请先总结为标准问题）"
       />
       <div class="button-row">
-        <el-button :icon="Microphone" circle size="large" @click="transcribeAudio" title="语音转文字" />
+        <el-button
+          :icon="Microphone"
+          circle
+          size="large"
+          :type="asr.isRecording.value ? 'danger' : 'default'"
+          @click="toggleRecording"
+          :title="asr.isRecording.value ? '停止录音' : '语音转文字'"
+        />
         <el-button type="danger" size="large" @click="openCreateDialog">创建工单</el-button>
         <el-button type="primary" size="large" :loading="searching" @click="handleSearch">搜索</el-button>
+        <el-button size="large" @click="clearAll" :disabled="asr.isRecording.value">清空</el-button>
       </div>
+    </div>
+
+    <!-- 实时识别区 -->
+    <div v-if="asr.isRecording.value || asr.fullText.value" class="asr-section">
+      <div class="asr-header">
+        <span class="asr-title">
+          <el-tag v-if="asr.isRecording.value" type="danger" size="small" effect="dark">录音中</el-tag>
+          实时语音识别
+        </span>
+        <el-tag size="small" type="info">{{ asr.asrState.value }}</el-tag>
+      </div>
+      <div class="asr-text">
+        <span class="asr-full">{{ asr.fullText.value }}</span>
+        <span class="asr-partial">{{ asr.partialText.value }}</span>
+      </div>
+      <div v-if="asr.errorMsg.value" class="asr-error">{{ asr.errorMsg.value }}</div>
     </div>
 
     <!-- 空状态 -->
@@ -133,11 +157,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { Microphone } from '@element-plus/icons-vue'
 import { queryQA, type QueryResponse, type CandidateResult } from '@/api/workbench'
 import { createWorkOrder } from '@/api/workorder'
+import { useStreamingASR } from '@/composables/useStreamingASR'
 
 // ===== 输入 & 检索 =====
 const searchText = ref('')
@@ -191,10 +216,68 @@ const rebuildFinalReply = () => {
   finalReply.value = parts.join('\n\n')
 }
 
-// ===== 语音识别（占位，未来接后端 /asr） =====
-const transcribeAudio = () => {
-  ElMessage.info('语音识别待接入')
+// ===== 流式语音识别 =====
+const asr = useStreamingASR()
+
+const clearAll = () => {
+  searchText.value = ''
+  searched.value = false
+  selectedIds.value = []
+  finalReply.value = ''
+  queryResult.value = { query: '', standardized_query: '', confidence: '', candidates: [], total_candidates: 0 }
+  confidenceType.value = 'info'
+  confidenceText.value = ''
+  asr.fullText.value = ''
+  asr.partialText.value = ''
+  asr.queryResult.value = null
+  asr.errorMsg.value = ''
+  asr.reset()
 }
+
+const toggleRecording = async () => {
+  if (asr.isRecording.value) {
+    asr.stopRecording()
+    if (asr.fullText.value) {
+      searchText.value = asr.fullText.value
+    }
+  } else {
+    clearAll()
+    try {
+      await asr.startRecording()
+    } catch (e: any) {
+      const msg = e?.message || ''
+      if (msg.includes('非安全上下文') || msg.includes('mediaDevices')) {
+        ElMessage.error(msg)
+      } else if (msg.includes('NotAllowed') || msg.includes('Permission')) {
+        ElMessage.error('麦克风权限被拒绝，请在浏览器设置中允许访问麦克风后重试')
+      } else if (msg.includes('NotFound') || msg.includes('DevicesNotFoundError')) {
+        ElMessage.error('未检测到麦克风设备，请确认麦克风已连接')
+      } else if (msg.includes('WebSocket')) {
+        ElMessage.error('WebSocket连接失败，请确认后端服务已启动')
+      } else {
+        ElMessage.error(`录音启动失败: ${msg || '请检查麦克风权限'}`)
+      }
+    }
+  }
+}
+
+watch(() => asr.queryResult.value, (result) => {
+  if (result && result.candidates.length > 0) {
+    queryResult.value = {
+      query: result.query_text,
+      standardized_query: result.standardized_query || result.query_text,
+      confidence: result.confidence,
+      candidates: result.candidates as CandidateResult[],
+      total_candidates: result.candidates.length
+    }
+    const info = confidenceMap[result.confidence] || confidenceMap.none
+    confidenceType.value = info.type
+    confidenceText.value = info.text
+    selectedIds.value = []
+    finalReply.value = ''
+    searched.value = true
+  }
+})
 
 // ===== 搜索 =====
 const handleSearch = async () => {
@@ -295,6 +378,46 @@ const submitWorkOrder = async () => {
   gap: 12px;
   justify-content: flex-end;
   margin-top: 16px;
+}
+
+/* 实时识别区 */
+.asr-section {
+  max-width: 900px;
+  margin: 16px auto 0;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  padding: 16px;
+  background: #f8f9fa;
+}
+.asr-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.asr-title {
+  font-weight: 600;
+  color: #303133;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.asr-text {
+  font-size: 16px;
+  line-height: 1.8;
+  min-height: 28px;
+}
+.asr-full {
+  color: #303133;
+}
+.asr-partial {
+  color: #909399;
+  font-style: italic;
+}
+.asr-error {
+  color: #f56c6c;
+  font-size: 13px;
+  margin-top: 8px;
 }
 
 .empty-state {

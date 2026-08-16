@@ -1,0 +1,14 @@
+scheduler:
+  enabled: true
+  timezone: "Asia/Shanghai"
+  jobs:
+    sync_and_ingest:
+      enabled: true
+      schedule_type: "interval"
+      hours: 1
+      max_retries: 3
+      dedup_threshold: 0.85
+    cleanup:
+      enabled: true
+      schedule_type: "interval"
+      hours: 24

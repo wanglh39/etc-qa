@@ -11,3 +11,4 @@ includes:
   - "config/agent.yaml"
   - "config/asr.yaml"
   - "config/data.yaml"
+  - "config/scheduler.yaml"

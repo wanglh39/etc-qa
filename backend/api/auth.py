@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
+from utils.auth_middleware import get_current_user
 from utils.jwt_utils import authenticate, create_token
 from utils.rate_limit import limiter
 
@@ -37,3 +38,8 @@ def login(req: LoginRequest, request: Request):
         role=user["role"],
         dept=user["dept"],
     )
+
+
+@router.get("/verify")
+def verify_token_endpoint(user: dict = Depends(get_current_user)):
+    return {"username": user["sub"], "role": user["role"], "dept": user.get("dept", "")}

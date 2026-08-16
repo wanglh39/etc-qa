@@ -71,6 +71,7 @@ router = APIRouter(dependencies=[Depends(get_current_user)])
 service: QAService = None
 work_order_client: WorkOrderClient = None
 mysql_client: MySQLClient = None
+scheduler_manager = None
 
 
 def _serialize_row(row: dict) -> dict:
@@ -96,6 +97,11 @@ def set_work_order_client(client: WorkOrderClient):
 def set_mysql_client(client: MySQLClient):
     global mysql_client
     mysql_client = client
+
+
+def set_scheduler_manager(mgr):
+    global scheduler_manager
+    scheduler_manager = mgr
 
 
 def _current_operator(request: Request) -> str:
@@ -744,6 +750,46 @@ def list_operations(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1,
     result = mysql_client.list_operation_logs(page=page, page_size=page_size, operator=operator, action=action)
     items = [OperationLogItem(**_serialize_row(row)) for row in result["items"]]
     return OperationLogListResponse(items=items, total=result["total"], page=result["page"], page_size=result["page_size"])
+
+
+@router.get("/scheduler/status", dependencies=[Depends(require_role("admin", "superadmin"))])
+def get_scheduler_status():
+    if scheduler_manager is None:
+        raise HTTPException(status_code=500, detail="调度器未初始化")
+    return scheduler_manager.get_status()
+
+
+@router.post("/scheduler/trigger/{job_id}", dependencies=[Depends(require_role("admin", "superadmin"))])
+def trigger_scheduler_job(job_id: str):
+    if scheduler_manager is None:
+        raise HTTPException(status_code=500, detail="调度器未初始化")
+    result = scheduler_manager.trigger_job(job_id)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+
+@router.put("/scheduler/config", dependencies=[Depends(require_role("superadmin"))])
+def update_scheduler_config(job_id: str = Query(...), hours: int = Query(None, ge=1), minutes: int = Query(None, ge=1)):
+    if scheduler_manager is None:
+        raise HTTPException(status_code=500, detail="调度器未初始化")
+    result = scheduler_manager.update_job_schedule(job_id, hours=hours, minutes=minutes)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+
+@router.get("/scheduler/logs", dependencies=[Depends(require_role("admin", "superadmin"))])
+def get_scheduler_logs(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100)):
+    if mysql_client is None:
+        raise HTTPException(status_code=500, detail="服务未初始化")
+    result = mysql_client.get_scheduler_logs(page=page, page_size=page_size)
+    return {
+        "items": [_serialize_row(row) for row in result["items"]],
+        "total": result["total"],
+        "page": result["page"],
+        "page_size": result["page_size"],
+    }
 
 
 

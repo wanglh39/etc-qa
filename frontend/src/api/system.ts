@@ -168,3 +168,51 @@ export function getOperationList(params: { page?: number; page_size?: number; op
   return request.get<OperationLogListResponse>('/operations', { params }).then((r) => r.data)
 }
 
+// ===== 调度器管理 =====
+
+export interface SchedulerJob {
+  id: string
+  next_run_time: string | null
+  trigger: string
+}
+
+export interface SchedulerStatus {
+  running: boolean
+  jobs: SchedulerJob[]
+  task_stats: Record<string, any>
+}
+
+export interface SchedulerLogItem {
+  id: number
+  task_name: string
+  stats: string
+  result: string
+  created_at: string
+}
+
+export interface SchedulerLogResponse {
+  items: SchedulerLogItem[]
+  total: number
+  page: number
+  page_size: number
+}
+
+export function getSchedulerStatus() {
+  return request.get<SchedulerStatus>('/scheduler/status').then((r) => r.data)
+}
+
+export function triggerSchedulerJob(jobId: string) {
+  return request.post(`/scheduler/trigger/${jobId}`).then((r) => r.data)
+}
+
+export function updateSchedulerConfig(jobId: string, hours?: number, minutes?: number) {
+  const params: Record<string, number | string> = { job_id: jobId }
+  if (hours !== undefined) params.hours = hours
+  if (minutes !== undefined) params.minutes = minutes
+  return request.put('/scheduler/config', null, { params }).then((r) => r.data)
+}
+
+export function getSchedulerLogs(params: { page?: number; page_size?: number }) {
+  return request.get<SchedulerLogResponse>('/scheduler/logs', { params }).then((r) => r.data)
+}
+

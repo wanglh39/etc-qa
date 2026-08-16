@@ -62,8 +62,8 @@ interface MenuItem extends Omit<RouteRecordRaw, 'children'> {
 const router = useRouter()
 
 // 获取本地存储的角色和部门信息
-const userRole = ref(localStorage.getItem('userRole') || '')
-const userDept = ref(localStorage.getItem('userDept') || '')
+const userRole = ref(sessionStorage.getItem('userRole') || '')
+const userDept = ref(sessionStorage.getItem('userDept') || '')
 
 // 定义部门映射配置
 const DEPT_CONFIG = [

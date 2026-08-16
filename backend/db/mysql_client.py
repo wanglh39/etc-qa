@@ -294,6 +294,60 @@ class MySQLClient:
             self._reset_conn()
             raise
 
+    def insert_qa_with_status(self, question: str, answer: str, category_l1: str = "",
+                              category_l2: str = "", internal_process: str = "",
+                              feedback_dept: str = "", status: str = "deprecated") -> int:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO qa_pairs (question, answer, category_l1, category_l2, "
+                "internal_process, feedback_dept, status) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                (question, answer, category_l1, category_l2, internal_process, feedback_dept, status),
+            )
+            conn.commit()
+            qa_id = cursor.lastrowid
+            cursor.close()
+            return qa_id
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def insert_scheduler_log(self, task_name: str, stats: str, result: str):
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO scheduler_task_log (task_name, stats, result) VALUES (%s, %s, %s)",
+                (task_name, stats, result),
+            )
+            conn.commit()
+            cursor.close()
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def get_scheduler_logs(self, page: int = 1, page_size: int = 20) -> dict:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            cursor.execute("SELECT COUNT(*) as cnt FROM scheduler_task_log")
+            total = cursor.fetchone()["cnt"]
+            offset = (page - 1) * page_size
+            cursor.execute(
+                "SELECT id, task_name, stats, result, created_at "
+                "FROM scheduler_task_log ORDER BY created_at DESC LIMIT %s OFFSET %s",
+                (page_size, offset),
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            return {"items": rows, "total": total, "page": page, "page_size": page_size}
+        except Exception:
+            self._reset_conn()
+            raise
+
     def get_qa_detail(self, qa_id: int) -> dict | None:
         conn = self._get_conn()
         try:

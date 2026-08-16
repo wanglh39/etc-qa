@@ -72,9 +72,9 @@ const handleLogin = async () => {
       password: loginForm.password
     })
 
-    localStorage.setItem('token', res.access_token)
-    localStorage.setItem('userRole', res.role)
-    localStorage.setItem('userDept', res.dept)
+    sessionStorage.setItem('token', res.access_token)
+    sessionStorage.setItem('userRole', res.role)
+    sessionStorage.setItem('userDept', res.dept)
 
     ElMessage.success('登录成功')
 

@@ -8,6 +8,9 @@ uvicorn>=0.24.0
 python-dotenv>=1.0.0
 filelock>=3.13.0
 
+# 定时任务调度
+apscheduler>=3.10.0
+
 # 认证
 pyjwt>=2.8.0
 

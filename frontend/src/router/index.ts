@@ -72,6 +72,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '操作日志', roleAuth: 'superadmin' }
       },
       {
+        path: 'workbench/admin/scheduler',
+        name: 'Scheduler',
+        component: () => import('@/pages/system/scheduler.vue'),
+        meta: { title: '定时任务调度', roleAuth: 'superadmin' }
+      },
+      {
 
         path: 'workbench/admin/pendingDetail',
         name: 'PendingDetail',
@@ -100,11 +106,11 @@ const routes: RouteRecordRaw[] = [
       },
 
       // ================= 部门工单路由【修复版】 =================
-      // 根路径重定向：根据 localStorage 中的 userDept 自动跳转
+      // 根路径重定向：根据 sessionStorage 中的 userDept 自动跳转
       {
         path: 'dept/handle',
         redirect: () => {
-          const userDept = localStorage.getItem('userDept') || 'aftersale'
+          const userDept = sessionStorage.getItem('userDept') || 'aftersale'
           return `/dept/handle/${userDept}`
         }
       },
@@ -174,42 +180,72 @@ function getDefaultPath(role: string): string {
     case 'service':
       return DEFAULT_SERVICE_PATH
     case 'dept':
-      return `/dept/handle/${localStorage.getItem('userDept') || 'aftersale'}`
+      return `/dept/handle/${sessionStorage.getItem('userDept') || 'aftersale'}`
     default:
       return '/login'
   }
 }
 
 // 全局路由守卫：登录态 + 角色权限
-router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token')
-  const role = localStorage.getItem('userRole')
+let tokenVerified = false
+
+router.beforeEach(async (to, from, next) => {
+  const token = sessionStorage.getItem('token')
+  const role = sessionStorage.getItem('userRole')
+
+  // 去登录页时重置验证标志
+  if (to.path === '/login') {
+    tokenVerified = false
+    return next()
+  }
 
   // 未登录 → 跳登录页
-  if (to.path !== '/login' && !token) {
+  if (!token) {
     ElMessage.warning('请先登录系统')
     return next('/login')
   }
 
   // token 过期检查：解码JWT看exp是否过期
-  if (to.path !== '/login' && token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      sessionStorage.clear()
+      tokenVerified = false
+      ElMessage.warning('登录已过期，请重新登录')
+      return next('/login')
+    }
+  } catch {
+    sessionStorage.clear()
+    tokenVerified = false
+    ElMessage.warning('登录信息异常，请重新登录')
+    return next('/login')
+  }
+
+  // 首次导航时向后端验证token是否有效
+  if (!tokenVerified) {
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      if (payload.exp && payload.exp * 1000 < Date.now()) {
-        localStorage.clear()
-        ElMessage.warning('登录已过期，请重新登录')
+      const res = await fetch('/api/auth/verify', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) {
+        sessionStorage.clear()
+        tokenVerified = false
+        ElMessage.warning('登录信息已失效，请重新登录')
         return next('/login')
       }
+      tokenVerified = true
     } catch {
-      localStorage.clear()
-      ElMessage.warning('登录信息异常，请重新登录')
+      sessionStorage.clear()
+      tokenVerified = false
+      ElMessage.warning('无法连接服务器，请重新登录')
       return next('/login')
     }
   }
 
   // 已登录但角色信息缺失（数据异常）→ 清理并重新登录
   if (token && !role) {
-    localStorage.clear()
+    sessionStorage.clear()
+    tokenVerified = false
     ElMessage.warning('登录信息已失效，请重新登录')
     return next('/login')
   }

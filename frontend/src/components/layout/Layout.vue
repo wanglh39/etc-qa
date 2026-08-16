@@ -27,6 +27,7 @@
             <el-menu-item index="/workbench/admin/account">账号管理</el-menu-item>
             <el-menu-item index="/workbench/admin/role">角色管理</el-menu-item>
             <el-menu-item index="/workbench/admin/operationLog">操作日志</el-menu-item>
+            <el-menu-item index="/workbench/admin/scheduler">定时任务调度</el-menu-item>
 
           </el-sub-menu>
         </template>
@@ -129,11 +130,11 @@ const router = useRouter()
 const route = useRoute()
 
 // 获取当前用户信息
-const currentRole = ref(localStorage.getItem('userRole') ?? '')
-const userName = ref(localStorage.getItem('userName') ?? 'User')
+const currentRole = ref(sessionStorage.getItem('userRole') ?? '')
+const userName = ref(sessionStorage.getItem('userName') ?? 'User')
 
-// 监听路由变化，更新角色状态（防止手动修改localStorage后不刷新）
-watch(() => localStorage.getItem('userRole'), (newVal) => {
+// 监听路由变化，更新角色状态（防止手动修改sessionStorage后不刷新）
+watch(() => sessionStorage.getItem('userRole'), (newVal) => {
   currentRole.value = newVal ?? ''
 })
 
@@ -169,7 +170,7 @@ const goBack = () => {
 // 退出登录
 const handleCommand = (command: string) => {
   if (command === 'logout') {
-    localStorage.clear()
+    sessionStorage.clear()
     router.replace('/login')
     ElMessage.success('已退出登录')
   }

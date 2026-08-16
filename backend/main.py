@@ -17,6 +17,7 @@ from api.auth import router as auth_router
 from api.routes import router
 from asr.websocket import router as ws_router
 from app import create_service
+from scheduler import SchedulerManager
 from utils.config import get_config
 from utils.password import check_password_policy
 
@@ -32,9 +33,25 @@ async def lifespan(app: FastAPI):
     logger.info("应用启动中 (lifespan startup)...")
     service = create_service()
     app.state.service = service
+
+    scheduler_mgr = SchedulerManager()
+    try:
+        scheduler_mgr.start()
+        app.state.scheduler = scheduler_mgr
+        from api.routes import set_scheduler_manager
+        set_scheduler_manager(scheduler_mgr)
+    except Exception as e:
+        logger.warning(f"调度器启动失败(不影响主服务): {e}")
+
     logger.info("应用启动完成，开始接受请求")
     yield
     logger.info("应用关闭中 (lifespan shutdown)...")
+    try:
+        if hasattr(app.state, "scheduler"):
+            app.state.scheduler.stop()
+            logger.info("调度器已停止")
+    except Exception as e:
+        logger.warning(f"停止调度器时出错: {e}")
     try:
         if hasattr(service, "recall") and hasattr(service.recall, "milvus"):
             service.recall.milvus.close()

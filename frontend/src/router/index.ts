@@ -78,6 +78,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '操作日志', roleAuth: 'superadmin' }
       },
       {
+        path: 'workbench/admin/impersonate',
+        name: 'Impersonate',
+        component: () => import('@/pages/system/impersonate.vue'),
+        meta: { title: '模拟登录', roleAuth: 'superadmin' }
+      },
+      {
         path: 'workbench/admin/scheduler',
         name: 'Scheduler',
         component: () => import('@/pages/system/scheduler.vue'),

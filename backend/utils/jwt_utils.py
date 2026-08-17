@@ -22,7 +22,7 @@ USERS = {
 }
 
 
-def create_token(username: str, role: str, dept: str) -> str:
+def create_token(username: str, role: str, dept: str, impersonated_by: str | None = None) -> str:
     expire = datetime.utcnow() + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
     payload = {
         "sub": username,
@@ -31,6 +31,8 @@ def create_token(username: str, role: str, dept: str) -> str:
         "exp": expire,
         "iat": datetime.utcnow(),
     }
+    if impersonated_by:
+        payload["impersonated_by"] = impersonated_by
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 

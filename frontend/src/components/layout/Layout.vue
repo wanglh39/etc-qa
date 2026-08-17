@@ -23,6 +23,7 @@
             <el-menu-item index="/workbench/admin/account">账号管理</el-menu-item>
             <el-menu-item index="/workbench/admin/role">角色管理</el-menu-item>
             <el-menu-item index="/workbench/admin/operationLog">操作日志</el-menu-item>
+            <el-menu-item index="/workbench/admin/impersonate">模拟登录</el-menu-item>
           </el-sub-menu>
         </template>
 
@@ -46,6 +47,10 @@
 
         <!-- 业务管理员菜单 -->
         <template v-else-if="currentRole === 'admin'">
+          <el-menu-item index="/workbench/admin/dashboard">
+            <el-icon><DataLine /></el-icon>
+            <span>数据看板</span>
+          </el-menu-item>
           <el-sub-menu index="business">
             <template #title>
               <el-icon><Setting /></el-icon>
@@ -53,7 +58,6 @@
             </template>
             <el-menu-item index="/workbench/admin/auditList">待审核列表</el-menu-item>
             <el-menu-item index="/workbench/admin/auditHistory">审核历史</el-menu-item>
-            <el-menu-item index="/workbench/admin/dashboard">数据看板</el-menu-item>
           </el-sub-menu>
           <el-sub-menu index="content">
             <template #title>
@@ -116,6 +120,13 @@
 
       <!-- 主体内容区 -->
       <el-main class="main-content">
+        <!-- 模拟登录提示栏 -->
+        <div v-if="isImpersonating" class="impersonate-banner">
+          <el-icon><WarningFilled /></el-icon>
+          <span>您正在以【{{ roleText }}】身份查看，操作会记录到日志</span>
+          <el-button type="danger" size="small" @click="exitImpersonate">退出模拟</el-button>
+        </div>
+
         <!-- 页面顶部操作栏：放置返回按钮 -->
         <div class="page-header" v-if="showBackBtn">
           <el-button link type="primary" size="large" @click="goBack">
@@ -136,7 +147,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Setting, DataLine, Ticket, Monitor, Money, ArrowLeft, Service, Document, UserFilled } from '@element-plus/icons-vue'
+import { Setting, DataLine, Ticket, Monitor, Money, ArrowLeft, Service, Document, UserFilled, WarningFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
@@ -162,6 +173,23 @@ const roleText = computed(() => {
     default: return '未知账号'
   }
 })
+
+// 模拟登录状态
+const isImpersonating = computed(() => !!sessionStorage.getItem('impersonator_token'))
+
+const exitImpersonate = () => {
+  const origToken = sessionStorage.getItem('impersonator_token')
+  const origRole = sessionStorage.getItem('impersonator_role')
+  if (origToken) {
+    sessionStorage.setItem('token', origToken)
+    sessionStorage.setItem('userRole', origRole ?? 'superadmin')
+    sessionStorage.removeItem('impersonator_token')
+    sessionStorage.removeItem('impersonator_role')
+    currentRole.value = origRole ?? 'superadmin'
+    ElMessage.success('已退出模拟，返回超管身份')
+    router.replace('/workbench/admin/account')
+  }
+}
 
 // 判断是否显示返回按钮
 const showBackBtn = computed(() => {
@@ -260,5 +288,19 @@ const handleCommand = (command: string) => {
   flex: 1;
   padding: 20px;
   overflow-y: auto;
+}
+.impersonate-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background-color: #fdf6ec;
+  border-bottom: 1px solid #f5dab1;
+  color: #e6a23c;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.impersonate-banner .el-button {
+  margin-left: auto;
 }
 </style>

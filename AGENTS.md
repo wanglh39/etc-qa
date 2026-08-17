@@ -163,7 +163,7 @@
 |------|------|---------|---------|
 | superadmin | 系统管理 | superadmin/123456 | /workbench/admin/account |
 | ops | 运维工程师 | ops/123456 | /workbench/admin/status |
-| admin | 业务管理 | admin/123456 | /workbench/admin/auditList |
+| admin | 业务管理 | admin/123456 | /workbench/admin/dashboard |
 | service | 客服 | service/123456 | /service |
 | dept | 部门处理员 | dept/123456 | /dept/handle/{dept} |
 
@@ -232,6 +232,9 @@
 22. 分类管理页面挂载（category/index.vue，前后端API已ready）
 23. 清理3个废弃页面（AdminWorkbench/wait/record）
 24. 前端技术文稿独立文档
+25. StatisticCard增强：count-up动画+进度条+告警色标+sparkline趋势+hover跳转
+26. admin菜单排序优化：数据看板提为独立顶级菜单（企业级标准排序）
+27. 模拟登录功能：超管可模拟其他角色身份进入系统+顶部提示栏+一键退出+操作日志审计
 
 ---
 

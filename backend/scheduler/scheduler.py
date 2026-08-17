@@ -29,6 +29,7 @@ class SchedulerManager:
         jobs_cfg = cfg.get("jobs", {})
         self._add_job("sync_and_ingest", jobs_cfg.get("sync_and_ingest", {}))
         self._add_job("cleanup", jobs_cfg.get("cleanup", {}))
+        self._add_job("alert_check", jobs_cfg.get("alert_check", {}))
 
         self._scheduler.start()
         self._started = True
@@ -105,6 +106,7 @@ class SchedulerManager:
         func_map = {
             "sync_and_ingest": tasks.sync_and_ingest_task,
             "cleanup": tasks.cleanup_task,
+            "alert_check": tasks.alert_check_task,
         }
         func = func_map.get(job_id)
         if func is None:

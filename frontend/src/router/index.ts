@@ -78,6 +78,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '定时任务调度', roleAuth: 'superadmin' }
       },
       {
+        path: 'workbench/admin/alert',
+        name: 'Alert',
+        component: () => import('@/pages/system/alert.vue'),
+        meta: { title: '异常告警', roleAuth: 'superadmin' }
+      },
+      {
 
         path: 'workbench/admin/pendingDetail',
         name: 'PendingDetail',

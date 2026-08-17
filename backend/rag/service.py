@@ -2,6 +2,7 @@ import time
 
 from agent.graph import preprocess_agent
 from agent.state import AgentState
+from alert.monitor import record_metric
 from db.mysql_client import MySQLClient
 from models.schemas import CandidateResult, QueryResponse
 from rag.recall import RecallEngine
@@ -120,43 +121,50 @@ class QAService:
 
     @traceable(name="rag_query", run_type="chain")
     def query(self, question: str, category_l1: str | None = None) -> QueryResponse:
-        standardized = self._standardize(question)
-        logger.info(f"query: '{question}' -> standardized: '{standardized}'")
+        start = time.time()
+        try:
+            standardized = self._standardize(question)
+            logger.info(f"query: '{question}' -> standardized: '{standardized}'")
 
-        active_qa_ids = self._get_active_ids()
+            active_qa_ids = self._get_active_ids()
 
-        query_vector = self.recall.encode_query(standardized)
-        candidates = self.recall.recall(standardized, query_vector, active_qa_ids=active_qa_ids)
+            query_vector = self.recall.encode_query(standardized)
+            candidates = self.recall.recall(standardized, query_vector, active_qa_ids=active_qa_ids)
 
-        candidates = self.reranker.rerank(standardized, candidates)
+            candidates = self.reranker.rerank(standardized, candidates)
 
-        confidence, filtered = self.threshold.filter_candidates(candidates)
-        logger.info(f"confidence={confidence}, candidates={len(filtered)}")
+            confidence, filtered = self.threshold.filter_candidates(candidates)
+            logger.info(f"confidence={confidence}, candidates={len(filtered)}")
 
 
-        qa_ids = [qa_id for qa_id, score in filtered]
-        qa_records = self.mysql.get_by_ids(qa_ids)
-        qa_map = {r["id"]: r for r in qa_records}
+            qa_ids = [qa_id for qa_id, score in filtered]
+            qa_records = self.mysql.get_by_ids(qa_ids)
+            qa_map = {r["id"]: r for r in qa_records}
 
-        results = []
-        for qa_id, score in filtered:
-            if qa_id in qa_map:
-                r = qa_map[qa_id]
-                results.append(CandidateResult(
-                    qa_id=qa_id,
-                    question=r["question"],
-                    answer=r["answer"],
-                    category_l1=r.get("category_l1", ""),
-                    category_l2=r.get("category_l2", ""),
-                    internal_process=r.get("internal_process", ""),
-                    feedback_dept=r.get("feedback_dept", ""),
-                    score=round(score, 4),
-                ))
+            results = []
+            for qa_id, score in filtered:
+                if qa_id in qa_map:
+                    r = qa_map[qa_id]
+                    results.append(CandidateResult(
+                        qa_id=qa_id,
+                        question=r["question"],
+                        answer=r["answer"],
+                        category_l1=r.get("category_l1", ""),
+                        category_l2=r.get("category_l2", ""),
+                        internal_process=r.get("internal_process", ""),
+                        feedback_dept=r.get("feedback_dept", ""),
+                        score=round(score, 4),
+                    ))
 
-        return QueryResponse(
-            query=question,
-            standardized_query=standardized,
-            confidence=confidence,
-            candidates=results,
-            total_candidates=len(results),
-        )
+            resp = QueryResponse(
+                query=question,
+                standardized_query=standardized,
+                confidence=confidence,
+                candidates=results,
+                total_candidates=len(results),
+            )
+            record_metric("rag_query", time.time() - start, True)
+            return resp
+        except Exception as e:
+            record_metric("rag_query", time.time() - start, False)
+            raise

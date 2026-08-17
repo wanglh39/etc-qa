@@ -77,6 +77,9 @@ class MilvusQA:
                 raise
 
     def _safe_search(self, **kwargs):
+        import time
+        from alert.monitor import record_metric
+        start = time.time()
         self._query_count += 1
         if self._query_count >= self._reconnect_interval:
             self._query_count = 0
@@ -85,8 +88,11 @@ class MilvusQA:
             self._reconnect()
             self._ensure_loaded()
         try:
-            return self.client.search(**kwargs)
+            result = self.client.search(**kwargs)
+            record_metric("milvus_search", time.time() - start, True)
+            return result
         except Exception as e:
+            record_metric("milvus_search", time.time() - start, False)
             if "too_many_pings" in str(e) or "UNAVAILABLE" in str(e) or "GOAWAY" in str(e):
                 from utils.logger import get_logger
                 get_logger("milvus").warning("gRPC连接断开，正在重连...")

@@ -12,3 +12,7 @@ scheduler:
       enabled: true
       schedule_type: "interval"
       hours: 24
+    alert_check:
+      enabled: true
+      schedule_type: "interval"
+      minutes: 1

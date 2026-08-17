@@ -12,3 +12,4 @@ includes:
   - "config/asr.yaml"
   - "config/data.yaml"
   - "config/scheduler.yaml"
+  - "config/alert.yaml"

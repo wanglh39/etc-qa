@@ -928,3 +928,67 @@ class MySQLClient:
         except Exception:
             self._reset_conn()
             raise
+
+    def insert_alert_event(self, rule_id: str, severity: str, message: str,
+                           current_value: float, threshold_value: float):
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO alert_events (rule_id, severity, message, current_value, threshold_value) "
+                "VALUES (%s, %s, %s, %s, %s)",
+                (rule_id, severity, message, current_value, threshold_value),
+            )
+            conn.commit()
+            cursor.close()
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def get_alert_events(self, page: int = 1, page_size: int = 20,
+                         status: str | None = None, severity: str | None = None) -> dict:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            where_parts = []
+            params = []
+            if status:
+                where_parts.append("status = %s")
+                params.append(status)
+            if severity:
+                where_parts.append("severity = %s")
+                params.append(severity)
+            where_clause = f"WHERE {' AND '.join(where_parts)}" if where_parts else ""
+            cursor.execute(f"SELECT COUNT(*) as cnt FROM alert_events {where_clause}", params)
+            total = cursor.fetchone()["cnt"]
+            offset = (page - 1) * page_size
+            cursor.execute(
+                f"SELECT id, rule_id, severity, message, current_value, threshold_value, "
+                f"status, acked_by, acked_at, created_at "
+                f"FROM alert_events {where_clause} ORDER BY created_at DESC LIMIT %s OFFSET %s",
+                params + [page_size, offset],
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            return {"items": rows, "total": total, "page": page, "page_size": page_size}
+        except Exception:
+            self._reset_conn()
+            raise
+
+    def ack_alert_event(self, alert_id: int, acked_by: str):
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE alert_events SET status='acked', acked_by=%s, acked_at=NOW() WHERE id=%s AND status='open'",
+                (acked_by, alert_id),
+            )
+            conn.commit()
+            affected = cursor.rowcount
+            cursor.close()
+            return affected > 0
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise

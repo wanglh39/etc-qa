@@ -792,4 +792,43 @@ def get_scheduler_logs(page: int = Query(1, ge=1), page_size: int = Query(20, ge
     }
 
 
+@router.get("/alerts", dependencies=[Depends(require_role("admin", "superadmin"))])
+def list_alerts(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
+                status: str | None = None, severity: str | None = None):
+    if mysql_client is None:
+        raise HTTPException(status_code=500, detail="服务未初始化")
+    result = mysql_client.get_alert_events(page=page, page_size=page_size, status=status, severity=severity)
+    return {
+        "items": [_serialize_row(row) for row in result["items"]],
+        "total": result["total"],
+        "page": result["page"],
+        "page_size": result["page_size"],
+    }
+
+
+@router.put("/alerts/{alert_id}/ack", dependencies=[Depends(require_role("admin", "superadmin"))])
+def ack_alert(alert_id: int, request: Request):
+    if mysql_client is None:
+        raise HTTPException(status_code=500, detail="服务未初始化")
+    auth = request.headers.get("Authorization", "")
+    acked_by = "unknown"
+    if auth.startswith("Bearer "):
+        try:
+            from utils.jwt_utils import verify_token
+            payload = verify_token(auth[7:])
+            acked_by = payload.get("sub", "unknown")
+        except Exception:
+            pass
+    ok = mysql_client.ack_alert_event(alert_id, acked_by)
+    if not ok:
+        raise HTTPException(status_code=404, detail="告警不存在或已确认")
+    return {"message": "告警已确认", "alert_id": alert_id}
+
+
+@router.get("/alerts/metrics", dependencies=[Depends(require_role("admin", "superadmin"))])
+def get_alert_metrics():
+    from alert.monitor import get_all_metrics
+    return get_all_metrics()
+
+
 

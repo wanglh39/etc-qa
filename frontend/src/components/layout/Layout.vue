@@ -28,6 +28,7 @@
             <el-menu-item index="/workbench/admin/role">角色管理</el-menu-item>
             <el-menu-item index="/workbench/admin/operationLog">操作日志</el-menu-item>
             <el-menu-item index="/workbench/admin/scheduler">定时任务调度</el-menu-item>
+            <el-menu-item index="/workbench/admin/alert">异常告警</el-menu-item>
 
           </el-sub-menu>
         </template>

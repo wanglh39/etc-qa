@@ -1,0 +1,8 @@
+alert:
+  enabled: true
+  in_app: true
+  webhook:
+    enabled: false
+    url: ""
+    format: "wechat"
+  dedup_window: 300

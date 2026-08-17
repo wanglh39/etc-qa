@@ -4,6 +4,7 @@ from difflib import SequenceMatcher
 
 from agent.graph import ingest_agent
 from agent.state import AgentState
+from alert.notifier import record_task_result
 from api.work_order.client import WorkOrderClient
 from db.mysql_client import MySQLClient
 from utils.config import get_config
@@ -118,6 +119,7 @@ def sync_and_ingest_task():
 
     logger.info(f"定时任务完成: sync_and_ingest, 统计={stats}")
     _log_task_execution("sync_and_ingest", stats)
+    record_task_result("sync_and_ingest", stats["errors"] == 0)
     return stats
 
 
@@ -125,6 +127,7 @@ def cleanup_task():
     logger.info("定时任务开始: cleanup")
     mysql = MySQLClient()
     stats = {"cleaned": 0}
+    success = True
     try:
         mysql.delete_work_orders_by_status(["imported", "rejected"])
         stats["cleaned"] = 1
@@ -132,8 +135,22 @@ def cleanup_task():
     except Exception as e:
         logger.error(f"清理任务失败: {e}")
         stats["cleaned"] = 0
+        success = False
     _log_task_execution("cleanup", stats)
+    record_task_result("cleanup", success)
     return stats
+
+
+def alert_check_task():
+    logger.info("定时任务开始: alert_check")
+    try:
+        from alert.checker import check_alerts
+        triggered = check_alerts()
+        logger.info(f"告警检查完成, 触发{triggered}条告警")
+        return {"triggered": triggered}
+    except Exception as e:
+        logger.error(f"告警检查失败: {e}")
+        return {"triggered": 0, "error": str(e)}
 
 
 def _log_task_execution(task_name: str, stats: dict):

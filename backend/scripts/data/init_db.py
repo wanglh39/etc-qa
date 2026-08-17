@@ -226,6 +226,22 @@ def init_mysql():
     """)
     conn.commit()
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS alert_events (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            rule_id VARCHAR(50) NOT NULL,
+            severity VARCHAR(10) NOT NULL,
+            message TEXT,
+            current_value FLOAT,
+            threshold_value FLOAT,
+            status VARCHAR(20) NOT NULL DEFAULT 'open',
+            acked_by VARCHAR(50),
+            acked_at DATETIME,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """)
+    conn.commit()
+
     from utils.password import hash_password
     default_pwd_hash = hash_password("123456")
     cursor.executemany(

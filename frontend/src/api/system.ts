@@ -216,3 +216,35 @@ export function getSchedulerLogs(params: { page?: number; page_size?: number }) 
   return request.get<SchedulerLogResponse>('/scheduler/logs', { params }).then((r) => r.data)
 }
 
+export interface AlertEventItem {
+  id: number
+  rule_id: string
+  severity: string
+  message: string
+  current_value: number
+  threshold_value: number
+  status: string
+  acked_by: string | null
+  acked_at: string | null
+  created_at: string
+}
+
+export interface AlertListResponse {
+  items: AlertEventItem[]
+  total: number
+  page: number
+  page_size: number
+}
+
+export function getAlertList(params: { page?: number; page_size?: number; status?: string; severity?: string }) {
+  return request.get<AlertListResponse>('/alerts', { params }).then((r) => r.data)
+}
+
+export function ackAlert(alertId: number) {
+  return request.put(`/alerts/${alertId}/ack`).then((r) => r.data)
+}
+
+export function getAlertMetrics() {
+  return request.get<Record<string, any>>('/alerts/metrics').then((r) => r.data)
+}
+

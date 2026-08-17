@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import type { WorkUser, PendingAuditItem, CategoryItem, KnowledgeItem } from '@/types'
+import { useAuthStore } from '@/stores/auth'
 
 // Mock 模拟数据
 export const mockUserList: WorkUser[] = [
@@ -49,9 +50,9 @@ const service = axios.create({
 })
 
 service.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+  const authStore = useAuthStore()
+  if (authStore.token) {
+    config.headers.Authorization = `Bearer ${authStore.token}`
   }
   return config
 })
@@ -59,14 +60,24 @@ service.interceptors.request.use((config) => {
 service.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
-      sessionStorage.removeItem('token')
-      sessionStorage.removeItem('userRole')
-      sessionStorage.removeItem('userDept')
+    const status = err.response?.status
+    const detail = err.response?.data?.detail
+    if (status === 401) {
+      const authStore = useAuthStore()
+      authStore.clearAuth()
+      ElMessage.warning('登录已失效，请重新登录')
       window.location.href = '/login'
       return Promise.reject(err)
     }
-    ElMessage.error(err.response?.data?.detail || '操作请求出错')
+    if (status === 403) {
+      ElMessage.error(detail || '权限不足，无法执行此操作')
+      return Promise.reject(err)
+    }
+    if (status && status >= 500) {
+      ElMessage.error(detail || '服务器内部错误，请稍后重试')
+      return Promise.reject(err)
+    }
+    ElMessage.error(detail || '操作请求出错')
     return Promise.reject(err)
   }
 )

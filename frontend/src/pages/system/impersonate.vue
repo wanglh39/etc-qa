@@ -51,8 +51,10 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Setting, Monitor, Service, Ticket } from '@element-plus/icons-vue'
 import { impersonate } from '@/api/auth'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const loading = ref('')
 
 const targets = [
@@ -66,11 +68,7 @@ const doImpersonate = async (targetRole: string) => {
   loading.value = targetRole
   try {
     const res = await impersonate(targetRole)
-    sessionStorage.setItem('impersonator_token', sessionStorage.getItem('token') ?? '')
-    sessionStorage.setItem('impersonator_role', 'superadmin')
-    sessionStorage.setItem('token', res.access_token)
-    sessionStorage.setItem('userRole', res.role)
-    sessionStorage.setItem('userName', res.username)
+    authStore.startImpersonation(res.access_token, res.role, res.dept, res.username)
     ElMessage.success(`已切换为${targets.find(t => t.role === targetRole)?.label}身份`)
     router.replace(targets.find(t => t.role === targetRole)?.home ?? '/')
   } catch (e: any) {

@@ -40,8 +40,10 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { login as loginApi } from '@/api/auth'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const loginFormRef = ref<FormInstance>()
 const loading = ref(false)
 
@@ -72,9 +74,7 @@ const handleLogin = async () => {
       password: loginForm.password
     })
 
-    sessionStorage.setItem('token', res.access_token)
-    sessionStorage.setItem('userRole', res.role)
-    sessionStorage.setItem('userDept', res.dept)
+    authStore.setAuth(res.access_token, res.role, res.dept, loginForm.username)
 
     ElMessage.success('登录成功')
 

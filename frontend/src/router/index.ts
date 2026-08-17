@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useAuthStore } from '@/stores/auth'
 
 const Layout = () => import('@/components/layout/Layout.vue')
 
@@ -140,8 +141,8 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'dept/handle',
         redirect: () => {
-          const userDept = sessionStorage.getItem('userDept') || 'aftersale'
-          return `/dept/handle/${userDept}`
+          const authStore = useAuthStore()
+          return `/dept/handle/${authStore.dept || 'aftersale'}`
         }
       },
       // 统一动态路由：通过 :deptCode 捕获部门参数，所有部门共用页面
@@ -202,6 +203,7 @@ const router = createRouter({
 
 // 角色 → 默认首页
 function getDefaultPath(role: string): string {
+  const authStore = useAuthStore()
   switch (role) {
     case 'superadmin':
       return '/workbench/admin/account'
@@ -212,7 +214,7 @@ function getDefaultPath(role: string): string {
     case 'service':
       return DEFAULT_SERVICE_PATH
     case 'dept':
-      return `/dept/handle/${sessionStorage.getItem('userDept') || 'aftersale'}`
+      return `/dept/handle/${authStore.dept || 'aftersale'}`
     default:
       return '/login'
   }
@@ -222,8 +224,9 @@ function getDefaultPath(role: string): string {
 let tokenVerified = false
 
 router.beforeEach(async (to, from, next) => {
-  const token = sessionStorage.getItem('token')
-  const role = sessionStorage.getItem('userRole')
+  const authStore = useAuthStore()
+  const token = authStore.token
+  const role = authStore.role
 
   // 去登录页时重置验证标志
   if (to.path === '/login') {
@@ -241,13 +244,13 @@ router.beforeEach(async (to, from, next) => {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]))
     if (payload.exp && payload.exp * 1000 < Date.now()) {
-      sessionStorage.clear()
+      authStore.clearAuth()
       tokenVerified = false
       ElMessage.warning('登录已过期，请重新登录')
       return next('/login')
     }
   } catch {
-    sessionStorage.clear()
+    authStore.clearAuth()
     tokenVerified = false
     ElMessage.warning('登录信息异常，请重新登录')
     return next('/login')
@@ -260,14 +263,14 @@ router.beforeEach(async (to, from, next) => {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (!res.ok) {
-        sessionStorage.clear()
+        authStore.clearAuth()
         tokenVerified = false
         ElMessage.warning('登录信息已失效，请重新登录')
         return next('/login')
       }
       tokenVerified = true
     } catch {
-      sessionStorage.clear()
+      authStore.clearAuth()
       tokenVerified = false
       ElMessage.warning('无法连接服务器，请重新登录')
       return next('/login')
@@ -276,7 +279,7 @@ router.beforeEach(async (to, from, next) => {
 
   // 已登录但角色信息缺失（数据异常）→ 清理并重新登录
   if (token && !role) {
-    sessionStorage.clear()
+    authStore.clearAuth()
     tokenVerified = false
     ElMessage.warning('登录信息已失效，请重新登录')
     return next('/login')

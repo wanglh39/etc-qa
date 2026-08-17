@@ -101,7 +101,7 @@
       <!-- 顶部导航栏 -->
       <el-header class="header-bar">
         <div class="header-left">
-          <!-- 可以在这里放面包屑或其他内容 -->
+          <BreadCrumb />
         </div>
         <div class="header-right">
           <el-dropdown @command="handleCommand">
@@ -121,7 +121,7 @@
       <!-- 主体内容区 -->
       <el-main class="main-content">
         <!-- 模拟登录提示栏 -->
-        <div v-if="isImpersonating" class="impersonate-banner">
+        <div v-if="authStore.isImpersonating" class="impersonate-banner">
           <el-icon><WarningFilled /></el-icon>
           <span>您正在以【{{ roleText }}】身份查看，操作会记录到日志</span>
           <el-button type="danger" size="small" @click="exitImpersonate">退出模拟</el-button>
@@ -145,65 +145,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Setting, DataLine, Ticket, Monitor, Money, ArrowLeft, Service, Document, UserFilled, WarningFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useAuthStore } from '@/stores/auth'
+import BreadCrumb from '@/components/BreadCrumb.vue'
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
 
-// 获取当前用户信息
-const currentRole = ref(sessionStorage.getItem('userRole') ?? '')
-const userName = ref(sessionStorage.getItem('userName') ?? 'User')
-
-// 监听路由变化，更新角色状态（防止手动修改sessionStorage后不刷新）
-watch(() => sessionStorage.getItem('userRole'), (newVal) => {
-  currentRole.value = newVal ?? ''
-})
-
-// 根据角色返回对应的中文名称
-const roleText = computed(() => {
-  switch (currentRole.value) {
-    case 'admin': return '业务管理员'
-    case 'superadmin': return '超级管理员'
-    case 'ops': return '运维工程师'
-    case 'service': return '客服'
-    case 'dept': return '部门处理员'
-    default: return '未知账号'
-  }
-})
-
-// 模拟登录状态
-const isImpersonating = computed(() => !!sessionStorage.getItem('impersonator_token'))
+const currentRole = computed(() => authStore.role)
+const roleText = computed(() => authStore.roleText)
 
 const exitImpersonate = () => {
-  const origToken = sessionStorage.getItem('impersonator_token')
-  const origRole = sessionStorage.getItem('impersonator_role')
-  if (origToken) {
-    sessionStorage.setItem('token', origToken)
-    sessionStorage.setItem('userRole', origRole ?? 'superadmin')
-    sessionStorage.removeItem('impersonator_token')
-    sessionStorage.removeItem('impersonator_role')
-    currentRole.value = origRole ?? 'superadmin'
-    ElMessage.success('已退出模拟，返回超管身份')
-    router.replace('/workbench/admin/account')
-  }
+  authStore.exitImpersonation()
+  ElMessage.success('已退出模拟，返回超管身份')
+  router.replace('/workbench/admin/account')
 }
 
-// 判断是否显示返回按钮
 const showBackBtn = computed(() => {
   const homePaths = ['/service', '/workbench/admin/auditList', '/workbench/admin/dashboard', '/workbench/admin/account', '/workbench/admin/status', '/dept/handle/aftersale', '/dept/handle/ops', '/dept/handle/finance']
   return !homePaths.includes(route.path)
 })
 
-// 返回上一页逻辑
 const goBack = () => {
   if (window.history.length > 1) {
     router.back()
   } else {
-    // 兜底逻辑
-    if (currentRole.value === 'admin') router.push('/workbench/admin/auditList')
+    if (currentRole.value === 'admin') router.push('/workbench/admin/dashboard')
     else if (currentRole.value === 'ops') router.push('/workbench/admin/status')
     else if (currentRole.value === 'superadmin') router.push('/workbench/admin/account')
     else if (currentRole.value === 'service') router.push('/service')
@@ -211,10 +182,9 @@ const goBack = () => {
   }
 }
 
-// 退出登录
 const handleCommand = (command: string) => {
   if (command === 'logout') {
-    sessionStorage.clear()
+    authStore.clearAuth()
     router.replace('/login')
     ElMessage.success('已退出登录')
   }

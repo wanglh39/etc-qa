@@ -1,113 +1,183 @@
 <template>
-  <el-card class="service-workbench">
-    <!-- 搜索区 -->
-    <div class="search-section">
-      <el-input
-        v-model="searchText"
-        type="textarea"
-        :rows="3"
-        resize="none"
-        placeholder="输入或粘贴客户问题（对话记录请先总结为标准问题）"
-      />
-      <div class="button-row">
-        <el-button
-          :icon="Microphone"
-          circle
-          size="large"
-          :type="asr.isRecording.value ? 'danger' : 'default'"
-          @click="toggleRecording"
-          :title="asr.isRecording.value ? '停止录音' : '语音转文字'"
-        />
-        <el-button type="danger" size="large" @click="openCreateDialog">创建工单</el-button>
-        <el-button type="primary" size="large" :loading="searching" @click="handleSearch">搜索</el-button>
-        <el-button size="large" @click="clearAll" :disabled="asr.isRecording.value">清空</el-button>
+  <div class="service-workbench">
+    <!-- 左栏：辅助面板 -->
+    <div class="left-panel">
+      <!-- 快捷话术模板 -->
+      <div class="panel-section">
+        <div class="panel-title">
+          <el-icon><ChatDotRound /></el-icon>
+          快捷话术
+        </div>
+        <el-collapse v-model="activeReplyGroups">
+          <el-collapse-item v-for="group in quickReplyGroups" :key="group.title" :title="group.title" :name="group.title">
+            <div
+              v-for="(msg, i) in group.items"
+              :key="i"
+              class="reply-item"
+              @click="insertReply(msg)"
+            >
+              {{ msg }}
+            </div>
+          </el-collapse-item>
+        </el-collapse>
       </div>
-    </div>
 
-    <!-- 实时识别区 -->
-    <div v-if="asr.isRecording.value || asr.fullText.value" class="asr-section">
-      <div class="asr-header">
-        <span class="asr-title">
-          <el-tag v-if="asr.isRecording.value" type="danger" size="small" effect="dark">录音中</el-tag>
-          实时语音识别
-        </span>
-        <el-tag size="small" type="info">{{ asr.asrState.value }}</el-tag>
-      </div>
-      <div class="asr-text">
-        <span class="asr-full">{{ asr.fullText.value }}</span>
-        <span class="asr-partial">{{ asr.partialText.value }}</span>
-      </div>
-      <div v-if="asr.errorMsg.value" class="asr-error">{{ asr.errorMsg.value }}</div>
-    </div>
-
-    <!-- 空状态 -->
-    <div v-if="!searched" class="empty-state">
-      <el-empty description="输入客户问题，搜索匹配的标准回复话术" />
-    </div>
-
-    <!-- 结果区 -->
-    <div v-if="searched" class="result-section">
-      <!-- 最终回复区（搜索框下方、候选上方） -->
-      <div class="reply-area">
-        <div class="reply-header">
-          <span class="reply-title">{{ hasCandidates ? '最终答复' : '无匹配结果' }}</span>
+      <!-- 知识库分类 -->
+      <div class="panel-section">
+        <div class="panel-title">
+          <el-icon><Files /></el-icon>
+          知识库分类
         </div>
         <el-input
-          v-if="hasCandidates"
-          v-model="finalReply"
-          type="textarea"
-          :rows="5"
-          placeholder="勾选候选答案后自动填充，可自行修改"
+          v-model="categoryFilter"
+          placeholder="搜索分类"
+          size="small"
+          clearable
+          style="margin-bottom: 8px"
         />
-        <el-empty
-          v-else
-          description="未检索到匹配结果，可创建工单流转到对应部门处理"
-          :image-size="80"
+        <el-tree
+          :data="categoryTree"
+          :props="{ label: 'label', children: 'children' }"
+          :filter-node-method="filterCategoryNode"
+          ref="categoryTreeRef"
+          node-key="label"
+          highlight-current
+          @node-click="onCategoryClick"
+          style="background: transparent"
         />
-      </div>
-
-      <!-- 检索信息 -->
-      <div v-if="hasCandidates" class="meta-row">
-        <div class="std-query">
-          <span class="label">标准化问题：</span>
-          <span>{{ queryResult.standardized_query || queryResult.query }}</span>
-        </div>
-        <div class="confidence-tag">
-          置信度：
-          <el-tag :type="confidenceType" size="small">{{ confidenceText }}</el-tag>
-        </div>
-      </div>
-
-      <!-- 候选卡片（可多选） -->
-      <div v-if="hasCandidates" class="candidate-list">
-        <div
-          v-for="(item, idx) in queryResult.candidates"
-          :key="item.qa_id"
-          class="candidate-card"
-          :class="{ selected: isSelected(item.qa_id) }"
-        >
-          <div class="card-header">
-            <el-button
-              size="small"
-              :type="isSelected(item.qa_id) ? 'primary' : 'default'"
-              @click="toggleSelect(item)"
-            >
-              {{ isSelected(item.qa_id) ? '已选' : '选择' }}
-            </el-button>
-            <span class="card-rank">#{{ idx + 1 }}</span>
-            <span class="card-category" v-if="item.category_l1">
-              {{ item.category_l1 }}{{ item.category_l2 ? ' / ' + item.category_l2 : '' }}
-            </span>
-            <span class="card-score" :style="{ color: scoreColor(item.score) }">
-              {{ (item.score * 100).toFixed(1) }}%
-            </span>
-          </div>
-          <div class="card-question">{{ item.question }}</div>
-          <div class="card-answer">{{ item.answer }}</div>
-        </div>
+        <el-button v-if="selectedCategory" size="small" text type="primary" @click="clearCategoryFilter" style="margin-top: 8px">
+          清除分类筛选
+        </el-button>
       </div>
     </div>
-  </el-card>
+
+    <!-- 主区：工作台 -->
+    <div class="main-area">
+      <el-card>
+        <!-- 搜索区 -->
+        <div class="search-section">
+          <el-input
+            v-model="searchText"
+            type="textarea"
+            :rows="3"
+            resize="none"
+            placeholder="输入或粘贴客户问题（Enter搜索，对话记录请先总结为标准问题）"
+            @keydown.enter.exact.prevent="handleSearch"
+          />
+          <div class="button-row">
+            <el-button
+              :icon="Microphone"
+              circle
+              size="large"
+              :type="asr.isRecording.value ? 'danger' : 'default'"
+              @click="toggleRecording"
+              :title="asr.isRecording.value ? '停止录音' : '语音转文字'"
+            />
+            <el-button type="danger" size="large" @click="openCreateDialog">创建工单</el-button>
+            <el-button type="primary" size="large" :loading="searching" @click="handleSearch">搜索</el-button>
+            <el-button size="large" @click="clearAll" :disabled="asr.isRecording.value">清空</el-button>
+          </div>
+          <div v-if="selectedCategory" class="category-hint">
+            <el-tag type="warning" closable @close="clearCategoryFilter">
+              分类筛选: {{ selectedCategory }}
+            </el-tag>
+          </div>
+        </div>
+
+        <!-- 实时识别区 -->
+        <div v-if="asr.isRecording.value || asr.fullText.value" class="asr-section">
+          <div class="asr-header">
+            <span class="asr-title">
+              <el-tag v-if="asr.isRecording.value" type="danger" size="small" effect="dark">录音中</el-tag>
+              实时语音识别
+            </span>
+            <el-tag size="small" type="info">{{ asr.asrState.value }}</el-tag>
+          </div>
+          <div class="asr-text">
+            <span class="asr-full">{{ asr.fullText.value }}</span>
+            <span class="asr-partial">{{ asr.partialText.value }}</span>
+          </div>
+          <div v-if="asr.errorMsg.value" class="asr-error">{{ asr.errorMsg.value }}</div>
+        </div>
+
+        <!-- 空状态 -->
+        <div v-if="!searched" class="empty-state">
+          <el-empty description="输入客户问题，搜索匹配的标准回复话术" />
+        </div>
+
+        <!-- 结果区 -->
+        <div v-if="searched" class="result-section">
+          <!-- 最终回复区 -->
+          <div class="reply-area">
+            <div class="reply-header">
+              <span class="reply-title">{{ hasCandidates ? '最终答复' : '无匹配结果' }}</span>
+              <el-button v-if="hasCandidates && finalReply" size="small" type="primary" plain @click="copyToClipboard(finalReply)">
+                <el-icon style="margin-right: 4px"><CopyDocument /></el-icon>
+                复制答复
+              </el-button>
+            </div>
+            <el-input
+              v-if="hasCandidates"
+              v-model="finalReply"
+              type="textarea"
+              :rows="5"
+              placeholder="勾选候选答案后自动填充，可自行修改"
+            />
+            <el-empty
+              v-else
+              description="未检索到匹配结果，可创建工单流转到对应部门处理"
+              :image-size="80"
+            />
+          </div>
+
+          <!-- 检索信息 -->
+          <div v-if="hasCandidates" class="meta-row">
+            <div class="std-query">
+              <span class="label">标准化问题：</span>
+              <span>{{ queryResult.standardized_query || queryResult.query }}</span>
+            </div>
+            <div class="confidence-tag">
+              置信度：
+              <el-tag :type="confidenceType" size="small">{{ confidenceText }}</el-tag>
+            </div>
+          </div>
+
+          <!-- 候选卡片 -->
+          <div v-if="hasCandidates" class="candidate-list">
+            <div
+              v-for="(item, idx) in queryResult.candidates"
+              :key="item.qa_id"
+              class="candidate-card"
+              :class="{ selected: isSelected(item.qa_id) }"
+            >
+              <div class="card-header">
+                <el-button
+                  size="small"
+                  :type="isSelected(item.qa_id) ? 'primary' : 'default'"
+                  @click="toggleSelect(item)"
+                >
+                  {{ isSelected(item.qa_id) ? '已选' : '选择' }}
+                </el-button>
+                <el-button size="small" text @click="copyToClipboard(item.answer)">
+                  <el-icon><CopyDocument /></el-icon>
+                  复制
+                </el-button>
+                <span class="card-rank">#{{ idx + 1 }}</span>
+                <span class="card-category" v-if="item.category_l1">
+                  {{ item.category_l1 }}{{ item.category_l2 ? ' / ' + item.category_l2 : '' }}
+                </span>
+                <span class="card-score" :style="{ color: scoreColor(item.score) }">
+                  {{ (item.score * 100).toFixed(1) }}%
+                </span>
+              </div>
+              <div class="card-question">{{ item.question }}</div>
+              <div class="card-answer">{{ item.answer }}</div>
+            </div>
+          </div>
+        </div>
+      </el-card>
+    </div>
+  </div>
 
   <!-- 工单弹窗 -->
   <el-dialog v-model="dialogVisible" title="创建 CRM 工单" width="640px" destroy-on-close>
@@ -146,23 +216,150 @@
         </el-radio-group>
       </el-form-item>
       <el-form-item label="问题描述" prop="detail_desc">
-        <el-input v-model="workForm.detail_desc" type="textarea" :rows="4" placeholder="完整记录客户诉求、沟通情况" />
+        <el-input
+          v-model="workForm.detail_desc"
+          type="textarea"
+          :rows="4"
+          placeholder="完整记录客户诉求、沟通情况"
+          @keydown.ctrl.enter.prevent="submitWorkOrder"
+        />
       </el-form-item>
     </el-form>
     <template #footer>
       <el-button @click="dialogVisible = false">取消</el-button>
-      <el-button type="primary" :loading="submitting" @click="submitWorkOrder">提交工单</el-button>
+      <el-button type="primary" :loading="submitting" @click="submitWorkOrder">提交工单 (Ctrl+Enter)</el-button>
     </template>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { Microphone } from '@element-plus/icons-vue'
+import { Microphone, CopyDocument, ChatDotRound, Files } from '@element-plus/icons-vue'
 import { queryQA, type QueryResponse, type CandidateResult } from '@/api/workbench'
 import { createWorkOrder } from '@/api/workorder'
+import { getCategories } from '@/api/knowledge'
 import { useStreamingASR } from '@/composables/useStreamingASR'
+
+// ===== 快捷话术模板 =====
+const quickReplyGroups = [
+  {
+    title: '感谢语',
+    items: [
+      '感谢您的来电，请问还有其他可以帮到您的吗？',
+      '感谢您的耐心等待，给您带来不便敬请谅解',
+      '感谢您的配合，祝您生活愉快',
+    ]
+  },
+  {
+    title: '安抚语',
+    items: [
+      '非常抱歉给您带来不便，我马上为您处理',
+      '请您不要着急，我帮您核实一下具体情况',
+      '理解您的心情，我们会尽快为您解决此问题',
+    ]
+  },
+  {
+    title: '引导语',
+    items: [
+      '请问您方便提供一下订单号吗？',
+      '请您详细描述一下遇到的问题，我好为您查询',
+      '建议您先尝试重新登录，看问题是否解决',
+    ]
+  },
+  {
+    title: '结束语',
+    items: [
+      '如有其他问题随时欢迎致电，感谢您的来电',
+      '已为您记录问题，后续有进展会第一时间通知您',
+      '请您保持手机畅通，工作人员会尽快联系您',
+    ]
+  },
+]
+const activeReplyGroups = ref(['感谢语'])
+
+const insertReply = (msg: string) => {
+  if (finalReply.value) {
+    finalReply.value += '\n\n' + msg
+  } else {
+    finalReply.value = msg
+  }
+  ElMessage.success('已插入话术')
+}
+
+// ===== 知识库分类 =====
+interface CategoryNode {
+  label: string
+  children?: CategoryNode[]
+}
+const categoryTree = ref<CategoryNode[]>([])
+const categoryFilter = ref('')
+const selectedCategory = ref('')
+const categoryTreeRef = ref()
+
+const loadCategories = async () => {
+  try {
+    const res = await getCategories()
+    const cats = (res as any).categories || res || []
+    const tree: CategoryNode[] = []
+    const map = new Map<string, CategoryNode>()
+    for (const c of cats) {
+      const label = c.label || c.name || c.category_l1
+      if (!label) continue
+      if (c.parent_id == null || c.parent_id === 0) {
+        const node: CategoryNode = { label, children: [] }
+        map.set(c.id ?? label, node)
+        tree.push(node)
+      }
+    }
+    for (const c of cats) {
+      const label = c.label || c.name || c.category_l2
+      if (!label) continue
+      if (c.parent_id != null && c.parent_id !== 0) {
+        const parent = map.get(c.parent_id)
+        if (parent) {
+          parent.children!.push({ label })
+        }
+      }
+    }
+    categoryTree.value = tree.length > 0 ? tree : cats.map((c: any) => ({ label: c.label || c.name || String(c) }))
+  } catch {
+    categoryTree.value = []
+  }
+}
+
+watch(categoryFilter, (val) => {
+  categoryTreeRef.value?.filter(val)
+})
+
+const filterCategoryNode = (value: string, data: CategoryNode) => {
+  if (!value) return true
+  return data.label.includes(value)
+}
+
+const onCategoryClick = (node: CategoryNode) => {
+  selectedCategory.value = node.label
+  if (searchText.value.trim()) {
+    handleSearch()
+  }
+}
+
+const clearCategoryFilter = () => {
+  selectedCategory.value = ''
+  if (searchText.value.trim()) {
+    handleSearch()
+  }
+}
+
+// ===== 复制到剪贴板 =====
+const copyToClipboard = async (text: string) => {
+  try {
+    await navigator.clipboard.writeText(text)
+    ElMessage.success('已复制到剪贴板')
+  } catch {
+    ElMessage.error('复制失败，请手动选择复制')
+  }
+}
 
 // ===== 输入 & 检索 =====
 const searchText = ref('')
@@ -288,7 +485,10 @@ const handleSearch = async () => {
   }
   searching.value = true
   try {
-    const res = await queryQA({ question: q })
+    const res = await queryQA({
+      question: q,
+      category_l1: selectedCategory.value || undefined
+    } as any)
     queryResult.value = res
     selectedIds.value = []
     finalReply.value = ''
@@ -362,10 +562,63 @@ const submitWorkOrder = async () => {
     submitting.value = false
   }
 }
+
+onMounted(() => {
+  loadCategories()
+})
 </script>
 
 <style scoped>
-.service-workbench :deep(.el-card__body) {
+.service-workbench {
+  display: flex;
+  gap: 16px;
+  height: 100%;
+}
+
+/* 左栏 */
+.left-panel {
+  width: 240px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+.panel-section {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #ebeef5;
+}
+.panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.reply-item {
+  padding: 6px 8px;
+  font-size: 13px;
+  color: #606266;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 1.5;
+}
+.reply-item:hover {
+  background: #ecf5ff;
+  color: #409eff;
+}
+
+/* 主区 */
+.main-area {
+  flex: 1;
+  overflow-y: auto;
+}
+.main-area :deep(.el-card__body) {
   padding: 24px;
 }
 
@@ -378,6 +631,9 @@ const submitWorkOrder = async () => {
   gap: 12px;
   justify-content: flex-end;
   margin-top: 16px;
+}
+.category-hint {
+  margin-top: 8px;
 }
 
 /* 实时识别区 */
@@ -490,7 +746,7 @@ const submitWorkOrder = async () => {
 .card-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   margin-bottom: 10px;
 }
 .card-rank {

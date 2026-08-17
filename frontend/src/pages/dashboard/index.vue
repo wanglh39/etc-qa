@@ -100,8 +100,10 @@ import * as echarts from 'echarts'
 import { Message, Tickets, User, Document } from '@element-plus/icons-vue'
 import StatisticCard from '@/components/StatisticCard.vue'
 import { getStats, getStatsTrend, type StatsResponse, type TrendResponse } from '@/api/dashboard'
+import { useAuthStore } from '@/stores/auth'
 
-const currentRole = sessionStorage.getItem('userRole') ?? ''
+const authStore = useAuthStore()
+const currentRole = authStore.role
 const days = ref(7)
 
 const stats = ref<StatsResponse>({

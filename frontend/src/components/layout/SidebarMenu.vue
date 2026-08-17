@@ -44,9 +44,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 // 1. 定义菜单项的接口类型，解决 TS 报错
 interface MenuItem extends Omit<RouteRecordRaw, 'children'> {
@@ -60,10 +61,10 @@ interface MenuItem extends Omit<RouteRecordRaw, 'children'> {
 }
 
 const router = useRouter()
+const authStore = useAuthStore()
 
-// 获取本地存储的角色和部门信息
-const userRole = ref(sessionStorage.getItem('userRole') || '')
-const userDept = ref(sessionStorage.getItem('userDept') || '')
+const userRole = computed(() => authStore.role)
+const userDept = computed(() => authStore.dept)
 
 // 定义部门映射配置
 const DEPT_CONFIG = [

@@ -1,13 +1,26 @@
 <template>
   <div style="padding:16px">
+    <!-- 时间范围选择器 + 刷新 -->
+    <div class="dashboard-header">
+      <el-radio-group v-model="days" @change="loadTrend">
+        <el-radio-button :value="7">近7天</el-radio-button>
+        <el-radio-button :value="30">近30天</el-radio-button>
+        <el-radio-button :value="90">近90天</el-radio-button>
+      </el-radio-group>
+      <el-button type="primary" plain @click="loadAll">刷新</el-button>
+    </div>
+
+    <!-- KPI卡片 -->
     <el-row :gutter="16" class="mb-4">
       <el-col :span="6">
         <StatisticCard
           title="知识库总数"
           :value="stats.qa_total"
-          desc="已激活"
+          :desc="`本期新增 ${trendSummary.qaNew} 条`"
           :icon="Message"
           icon-color="#409EFF"
+          :sparkline="trendData.qa_new_counts"
+          :to="currentRole === 'admin' ? '/workbench/admin/knowledge' : undefined"
         />
       </el-col>
       <el-col :span="6">
@@ -17,36 +30,64 @@
           desc="可用知识条目"
           :icon="Tickets"
           icon-color="#67C23A"
+          :growth="growthRate(stats.qa_active, stats.qa_active - trendSummary.qaNew)"
+          :progress="{ current: stats.qa_active, total: stats.qa_total }"
+          :to="currentRole === 'admin' ? '/workbench/admin/knowledge' : undefined"
         />
       </el-col>
       <el-col :span="6">
         <StatisticCard
           title="待审核知识"
           :value="stats.qa_deprecated"
-          desc="需及时处理"
+          :desc="stats.qa_deprecated > 10 ? '积压较多，请尽快处理' : '需及时处理'"
           :icon="User"
           icon-color="#E6A23C"
+          :alert="stats.qa_deprecated > 10"
+          :to="currentRole === 'admin' ? '/workbench/admin/auditList' : undefined"
         />
       </el-col>
       <el-col :span="6">
         <StatisticCard
           title="工单总数"
           :value="stats.work_order_total"
-          desc="已处理"
+          :desc="`待处理 ${stats.work_order_submitted} 个`"
           :icon="Document"
           icon-color="#F56C6C"
+          :growth="growthRate(stats.work_order_total, stats.work_order_total - trendSummary.woNew)"
+          :sparkline="trendData.work_order_counts"
+          :progress="{ current: stats.work_order_processed, total: stats.work_order_total }"
         />
       </el-col>
     </el-row>
-    <el-row :gutter="16">
+
+    <!-- 趋势图 + 分类占比 -->
+    <el-row :gutter="16" class="mb-4">
       <el-col :span="12">
-        <el-card title="每日咨询趋势">
+        <el-card>
+          <template #header>每日咨询趋势</template>
           <div ref="lineRef" style="height:300px"></div>
         </el-card>
       </el-col>
       <el-col :span="12">
-        <el-card title="问题分类占比">
+        <el-card>
+          <template #header>问题分类占比</template>
           <div ref="pieRef" style="height:300px"></div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 分布图 -->
+    <el-row :gutter="16">
+      <el-col :span="12">
+        <el-card>
+          <template #header>工单状态分布</template>
+          <div ref="woStatusRef" style="height:280px"></div>
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card>
+          <template #header>知识库状态分布</template>
+          <div ref="qaStatusRef" style="height:280px"></div>
         </el-card>
       </el-col>
     </el-row>
@@ -58,7 +99,10 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
 import { Message, Tickets, User, Document } from '@element-plus/icons-vue'
 import StatisticCard from '@/components/StatisticCard.vue'
-import { getStats, getStatsTrend, type StatsResponse } from '@/api/dashboard'
+import { getStats, getStatsTrend, type StatsResponse, type TrendResponse } from '@/api/dashboard'
+
+const currentRole = sessionStorage.getItem('userRole') ?? ''
+const days = ref(7)
 
 const stats = ref<StatsResponse>({
   qa_total: 0,
@@ -71,66 +115,166 @@ const stats = ref<StatsResponse>({
   category_stats: {}
 })
 
+const trendData = ref<TrendResponse>({ dates: [], work_order_counts: [], qa_new_counts: [] })
+const trendSummary = ref({ qaNew: 0, woNew: 0 })
+
 let lineChart: echarts.ECharts | null = null
 let pieChart: echarts.ECharts | null = null
+let woStatusChart: echarts.ECharts | null = null
+let qaStatusChart: echarts.ECharts | null = null
 const lineRef = ref<HTMLDivElement>()
 const pieRef = ref<HTMLDivElement>()
+const woStatusRef = ref<HTMLDivElement>()
+const qaStatusRef = ref<HTMLDivElement>()
 
-const renderLine = (dates: string[] = [], workOrderCounts: number[] = [], qaNewCounts: number[] = []) => {
-  lineChart = echarts.init(lineRef.value!)
+const growthRate = (current: number, previous: number): number | undefined => {
+  if (previous === 0) return undefined
+  return Math.round(((current - previous) / previous) * 100)
+}
+
+const renderLine = () => {
+  if (!lineRef.value) return
+  if (!lineChart) lineChart = echarts.init(lineRef.value)
+  const empty = trendData.value.dates.length === 0
   lineChart.setOption({
     tooltip: { trigger: 'axis' },
-    legend: { data: ['每日咨询量', 'QA新增'] },
-    xAxis: { type: 'category', data: dates },
+    legend: { data: ['每日工单量', 'QA新增'] },
+    xAxis: { type: 'category', data: trendData.value.dates },
     yAxis: { type: 'value' },
     series: [
       {
         type: 'line',
-        name: '每日咨询量',
-        data: workOrderCounts,
+        name: '每日工单量',
+        data: trendData.value.work_order_counts,
         smooth: true,
-        areaStyle: { opacity: 0.1 }
+        areaStyle: { opacity: 0.1 },
+        itemStyle: { color: '#409EFF' }
       },
       {
         type: 'line',
         name: 'QA新增',
-        data: qaNewCounts,
-        smooth: true
+        data: trendData.value.qa_new_counts,
+        smooth: true,
+        itemStyle: { color: '#67C23A' }
       }
-    ]
+    ],
+    noDataLoadingOption: { text: empty ? '暂无数据' : '' }
   })
 }
 
 const renderPie = () => {
-  pieChart = echarts.init(pieRef.value!)
+  if (!pieRef.value) return
+  if (!pieChart) pieChart = echarts.init(pieRef.value)
   const pieData = Object.entries(stats.value.category_stats).map(([name, value]) => ({ name, value }))
   pieChart.setOption({
+    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+    legend: { bottom: 0, type: 'scroll' },
     series: [{
       type: 'pie',
-      radius: '60%',
-      data: pieData.length > 0 ? pieData : [{ name: '暂无数据', value: 1 }]
+      radius: ['35%', '60%'],
+      center: ['50%', '45%'],
+      data: pieData.length > 0 ? pieData : [{ name: '暂无数据', value: 1, itemStyle: { color: '#ccc' } }],
+      label: { formatter: '{b}\n{d}%' }
     }]
   })
 }
 
-onMounted(async () => {
+const renderWoStatus = () => {
+  if (!woStatusRef.value) return
+  if (!woStatusChart) woStatusChart = echarts.init(woStatusRef.value)
+  const s = stats.value
+  const data = [
+    { name: '待处理', value: s.work_order_submitted, itemStyle: { color: '#E6A23C' } },
+    { name: '已处理', value: s.work_order_processed, itemStyle: { color: '#409EFF' } },
+    { name: '其他', value: Math.max(0, s.work_order_total - s.work_order_submitted - s.work_order_processed), itemStyle: { color: '#909399' } }
+  ].filter(d => d.value > 0)
+  woStatusChart.setOption({
+    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+    legend: { bottom: 0 },
+    series: [{
+      type: 'pie',
+      radius: ['35%', '60%'],
+      center: ['50%', '45%'],
+      data: data.length > 0 ? data : [{ name: '暂无数据', value: 1, itemStyle: { color: '#ccc' } }],
+      label: { formatter: '{b}\n{d}%' }
+    }]
+  })
+}
+
+const renderQaStatus = () => {
+  if (!qaStatusRef.value) return
+  if (!qaStatusChart) qaStatusChart = echarts.init(qaStatusRef.value)
+  const s = stats.value
+  const data = [
+    { name: '已激活', value: s.qa_active, itemStyle: { color: '#67C23A' } },
+    { name: '待审核', value: s.qa_deprecated, itemStyle: { color: '#E6A23C' } },
+    { name: '已归档', value: s.qa_archived, itemStyle: { color: '#909399' } }
+  ].filter(d => d.value > 0)
+  qaStatusChart.setOption({
+    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+    legend: { bottom: 0 },
+    series: [{
+      type: 'pie',
+      radius: ['35%', '60%'],
+      center: ['50%', '45%'],
+      data: data.length > 0 ? data : [{ name: '暂无数据', value: 1, itemStyle: { color: '#ccc' } }],
+      label: { formatter: '{b}\n{d}%' }
+    }]
+  })
+}
+
+const loadStats = async () => {
   try {
     const res = await getStats()
     stats.value = res
   } catch {
-    // 加载失败时保持默认空饼图
+    // keep defaults
   }
   renderPie()
+  renderWoStatus()
+  renderQaStatus()
+}
+
+const loadTrend = async () => {
   try {
-    const trend = await getStatsTrend(7)
-    renderLine(trend.dates, trend.work_order_counts, trend.qa_new_counts)
+    const res = await getStatsTrend(days.value)
+    trendData.value = res
+    trendSummary.value = {
+      qaNew: res.qa_new_counts.reduce((a, b) => a + b, 0),
+      woNew: res.work_order_counts.reduce((a, b) => a + b, 0)
+    }
   } catch {
-    renderLine()
+    trendData.value = { dates: [], work_order_counts: [], qa_new_counts: [] }
+    trendSummary.value = { qaNew: 0, woNew: 0 }
   }
+  renderLine()
+}
+
+const loadAll = () => {
+  loadStats()
+  loadTrend()
+}
+
+onMounted(() => {
+  loadAll()
 })
 
 onUnmounted(() => {
   lineChart?.dispose()
   pieChart?.dispose()
+  woStatusChart?.dispose()
+  qaStatusChart?.dispose()
 })
 </script>
+
+<style scoped>
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.mb-4 {
+  margin-bottom: 16px;
+}
+</style>

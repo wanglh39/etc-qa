@@ -337,7 +337,7 @@ def search_qa(req: QASearchRequest):
                             page=result["page"], page_size=result["page_size"])
 
 
-@router.get("/stats", response_model=StatsResponse, dependencies=[Depends(require_role("admin", "superadmin"))])
+@router.get("/stats", response_model=StatsResponse, dependencies=[Depends(require_role("admin", "superadmin", "ops"))])
 def get_stats():
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -401,7 +401,7 @@ def audit_history(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, l
                                 page=result["page"], page_size=result["page_size"])
 
 
-@router.get("/stats/trend", response_model=TrendResponse, dependencies=[Depends(require_role("admin", "superadmin"))])
+@router.get("/stats/trend", response_model=TrendResponse, dependencies=[Depends(require_role("admin", "superadmin", "ops"))])
 def stats_trend(days: int = Query(7, ge=1, le=90)):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -752,14 +752,14 @@ def list_operations(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1,
     return OperationLogListResponse(items=items, total=result["total"], page=result["page"], page_size=result["page_size"])
 
 
-@router.get("/scheduler/status", dependencies=[Depends(require_role("admin", "superadmin"))])
+@router.get("/scheduler/status", dependencies=[Depends(require_role("admin", "superadmin", "ops"))])
 def get_scheduler_status():
     if scheduler_manager is None:
         raise HTTPException(status_code=500, detail="调度器未初始化")
     return scheduler_manager.get_status()
 
 
-@router.post("/scheduler/trigger/{job_id}", dependencies=[Depends(require_role("admin", "superadmin"))])
+@router.post("/scheduler/trigger/{job_id}", dependencies=[Depends(require_role("admin", "superadmin", "ops"))])
 def trigger_scheduler_job(job_id: str):
     if scheduler_manager is None:
         raise HTTPException(status_code=500, detail="调度器未初始化")
@@ -769,7 +769,7 @@ def trigger_scheduler_job(job_id: str):
     return result
 
 
-@router.put("/scheduler/config", dependencies=[Depends(require_role("superadmin"))])
+@router.put("/scheduler/config", dependencies=[Depends(require_role("superadmin", "ops"))])
 def update_scheduler_config(job_id: str = Query(...), hours: int = Query(None, ge=1), minutes: int = Query(None, ge=1)):
     if scheduler_manager is None:
         raise HTTPException(status_code=500, detail="调度器未初始化")
@@ -779,7 +779,7 @@ def update_scheduler_config(job_id: str = Query(...), hours: int = Query(None, g
     return result
 
 
-@router.get("/scheduler/logs", dependencies=[Depends(require_role("admin", "superadmin"))])
+@router.get("/scheduler/logs", dependencies=[Depends(require_role("admin", "superadmin", "ops"))])
 def get_scheduler_logs(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100)):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -792,7 +792,7 @@ def get_scheduler_logs(page: int = Query(1, ge=1), page_size: int = Query(20, ge
     }
 
 
-@router.get("/alerts", dependencies=[Depends(require_role("admin", "superadmin"))])
+@router.get("/alerts", dependencies=[Depends(require_role("admin", "superadmin", "ops"))])
 def list_alerts(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
                 status: str | None = None, severity: str | None = None):
     if mysql_client is None:
@@ -806,7 +806,7 @@ def list_alerts(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=
     }
 
 
-@router.put("/alerts/{alert_id}/ack", dependencies=[Depends(require_role("admin", "superadmin"))])
+@router.put("/alerts/{alert_id}/ack", dependencies=[Depends(require_role("admin", "superadmin", "ops"))])
 def ack_alert(alert_id: int, request: Request):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -825,10 +825,115 @@ def ack_alert(alert_id: int, request: Request):
     return {"message": "告警已确认", "alert_id": alert_id}
 
 
-@router.get("/alerts/metrics", dependencies=[Depends(require_role("admin", "superadmin"))])
+@router.get("/alerts/metrics", dependencies=[Depends(require_role("admin", "superadmin", "ops"))])
 def get_alert_metrics():
     from alert.monitor import get_all_metrics
     return get_all_metrics()
+
+
+@router.get("/system/status", dependencies=[Depends(require_role("superadmin", "ops"))])
+def get_system_status():
+    import time
+    components = []
+
+    components.append({"name": "API服务", "status": "healthy", "latency_ms": 0, "detail": "FastAPI运行中"})
+
+    try:
+        start = time.time()
+        conn = mysql_client._get_conn()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        cursor.fetchone()
+        cursor.close()
+        conn.close()
+        latency = round((time.time() - start) * 1000, 1)
+        components.append({"name": "MySQL", "status": "healthy", "latency_ms": latency, "detail": "连接正常"})
+    except Exception as e:
+        components.append({"name": "MySQL", "status": "unhealthy", "latency_ms": 0, "detail": str(e)[:100]})
+
+    try:
+        from db.milvus_client import MilvusQA
+        milvus = MilvusQA.get_instance()
+        if milvus and milvus.client:
+            start = time.time()
+            milvus.client.list_collections()
+            latency = round((time.time() - start) * 1000, 1)
+            components.append({"name": "Milvus", "status": "healthy", "latency_ms": latency, "detail": "连接正常"})
+        else:
+            components.append({"name": "Milvus", "status": "unknown", "latency_ms": 0, "detail": "未初始化"})
+    except Exception as e:
+        components.append({"name": "Milvus", "status": "unhealthy", "latency_ms": 0, "detail": str(e)[:100]})
+
+    if service is not None:
+        components.append({"name": "RAG服务", "status": "healthy", "latency_ms": 0, "detail": "QAService已加载"})
+    else:
+        components.append({"name": "RAG服务", "status": "unhealthy", "latency_ms": 0, "detail": "未初始化"})
+
+    try:
+        from asr.service import get_asr_service
+        asr = get_asr_service()
+        if asr and asr.model is not None:
+            components.append({"name": "ASR模型", "status": "healthy", "latency_ms": 0, "detail": "已加载"})
+        else:
+            components.append({"name": "ASR模型", "status": "standby", "latency_ms": 0, "detail": "未加载(按需启动)"})
+    except Exception:
+        components.append({"name": "ASR模型", "status": "standby", "latency_ms": 0, "detail": "未启用"})
+
+    if scheduler_manager is not None:
+        sched_status = scheduler_manager.get_status()
+        components.append({"name": "定时调度器", "status": "healthy" if sched_status.get("running") else "stopped",
+                           "latency_ms": 0, "detail": f"运行中{len(sched_status.get('jobs', []))}个任务" if sched_status.get("running") else "已停止"})
+    else:
+        components.append({"name": "定时调度器", "status": "unhealthy", "latency_ms": 0, "detail": "未初始化"})
+
+    try:
+        from alert.monitor import get_all_metrics
+        metrics = get_all_metrics()
+        active_alerts = 0
+        components.append({"name": "告警监控", "status": "healthy", "latency_ms": 0,
+                           "detail": f"监控{len(metrics)}项指标"})
+    except Exception:
+        components.append({"name": "告警监控", "status": "unhealthy", "latency_ms": 0, "detail": "异常"})
+
+    healthy_count = sum(1 for c in components if c["status"] == "healthy")
+    overall = "healthy" if healthy_count == len(components) else ("degraded" if healthy_count > 0 else "unhealthy")
+
+    return {"overall": overall, "components": components, "timestamp": datetime.now().isoformat()}
+
+
+@router.get("/system/logs", dependencies=[Depends(require_role("superadmin", "ops"))])
+def get_system_logs(lines: int = Query(100, ge=1, le=500), level: str = Query(None)):
+    log_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs", "etc_qa.log")
+    if not os.path.exists(log_path):
+        return {"logs": [], "total": 0}
+
+    try:
+        with open(log_path, "r", encoding="utf-8") as f:
+            all_lines = f.readlines()
+    except Exception as e:
+        return {"logs": [], "total": 0, "error": str(e)}
+
+    if level and level.upper() in ("ERROR", "WARNING", "INFO"):
+        filtered = [l for l in all_lines if f"[{level.upper()}]" in l]
+    else:
+        filtered = all_lines
+
+    recent = filtered[-lines:] if len(filtered) > lines else filtered
+    result = []
+    for line in recent:
+        line = line.strip()
+        if not line:
+            continue
+        log_level = "INFO"
+        if "[ERROR]" in line:
+            log_level = "ERROR"
+        elif "[WARNING]" in line:
+            log_level = "WARNING"
+        elif "[INFO]" in line:
+            log_level = "INFO"
+        result.append({"line": line, "level": log_level})
+
+    return {"logs": result, "total": len(result)}
 
 
 

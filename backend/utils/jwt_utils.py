@@ -18,6 +18,7 @@ USERS = {
     "admin": {"password": os.environ.get("ETC_QA_ADMIN_PASSWORD", "123456"), "role": "admin", "dept": ""},
     "service": {"password": os.environ.get("ETC_QA_SERVICE_PASSWORD", "123456"), "role": "service", "dept": ""},
     "dept": {"password": os.environ.get("ETC_QA_DEPT_PASSWORD", "123456"), "role": "dept", "dept": "aftersale"},
+    "ops": {"password": os.environ.get("ETC_QA_OPS_PASSWORD", "123456"), "role": "ops", "dept": ""},
 }
 
 

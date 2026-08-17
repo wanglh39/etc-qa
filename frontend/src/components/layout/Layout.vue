@@ -15,10 +15,6 @@
       >
         <!-- 超级管理员菜单 -->
         <template v-if="currentRole === 'superadmin'">
-          <el-menu-item index="/workbench/admin/dashboard">
-            <el-icon><DataLine /></el-icon>
-            <span>数据看板</span>
-          </el-menu-item>
           <el-sub-menu index="system">
             <template #title>
               <el-icon><UserFilled /></el-icon>
@@ -27,9 +23,24 @@
             <el-menu-item index="/workbench/admin/account">账号管理</el-menu-item>
             <el-menu-item index="/workbench/admin/role">角色管理</el-menu-item>
             <el-menu-item index="/workbench/admin/operationLog">操作日志</el-menu-item>
+          </el-sub-menu>
+        </template>
+
+        <!-- 运维工程师菜单 -->
+        <template v-else-if="currentRole === 'ops'">
+          <el-menu-item index="/workbench/admin/dashboard">
+            <el-icon><DataLine /></el-icon>
+            <span>数据看板</span>
+          </el-menu-item>
+          <el-sub-menu index="ops-mgmt">
+            <template #title>
+              <el-icon><Monitor /></el-icon>
+              <span>运维管理</span>
+            </template>
+            <el-menu-item index="/workbench/admin/status">系统状态总览</el-menu-item>
+            <el-menu-item index="/workbench/admin/monitor">性能监控看板</el-menu-item>
             <el-menu-item index="/workbench/admin/scheduler">定时任务调度</el-menu-item>
             <el-menu-item index="/workbench/admin/alert">异常告警</el-menu-item>
-
           </el-sub-menu>
         </template>
 
@@ -50,6 +61,7 @@
               <span>内容管理</span>
             </template>
             <el-menu-item index="/workbench/admin/knowledge">知识库管理</el-menu-item>
+            <el-menu-item index="/workbench/admin/category">分类管理</el-menu-item>
             <el-menu-item index="/workbench/admin/config">配置管理</el-menu-item>
           </el-sub-menu>
         </template>
@@ -144,6 +156,7 @@ const roleText = computed(() => {
   switch (currentRole.value) {
     case 'admin': return '业务管理员'
     case 'superadmin': return '超级管理员'
+    case 'ops': return '运维工程师'
     case 'service': return '客服'
     case 'dept': return '部门处理员'
     default: return '未知账号'
@@ -152,7 +165,7 @@ const roleText = computed(() => {
 
 // 判断是否显示返回按钮
 const showBackBtn = computed(() => {
-  const homePaths = ['/service', '/workbench/admin/auditList', '/workbench/admin/dashboard', '/dept/handle/aftersale', '/dept/handle/ops', '/dept/handle/finance']
+  const homePaths = ['/service', '/workbench/admin/auditList', '/workbench/admin/dashboard', '/workbench/admin/account', '/workbench/admin/status', '/dept/handle/aftersale', '/dept/handle/ops', '/dept/handle/finance']
   return !homePaths.includes(route.path)
 })
 
@@ -163,6 +176,8 @@ const goBack = () => {
   } else {
     // 兜底逻辑
     if (currentRole.value === 'admin') router.push('/workbench/admin/auditList')
+    else if (currentRole.value === 'ops') router.push('/workbench/admin/status')
+    else if (currentRole.value === 'superadmin') router.push('/workbench/admin/account')
     else if (currentRole.value === 'service') router.push('/service')
     else router.push('/dept/handle/aftersale')
   }

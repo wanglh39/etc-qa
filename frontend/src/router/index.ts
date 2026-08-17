@@ -5,7 +5,7 @@ const Layout = () => import('@/components/layout/Layout.vue')
 
 // 区分角色默认首页
 const DEFAULT_SERVICE_PATH = '/service'
-const DEFAULT_ADMIN_PATH = '/workbench/admin/auditList'
+const DEFAULT_ADMIN_PATH = '/workbench/admin/dashboard'
 
 const routes: RouteRecordRaw[] = [
   // 1. 登录页
@@ -39,7 +39,7 @@ const routes: RouteRecordRaw[] = [
         path: 'workbench/admin/dashboard',
         name: 'DashboardNew',
         component: () => import('@/pages/dashboard/index.vue'),
-        meta: { title: '数据看板', roleAuth: 'admin' }
+        meta: { title: '数据看板', roleAuth: 'admin,ops' }
       },
       {
         path: 'workbench/admin/config',
@@ -52,6 +52,12 @@ const routes: RouteRecordRaw[] = [
         name: 'KnowledgeList',
         component: () => import('@/pages/knowledge/list.vue'),
         meta: { title: '知识库管理', roleAuth: 'admin' }
+      },
+      {
+        path: 'workbench/admin/category',
+        name: 'CategoryManage',
+        component: () => import('@/pages/category/index.vue'),
+        meta: { title: '分类管理', roleAuth: 'admin' }
       },
       {
         path: 'workbench/admin/account',
@@ -75,13 +81,25 @@ const routes: RouteRecordRaw[] = [
         path: 'workbench/admin/scheduler',
         name: 'Scheduler',
         component: () => import('@/pages/system/scheduler.vue'),
-        meta: { title: '定时任务调度', roleAuth: 'superadmin' }
+        meta: { title: '定时任务调度', roleAuth: 'ops' }
       },
       {
         path: 'workbench/admin/alert',
         name: 'Alert',
         component: () => import('@/pages/system/alert.vue'),
-        meta: { title: '异常告警', roleAuth: 'superadmin' }
+        meta: { title: '异常告警', roleAuth: 'ops' }
+      },
+      {
+        path: 'workbench/admin/status',
+        name: 'SystemStatus',
+        component: () => import('@/pages/system/status.vue'),
+        meta: { title: '系统状态总览', roleAuth: 'ops' }
+      },
+      {
+        path: 'workbench/admin/monitor',
+        name: 'SystemMonitor',
+        component: () => import('@/pages/system/monitor.vue'),
+        meta: { title: '性能监控看板', roleAuth: 'ops' }
       },
       {
 
@@ -165,7 +183,7 @@ const routes: RouteRecordRaw[] = [
         path: 'audit',
         name: 'Audit',
         component: () => import('@/pages/audit/index.vue'),
-        meta: { title: '审核管理', roleAuth: 'admin' }
+        meta: { title: '审核管理', roleAuth: 'admin', hidden: true }
       }
     ]
   }
@@ -180,7 +198,9 @@ const router = createRouter({
 function getDefaultPath(role: string): string {
   switch (role) {
     case 'superadmin':
-      return '/workbench/admin/dashboard'
+      return '/workbench/admin/account'
+    case 'ops':
+      return '/workbench/admin/status'
     case 'admin':
       return DEFAULT_ADMIN_PATH
     case 'service':
@@ -257,12 +277,15 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // 角色权限校验：roleAuth 未设置或 'all' 表示所有已登录角色可访问
-  // superadmin 可访问所有 admin 页面
+  // superadmin 可访问所有页面；支持逗号分隔多角色如 'admin,ops'
   const roleAuth = to.meta.roleAuth as string | undefined
-  if (roleAuth && roleAuth !== 'all' && roleAuth !== role) {
-    if (!(roleAuth === 'admin' && role === 'superadmin')) {
-      ElMessage.warning('无权访问该页面')
-      return next(getDefaultPath(role!))
+  if (roleAuth && roleAuth !== 'all') {
+    if (role !== 'superadmin') {
+      const allowedRoles = roleAuth.split(',').map(r => r.trim())
+      if (!allowedRoles.includes(role!)) {
+        ElMessage.warning('无权访问该页面')
+        return next(getDefaultPath(role!))
+      }
     }
   }
 

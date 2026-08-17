@@ -246,17 +246,19 @@ def init_mysql():
     default_pwd_hash = hash_password("123456")
     cursor.executemany(
         "INSERT IGNORE INTO roles (role_key, role_name, description) VALUES (%s, %s, %s)",
-        [("superadmin", "超级管理员", "系统全权限，含账号/角色管理"),
-         ("admin", "业务管理员", "业务管理+内容管理，不含账号/角色"),
-         ("service", "客服", "一线客服处理"),
-         ("dept", "部门处理员", "业务部门工单处理")]
+         [("superadmin", "超级管理员", "系统全权限，含账号/角色管理"),
+          ("admin", "业务管理员", "业务管理+内容管理，不含账号/角色"),
+          ("ops", "运维工程师", "系统运维监控+定时任务+告警管理"),
+          ("service", "客服", "一线客服处理"),
+          ("dept", "部门处理员", "业务部门工单处理")]
     )
     cursor.executemany(
         "INSERT IGNORE INTO users (username, password_hash, role, dept, status) VALUES (%s, %s, %s, %s, %s)",
-        [("superadmin", default_pwd_hash, "superadmin", "", "active"),
-         ("admin", default_pwd_hash, "admin", "", "active"),
-         ("service", default_pwd_hash, "service", "", "active"),
-         ("dept", default_pwd_hash, "dept", "aftersale", "active")]
+         [("superadmin", default_pwd_hash, "superadmin", "", "active"),
+          ("admin", default_pwd_hash, "admin", "", "active"),
+          ("ops", default_pwd_hash, "ops", "", "active"),
+          ("service", default_pwd_hash, "service", "", "active"),
+          ("dept", default_pwd_hash, "dept", "aftersale", "active")]
     )
     conn.commit()
 

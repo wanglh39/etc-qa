@@ -80,9 +80,11 @@ const handleLogin = async () => {
 
     setTimeout(() => {
       if (res.role === 'superadmin') {
-        router.push('/workbench/admin/dashboard')
+        router.push('/workbench/admin/account')
+      } else if (res.role === 'ops') {
+        router.push('/workbench/admin/status')
       } else if (res.role === 'admin') {
-        router.push('/workbench/admin/auditList')
+        router.push('/workbench/admin/dashboard')
       } else if (res.role === 'service') {
         router.push('/service')
       } else {

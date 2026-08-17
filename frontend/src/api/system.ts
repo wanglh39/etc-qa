@@ -248,3 +248,38 @@ export function getAlertMetrics() {
   return request.get<Record<string, any>>('/alerts/metrics').then((r) => r.data)
 }
 
+// ===== 系统状态 =====
+
+export interface SystemComponent {
+  name: string
+  status: string
+  latency_ms: number
+  detail: string
+}
+
+export interface SystemStatusResponse {
+  overall: string
+  components: SystemComponent[]
+  timestamp: string
+}
+
+export function getSystemStatus() {
+  return request.get<SystemStatusResponse>('/system/status').then((r) => r.data)
+}
+
+// ===== 系统日志 =====
+
+export interface SystemLogItem {
+  line: string
+  level: string
+}
+
+export interface SystemLogResponse {
+  logs: SystemLogItem[]
+  total: number
+}
+
+export function getSystemLogs(params: { lines?: number; level?: string }) {
+  return request.get<SystemLogResponse>('/system/logs', { params }).then((r) => r.data)
+}
+

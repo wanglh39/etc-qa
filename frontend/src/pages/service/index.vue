@@ -749,7 +749,7 @@ onMounted(() => {
 }
 .reply-item:hover {
   background: #ecf5ff;
-  color: #409eff;
+  color: #0052FF;
 }
 
 /* 主区 */
@@ -932,7 +932,7 @@ onMounted(() => {
   transform: translateY(-2px);
 }
 .candidate-card.selected {
-  border-color: #409eff;
+  border-color: #0052FF;
   background: #f5f9ff;
   box-shadow: 0 2px 12px rgba(64, 158, 255, 0.15);
 }
@@ -945,7 +945,7 @@ onMounted(() => {
 }
 .card-rank {
   font-weight: 600;
-  color: #409eff;
+  color: #0052FF;
 }
 .card-category {
   font-size: 12px;

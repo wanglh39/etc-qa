@@ -4,7 +4,7 @@
     <div class="kpi-row">
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: linear-gradient(135deg, #409eff, #337ecc)">
+          <div class="kpi-icon">
             <el-icon :size="24"><UserFilled /></el-icon>
           </div>
           <div class="kpi-info">
@@ -15,7 +15,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: linear-gradient(135deg, #67c23a, #5daf34)">
+          <div class="kpi-icon">
             <el-icon :size="24"><CircleCheck /></el-icon>
           </div>
           <div class="kpi-info">
@@ -26,7 +26,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: linear-gradient(135deg, #909399, #7e8c9a)">
+          <div class="kpi-icon">
             <el-icon :size="24"><CircleClose /></el-icon>
           </div>
           <div class="kpi-info">
@@ -37,7 +37,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: linear-gradient(135deg, #e6a23c, #d48806)">
+          <div class="kpi-icon">
             <el-icon :size="24"><Avatar /></el-icon>
           </div>
           <div class="kpi-info">
@@ -207,13 +207,13 @@ const superadminCount = computed(() => tableData.value.filter(r => r.role === 's
 
 const roleColorMap: Record<string, string> = {
   superadmin: '#f56c6c',
-  admin: '#409eff',
+  admin: '#0052FF',
   ops: '#67c23a',
   service: '#e6a23c',
   dept: '#909399'
 }
 
-const roleColor = (key: string) => roleColorMap[key] || '#409eff'
+const roleColor = (key: string) => roleColorMap[key] || '#0052FF'
 
 const roleLabel = (key: string) => {
   const r = roleOptions.value.find((r) => r.role_key === key)
@@ -310,6 +310,7 @@ onMounted(() => { loadRoles(); loadData() })
 .kpi-icon {
   width: 48px; height: 48px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center; color: #fff;
+  background: var(--grad-primary);
 }
 .kpi-num { font-size: 24px; font-weight: 700; color: #303133; line-height: 1.2; }
 .kpi-label { font-size: 13px; color: #909399; margin-top: 4px; }

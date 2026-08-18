@@ -89,13 +89,13 @@ const editingId = ref<number | null>(null)
 const formData = ref({ role_key: '', role_name: '', description: '' })
 
 const roleColorMap: Record<string, string> = {
-  superadmin: 'linear-gradient(135deg, #f56c6c, #c45656)',
-  admin: 'linear-gradient(135deg, #409eff, #337ecc)',
-  ops: 'linear-gradient(135deg, #67c23a, #5daf34)',
-  service: 'linear-gradient(135deg, #e6a23c, #d48806)',
-  dept: 'linear-gradient(135deg, #909399, #7e8c9a)'
+  superadmin: 'var(--grad-danger)',
+  admin: 'var(--grad-primary)',
+  ops: 'var(--grad-success)',
+  service: 'var(--grad-warning)',
+  dept: 'var(--grad-neutral)'
 }
-const roleColor = (key: string) => roleColorMap[key] || 'linear-gradient(135deg, #409eff, #337ecc)'
+const roleColor = (key: string) => roleColorMap[key] || 'var(--grad-primary)'
 
 const permissionMap: Record<string, string[]> = {
   superadmin: ['账号管理', '角色管理', '操作日志', '模拟登录', '全部页面'],

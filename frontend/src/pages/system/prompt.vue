@@ -260,13 +260,13 @@ onMounted(() => {
 }
 .prompt-item.active {
   background: #ecf5ff;
-  border-color: #409eff;
+  border-color: #0052FF;
 }
 .pi-icon {
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: #409eff;
+  background: #0052FF;
   color: #fff;
   display: flex;
   align-items: center;

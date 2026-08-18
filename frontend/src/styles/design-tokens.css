@@ -1,0 +1,50 @@
+:root {
+  --color-primary: #0052FF;
+  --color-primary-light: #4D7CFF;
+  --color-primary-dark: #0040CC;
+
+  --color-bg-canvas: #FAFAFA;
+  --color-bg-card: #FFFFFF;
+  --color-bg-muted: #F1F5F9;
+
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
+
+  --color-border: #E2E8F0;
+
+  --color-success: #10B981;
+  --color-success-light: #34D399;
+  --color-warning: #F59E0B;
+  --color-warning-light: #FBBF24;
+  --color-danger: #EF4444;
+  --color-danger-light: #F87171;
+  --color-info: #0052FF;
+  --color-neutral: #64748B;
+  --color-neutral-light: #94A3B8;
+
+  --grad-primary: linear-gradient(135deg, #0052FF, #4D7CFF);
+  --grad-success: linear-gradient(135deg, #10B981, #34D399);
+  --grad-warning: linear-gradient(135deg, #F59E0B, #FBBF24);
+  --grad-danger: linear-gradient(135deg, #EF4444, #F87171);
+  --grad-neutral: linear-gradient(135deg, #64748B, #94A3B8);
+  --grad-dark: linear-gradient(135deg, #0F172A, #1E293B);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+  --shadow-accent: 0 4px 14px rgba(0, 82, 255, 0.25);
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+
+  --el-color-primary: #0052FF;
+  --el-color-primary-light-3: #4D7CFF;
+  --el-color-primary-light-5: #6691FF;
+  --el-color-primary-light-7: #99B8FF;
+  --el-color-primary-light-9: #CCE0FF;
+  --el-color-primary-dark-2: #0040CC;
+}

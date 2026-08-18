@@ -1,7 +1,8 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 
-// 1. 引入 Element Plus 组件库及样式
+import './styles/design-tokens.css'
+
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 // 引入中文语言包

@@ -3,7 +3,7 @@
     <!-- KPI 概览卡片 -->
     <div class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-icon" style="background: linear-gradient(135deg, #409eff, #667eea)">
+        <div class="kpi-icon">
           <el-icon :size="24"><Clock /></el-icon>
         </div>
         <div class="kpi-info">
@@ -12,7 +12,7 @@
         </div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon" style="background: linear-gradient(135deg, #67c23a, #95d475)">
+        <div class="kpi-icon">
           <el-icon :size="24"><Document /></el-icon>
         </div>
         <div class="kpi-info">
@@ -21,7 +21,7 @@
         </div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon" style="background: linear-gradient(135deg, #e6a23c, #f3d19e)">
+        <div class="kpi-icon">
           <el-icon :size="24"><Select /></el-icon>
         </div>
         <div class="kpi-info">
@@ -30,7 +30,7 @@
         </div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon" style="background: linear-gradient(135deg, #9b59b6, #b39ddb)">
+        <div class="kpi-icon">
           <el-icon :size="24"><Files /></el-icon>
         </div>
         <div class="kpi-info">
@@ -244,6 +244,7 @@ onMounted(() => {
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
+  background: var(--grad-primary);
 }
 .kpi-value {
   font-size: 24px;

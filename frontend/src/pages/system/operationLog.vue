@@ -4,7 +4,7 @@
     <div class="kpi-row">
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: linear-gradient(135deg, #409eff, #337ecc)">
+          <div class="kpi-icon">
             <el-icon :size="24"><Document /></el-icon>
           </div>
           <div class="kpi-info">
@@ -15,7 +15,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: linear-gradient(135deg, #67c23a, #5daf34)">
+          <div class="kpi-icon">
             <el-icon :size="24"><CirclePlus /></el-icon>
           </div>
           <div class="kpi-info">
@@ -26,7 +26,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: linear-gradient(135deg, #e6a23c, #d48806)">
+          <div class="kpi-icon">
             <el-icon :size="24"><Edit /></el-icon>
           </div>
           <div class="kpi-info">
@@ -37,7 +37,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: linear-gradient(135deg, #f56c6c, #c45656)">
+          <div class="kpi-icon">
             <el-icon :size="24"><Delete /></el-icon>
           </div>
           <div class="kpi-info">
@@ -207,6 +207,7 @@ onMounted(() => { loadData() })
 .kpi-icon {
   width: 48px; height: 48px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center; color: #fff;
+  background: var(--grad-primary);
 }
 .kpi-num { font-size: 24px; font-weight: 700; color: #303133; line-height: 1.2; }
 .kpi-label { font-size: 13px; color: #909399; margin-top: 4px; }
@@ -222,7 +223,7 @@ onMounted(() => { loadData() })
 .op-cell { display: flex; align-items: center; gap: 8px; }
 .op-avatar {
   width: 28px; height: 28px; border-radius: 50%;
-  background: #409eff; color: #fff;
+  background: #0052FF; color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 13px; font-weight: 600;
 }

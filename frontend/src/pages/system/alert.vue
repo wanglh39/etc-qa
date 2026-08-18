@@ -4,7 +4,7 @@
     <div class="kpi-row">
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: linear-gradient(135deg, #f56c6c, #c45656)">
+          <div class="kpi-icon" style="background: var(--grad-danger)">
             <el-icon :size="24"><BellFilled /></el-icon>
           </div>
           <div class="kpi-info">
@@ -15,7 +15,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: linear-gradient(135deg, #e6a23c, #d48806)">
+          <div class="kpi-icon" style="background: var(--grad-warning)">
             <el-icon :size="24"><WarningFilled /></el-icon>
           </div>
           <div class="kpi-info">
@@ -26,7 +26,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: linear-gradient(135deg, #409eff, #337ecc)">
+          <div class="kpi-icon" style="background: var(--grad-primary)">
             <el-icon :size="24"><InfoFilled /></el-icon>
           </div>
           <div class="kpi-info">
@@ -37,7 +37,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" :style="{ background: unackedCount > 0 ? 'linear-gradient(135deg, #f56c6c, #c45656)' : 'linear-gradient(135deg, #67c23a, #5daf34)' }">
+          <div class="kpi-icon" :style="{ background: unackedCount > 0 ? 'var(--grad-danger)' : 'var(--grad-success)' }">
             <el-icon :size="24"><CircleCheck v-if="unackedCount === 0" /><Warning v-else /></el-icon>
           </div>
           <div class="kpi-info">

@@ -19,7 +19,7 @@
     <div class="kpi-row">
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: linear-gradient(135deg, #409eff, #337ecc)">
+          <div class="kpi-icon" style="background: var(--grad-primary)">
             <el-icon :size="24"><DataLine /></el-icon>
           </div>
           <div class="kpi-info">
@@ -30,7 +30,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" :style="{ background: totalFailures > 0 ? 'linear-gradient(135deg, #f56c6c, #c45656)' : 'linear-gradient(135deg, #67c23a, #5daf34)' }">
+          <div class="kpi-icon" :style="{ background: totalFailures > 0 ? 'var(--grad-danger)' : 'var(--grad-success)' }">
             <el-icon :size="24"><WarningFilled /></el-icon>
           </div>
           <div class="kpi-info">
@@ -41,7 +41,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" :style="{ background: highFailureRate > 0 ? 'linear-gradient(135deg, #f56c6c, #c45656)' : 'linear-gradient(135deg, #67c23a, #5daf34)' }">
+          <div class="kpi-icon" :style="{ background: highFailureRate > 0 ? 'var(--grad-danger)' : 'var(--grad-success)' }">
             <el-icon :size="24"><TrendCharts /></el-icon>
           </div>
           <div class="kpi-info">
@@ -52,7 +52,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" :style="{ background: highLatency > 0 ? 'linear-gradient(135deg, #e6a23c, #d48806)' : 'linear-gradient(135deg, #67c23a, #5daf34)' }">
+          <div class="kpi-icon" :style="{ background: highLatency > 0 ? 'var(--grad-warning)' : 'var(--grad-success)' }">
             <el-icon :size="24"><Timer /></el-icon>
           </div>
           <div class="kpi-info">
@@ -233,7 +233,7 @@ const drawCharts = (rows: MetricRow[]) => {
         type: 'bar', data: latencies,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#409eff' }, { offset: 1, color: '#a0cfff' }
+            { offset: 0, color: '#0052FF' }, { offset: 1, color: '#a0cfff' }
           ])
         },
         markLine: { data: [{ yAxis: 3000, name: '阈值' }], lineStyle: { color: '#e6a23c', type: 'dashed' } }
@@ -249,7 +249,7 @@ const drawCharts = (rows: MetricRow[]) => {
         type: 'pie', radius: ['40%', '70%'],
         data: rows.map(r => ({ name: r.name, value: r.total })),
         itemStyle: {
-          color: ['#409eff', '#67c23a', '#e6a23c', '#f56c6c', '#909399']
+          color: ['#0052FF', '#67c23a', '#e6a23c', '#f56c6c', '#909399']
         }
       }]
     })

@@ -69,25 +69,25 @@ const targets = [
   {
     role: 'admin', label: '业务管理员', desc: '审核+知识库+分类+配置',
     home: '/workbench/admin/dashboard', icon: Setting,
-    gradient: 'linear-gradient(135deg, #409eff, #337ecc)',
+    gradient: 'var(--grad-primary)',
     permissions: ['数据看板', '待审核', '审核历史', '知识库', '分类管理', '配置']
   },
   {
     role: 'ops', label: '运维工程师', desc: '看板+状态+监控+告警',
     home: '/workbench/admin/status', icon: Monitor,
-    gradient: 'linear-gradient(135deg, #67c23a, #5daf34)',
+    gradient: 'var(--grad-success)',
     permissions: ['数据看板', '系统状态', '性能监控', '定时任务', '异常告警']
   },
   {
     role: 'service', label: '客服', desc: '客服工作台',
     home: '/service', icon: Service,
-    gradient: 'linear-gradient(135deg, #e6a23c, #d48806)',
+    gradient: 'var(--grad-warning)',
     permissions: ['客服工作台', '工单创建', '工单列表']
   },
   {
     role: 'dept', label: '部门处理员', desc: '工单处理',
     home: '/dept/handle/aftersale', icon: Ticket,
-    gradient: 'linear-gradient(135deg, #909399, #7e8c9a)',
+    gradient: 'var(--grad-neutral)',
     permissions: ['工单处理', '工单详情']
   },
 ]

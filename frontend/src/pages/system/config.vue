@@ -92,32 +92,32 @@ const configMeta: Record<string, { label: string; desc: string; icon: any; color
     label: '工单状态列表',
     desc: '定义系统中工单的所有可用状态，用于状态流转控制',
     icon: Document,
-    color: 'linear-gradient(135deg, #409eff, #667eea)'
+    color: 'var(--grad-primary)'
   },
   brand_keywords: {
     label: '品牌关键词',
     desc: '用于识别用户提问中是否包含品牌相关词汇，影响分类和检索',
     icon: Key,
-    color: 'linear-gradient(135deg, #67c23a, #95d475)'
+    color: 'var(--grad-success)'
   },
   forbidden_new_kws: {
     label: '禁用关键词',
     desc: '新建知识条目时禁止使用的关键词，防止不规范内容入库',
     icon: Warning,
-    color: 'linear-gradient(135deg, #f56c6c, #f89898)'
+    color: 'var(--grad-danger)'
   },
   enterprise_name: {
     label: '企业名称',
     desc: '系统展示的企业名称，用于界面标题和品牌标识',
     icon: Shop,
-    color: 'linear-gradient(135deg, #e6a23c, #f3d19e)'
+    color: 'var(--grad-warning)'
   }
 }
 
 const getConfigLabel = (key: string) => configMeta[key]?.label || key
 const getConfigDesc = (key: string) => configMeta[key]?.desc || '暂无描述'
 const getConfigIcon = (key: string) => configMeta[key]?.icon || Setting
-const getConfigColor = (key: string) => configMeta[key]?.color || 'linear-gradient(135deg, #909399, #b1b3b8)'
+const getConfigColor = (key: string) => configMeta[key]?.color || 'var(--grad-neutral)'
 
 const formatValue = (val: any) => {
   if (typeof val === 'string') return val
@@ -189,7 +189,7 @@ onMounted(() => {
 }
 
 .config-banner {
-  background: linear-gradient(135deg, #2c3e50, #4ca1af);
+  background: var(--grad-dark);
   border-radius: 12px;
   padding: 24px 32px;
   display: flex;

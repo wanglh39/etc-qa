@@ -114,7 +114,7 @@
 }
 .user-item.active {
   background: #ecf5ff;
-  color: #409eff;
+  color: #0052FF;
 }
 
 /* 右侧面板 */

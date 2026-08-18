@@ -271,7 +271,7 @@ onMounted(() => {
 .stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #409eff;
+  color: #0052FF;
 }
 .stat-label {
   font-size: 13px;

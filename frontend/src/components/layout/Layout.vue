@@ -3,14 +3,14 @@
     <!-- 左侧侧边栏 -->
     <el-aside :width="sidebarWidth" class="sidebar">
       <div class="logo-box">
-        <el-icon :size="24" color="#409eff"><Headset /></el-icon>
+        <el-icon :size="24" color="#0052FF"><Headset /></el-icon>
         <span v-if="!collapsed" class="logo-text">智能客服系统</span>
       </div>
       <el-menu
         router
-        background-color="#2f3947"
-        text-color="#cbd5e0"
-        active-text-color="#409eff"
+        background-color="#F8FAFC"
+        text-color="#64748B"
+        active-text-color="#0052FF"
         :default-active="route.path"
         :collapse="collapsed"
         :collapse-transition="true"
@@ -353,11 +353,12 @@ onUnmounted(() => {
 }
 .sidebar {
   height: 100vh;
-  background-color: #2f3947;
+  background-color: #F8FAFC;
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
   overflow: hidden;
+  border-right: 1px solid #E2E8F0;
 }
 .logo-box {
   height: 60px;
@@ -365,8 +366,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  color: #fff;
-  border-bottom: 1px solid #3b4a5a;
+  color: #0F172A;
+  border-bottom: 1px solid #E2E8F0;
   flex-shrink: 0;
 }
 .logo-text {
@@ -380,17 +381,27 @@ onUnmounted(() => {
   overflow-y: auto;
   overflow-x: hidden;
 }
+:deep(.side-menu .el-menu-item.is-active) {
+  background-color: #EFF6FF;
+  font-weight: 600;
+}
+:deep(.side-menu .el-menu-item:hover) {
+  background-color: #F1F5F9;
+}
+:deep(.side-menu .el-sub-menu__title:hover) {
+  background-color: #F1F5F9;
+}
 .sidebar-footer {
   height: 64px;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 0 16px;
-  border-top: 1px solid #3b4a5a;
+  border-top: 1px solid #E2E8F0;
   flex-shrink: 0;
 }
 .user-avatar {
-  background: #409eff;
+  background: #0052FF;
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -401,7 +412,7 @@ onUnmounted(() => {
   overflow: hidden;
 }
 .user-name {
-  color: #fff;
+  color: #0F172A;
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
@@ -409,7 +420,7 @@ onUnmounted(() => {
   text-overflow: ellipsis;
 }
 .user-role {
-  color: #909399;
+  color: #94A3B8;
   font-size: 12px;
 }
 .right-container {
@@ -440,7 +451,7 @@ onUnmounted(() => {
   transition: color 0.2s;
 }
 .collapse-btn:hover {
-  color: #409eff;
+  color: #0052FF;
 }
 .user-info {
   display: flex;
@@ -451,7 +462,7 @@ onUnmounted(() => {
 .main-content {
   flex: 1;
   padding: 0;
-  background-color: #f5f7fa;
+  background-color: var(--color-bg-canvas);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -496,7 +507,7 @@ onUnmounted(() => {
   transition: color 0.2s;
 }
 .header-icon:hover {
-  color: #409eff;
+  color: #0052FF;
 }
 .palette-list {
   margin-top: 12px;
@@ -516,7 +527,7 @@ onUnmounted(() => {
   background: #ecf5ff;
 }
 .palette-item:hover {
-  background: #f5f7fa;
+  background: var(--color-bg-canvas);
 }
 .palette-path {
   margin-left: auto;

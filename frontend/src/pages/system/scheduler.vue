@@ -315,8 +315,8 @@ onBeforeUnmount(() => {
   color: #fff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
-.banner-running { background: linear-gradient(135deg, #67c23a, #5daf34); }
-.banner-stopped { background: linear-gradient(135deg, #f56c6c, #c45656); }
+.banner-running { background: var(--grad-success); }
+.banner-stopped { background: var(--grad-danger); }
 
 .banner-left {
   display: flex;

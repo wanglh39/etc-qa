@@ -7,7 +7,7 @@
       :default-active="$route.path"
       background-color="#ffffff"
       text-color="#333"
-      active-text-color="#409eff"
+      active-text-color="#0052FF"
       class="menu-wrap"
     >
       <!-- 循环渲染菜单 -->

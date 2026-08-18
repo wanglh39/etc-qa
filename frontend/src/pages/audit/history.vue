@@ -3,7 +3,7 @@
     <!-- KPI 概览卡片 -->
     <div class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-icon" style="background: linear-gradient(135deg, #409eff, #667eea)">
+        <div class="kpi-icon">
           <el-icon :size="24"><DataLine /></el-icon>
         </div>
         <div class="kpi-info">
@@ -12,7 +12,7 @@
         </div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon" style="background: linear-gradient(135deg, #67c23a, #95d475)">
+        <div class="kpi-icon">
           <el-icon :size="24"><CircleCheck /></el-icon>
         </div>
         <div class="kpi-info">
@@ -21,7 +21,7 @@
         </div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon" style="background: linear-gradient(135deg, #f56c6c, #f89898)">
+        <div class="kpi-icon">
           <el-icon :size="24"><CircleClose /></el-icon>
         </div>
         <div class="kpi-info">
@@ -30,7 +30,7 @@
         </div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon" style="background: linear-gradient(135deg, #e6a23c, #f3d19e)">
+        <div class="kpi-icon">
           <el-icon :size="24"><Histogram /></el-icon>
         </div>
         <div class="kpi-info">
@@ -71,7 +71,7 @@
         <el-table-column prop="operator" label="操作管理员" width="120">
           <template #default="{ row }">
             <div style="display: flex; align-items: center; gap: 6px">
-              <el-avatar :size="24" style="background: #409eff; font-size: 12px">{{ (row.operator || '?').charAt(0).toUpperCase() }}</el-avatar>
+              <el-avatar :size="24" style="background: #0052FF; font-size: 12px">{{ (row.operator || '?').charAt(0).toUpperCase() }}</el-avatar>
               <span>{{ row.operator || '-' }}</span>
             </div>
           </template>
@@ -164,6 +164,7 @@ onMounted(loadData)
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
+  background: var(--grad-primary);
 }
 .kpi-value {
   font-size: 24px;

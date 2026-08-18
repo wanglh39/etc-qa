@@ -30,7 +30,7 @@
           :value="stats.qa_total"
           :desc="`本期新增 ${trendSummary.qaNew} 条`"
           :icon="Message"
-          icon-color="#409EFF"
+          icon-color="#0052FF"
           :sparkline="trendData.qa_new_counts"
           :to="currentRole === 'admin' ? '/workbench/admin/knowledge' : undefined"
         />
@@ -41,7 +41,7 @@
           :value="stats.qa_active"
           desc="可用知识条目"
           :icon="Tickets"
-          icon-color="#67C23A"
+          icon-color="#10B981"
           :growth="growthRate(stats.qa_active, stats.qa_active - trendSummary.qaNew)"
           :progress="{ current: stats.qa_active, total: stats.qa_total }"
           :to="currentRole === 'admin' ? '/workbench/admin/knowledge' : undefined"
@@ -53,7 +53,7 @@
           :value="stats.qa_deprecated"
           :desc="stats.qa_deprecated > 10 ? '积压较多，请尽快处理' : '需及时处理'"
           :icon="User"
-          icon-color="#E6A23C"
+          icon-color="#F59E0B"
           :alert="stats.qa_deprecated > 10"
           :to="currentRole === 'admin' ? '/workbench/admin/auditList' : undefined"
         />
@@ -64,7 +64,7 @@
           :value="stats.work_order_total"
           :desc="`待处理 ${stats.work_order_submitted} 个`"
           :icon="Document"
-          icon-color="#F56C6C"
+          icon-color="#EF4444"
           :growth="growthRate(stats.work_order_total, stats.work_order_total - trendSummary.woNew)"
           :sparkline="trendData.work_order_counts"
           :progress="{ current: stats.work_order_processed, total: stats.work_order_total }"
@@ -185,7 +185,7 @@ const renderLine = () => {
         data: trendData.value.work_order_counts,
         smooth: true,
         areaStyle: { opacity: 0.1 },
-        itemStyle: { color: '#409EFF' }
+        itemStyle: { color: '#0052FF' }
       },
       {
         type: 'line',
@@ -222,7 +222,7 @@ const renderWoStatus = () => {
   const s = stats.value
   const data = [
     { name: '待处理', value: s.work_order_submitted, itemStyle: { color: '#E6A23C' } },
-    { name: '已处理', value: s.work_order_processed, itemStyle: { color: '#409EFF' } },
+    { name: '已处理', value: s.work_order_processed, itemStyle: { color: '#0052FF' } },
     { name: '其他', value: Math.max(0, s.work_order_total - s.work_order_submitted - s.work_order_processed), itemStyle: { color: '#909399' } }
   ].filter(d => d.value > 0)
   woStatusChart.setOption({
@@ -309,20 +309,34 @@ onUnmounted(() => {
 
 <style scoped>
 .welcome-banner {
-  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
+  background: #0F172A;
   border-radius: 12px;
-  padding: 24px 32px;
+  padding: 28px 36px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
   color: #fff;
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.25);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #1E293B;
+}
+.welcome-banner::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(0, 82, 255, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
 }
 .welcome-left {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  position: relative;
+  z-index: 1;
 }
 .welcome-title {
   font-size: 22px;
@@ -336,6 +350,8 @@ onUnmounted(() => {
 }
 .welcome-right {
   text-align: right;
+  position: relative;
+  z-index: 1;
 }
 .clock-display {
   font-size: 28px;

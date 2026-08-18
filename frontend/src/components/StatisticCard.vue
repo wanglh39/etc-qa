@@ -182,7 +182,7 @@ const handleClick = () => {
 }
 .stat-card.clickable:hover .click-hint {
   opacity: 1;
-  color: #409eff;
+  color: #0052FF;
 }
 .stat-card.clickable:hover .arrow {
   transform: translateX(3px);

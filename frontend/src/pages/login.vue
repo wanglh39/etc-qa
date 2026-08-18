@@ -1,55 +1,21 @@
 <template>
-  <div class="login-container">
-    <!-- 左侧品牌面板 -->
-    <div class="brand-panel">
-      <div class="brand-content">
-        <div class="brand-logo">
-          <el-icon :size="48" color="#fff"><Headset /></el-icon>
+  <div class="login-cover">
+    <div class="dot-grid"></div>
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+
+    <div class="login-content">
+      <div class="brand-area">
+        <div class="brand-icon">
+          <el-icon :size="36"><Headset /></el-icon>
         </div>
         <h1 class="brand-title">智能客服话术系统</h1>
-        <p class="brand-tagline">AI驱动的企业级客服辅助平台</p>
-
-        <div class="feature-list">
-          <div class="feature-item">
-            <el-icon :size="22"><Microphone /></el-icon>
-            <div>
-              <span class="feature-name">实时语音识别</span>
-              <span class="feature-desc">流式ASR + 热词纠错，识别率提升30%</span>
-            </div>
-          </div>
-          <div class="feature-item">
-            <el-icon :size="22"><Search /></el-icon>
-            <div>
-              <span class="feature-name">智能知识检索</span>
-              <span class="feature-desc">双路召回 + Reranker精排，秒级响应</span>
-            </div>
-          </div>
-          <div class="feature-item">
-            <el-icon :size="22"><DataLine /></el-icon>
-            <div>
-              <span class="feature-name">全链路可观测</span>
-              <span class="feature-desc">LangSmith追踪 + 告警监控 + 审计日志</span>
-            </div>
-          </div>
-          <div class="feature-item">
-            <el-icon :size="22"><UserFilled /></el-icon>
-            <div>
-              <span class="feature-name">五角色权限体系</span>
-              <span class="feature-desc">超管/运维/业务/客服/部门，RBAC细粒度管控</span>
-            </div>
-          </div>
-        </div>
+        <p class="brand-sub">AI 驱动的企业级客服辅助平台</p>
       </div>
-      <div class="brand-footer">
-        <span>ETC客服系统 v2.0 · 2026 挑战杯参赛作品</span>
-      </div>
-    </div>
 
-    <!-- 右侧登录表单 -->
-    <div class="form-panel">
-      <div class="form-wrapper">
-        <h2 class="form-title">欢迎登录</h2>
-        <p class="form-subtitle">请输入您的账号信息</p>
+      <div class="glass-card">
+        <h2 class="card-title">欢迎登录</h2>
+        <p class="card-sub">请输入您的账号信息</p>
 
         <el-form
           ref="loginFormRef"
@@ -65,6 +31,7 @@
               placeholder="账号"
               :prefix-icon="User"
               clearable
+              class="dark-input"
             />
           </el-form-item>
 
@@ -76,6 +43,7 @@
               :prefix-icon="Lock"
               show-password
               clearable
+              class="dark-input"
               @keyup.enter="handleLogin"
             />
           </el-form-item>
@@ -88,19 +56,28 @@
         </el-form>
 
         <div class="quick-login">
-          <span class="quick-label">快速登录（演示）：</span>
-          <div class="quick-tags">
-            <el-tag
+          <span class="quick-label">快速登录（演示）</span>
+          <div class="quick-btns">
+            <button
               v-for="role in quickRoles"
               :key="role.user"
-              class="quick-tag"
+              class="quick-btn"
               @click="quickFill(role)"
             >
               {{ role.label }}
-            </el-tag>
+            </button>
           </div>
         </div>
       </div>
+
+      <div class="feature-row">
+        <div class="feature-chip" v-for="f in features" :key="f.name">
+          <el-icon :size="16"><component :is="f.icon" /></el-icon>
+          <span>{{ f.name }}</span>
+        </div>
+      </div>
+
+      <div class="footer-text">ETC 客服系统 v2.0 · 2026 挑战杯参赛作品</div>
     </div>
   </div>
 </template>
@@ -134,6 +111,13 @@ const quickRoles = [
   { user: 'ops', label: '运维', pass: '123456' },
   { user: 'service', label: '客服', pass: '123456' },
   { user: 'dept', label: '部门', pass: '123456' },
+]
+
+const features = [
+  { name: '实时语音识别', icon: Microphone },
+  { name: '智能知识检索', icon: Search },
+  { name: '全链路可观测', icon: DataLine },
+  { name: '五角色权限体系', icon: UserFilled },
 ]
 
 const quickFill = (role: { user: string; pass: string }) => {
@@ -183,192 +167,195 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-.login-container {
+.login-cover {
   width: 100vw;
   height: 100vh;
+  background: #0F172A;
   display: flex;
-  overflow: hidden;
-}
-
-/* 左侧品牌面板 */
-.brand-panel {
-  flex: 1.2;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
-  display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
 }
-.brand-panel::before {
-  content: '';
+
+.dot-grid {
   position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(64, 158, 255, 0.15) 0%, transparent 70%);
-  border-radius: 50%;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
-.brand-panel::after {
-  content: '';
+
+.glow {
   position: absolute;
-  bottom: -30%;
-  left: -10%;
+  border-radius: 50%;
+  filter: blur(120px);
+}
+.glow-1 {
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, rgba(103, 194, 58, 0.1) 0%, transparent 70%);
-  border-radius: 50%;
+  background: rgba(0, 82, 255, 0.15);
+  top: -15%;
+  right: -10%;
+}
+.glow-2 {
+  width: 400px;
+  height: 400px;
+  background: rgba(77, 124, 255, 0.1);
+  bottom: -15%;
+  left: -10%;
 }
 
-.brand-content {
+.login-content {
   position: relative;
   z-index: 1;
-  padding: 60px 80px;
-  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  max-width: 440px;
+  width: 90%;
 }
 
-.brand-logo {
-  width: 72px;
-  height: 72px;
-  background: rgba(255, 255, 255, 0.1);
+.brand-area {
+  text-align: center;
+}
+.brand-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  background: rgba(0, 82, 255, 0.15);
+  border: 1px solid rgba(0, 82, 255, 0.3);
   border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #4D7CFF;
 }
-
 .brand-title {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
   color: #fff;
-  margin: 0 0 12px;
-  letter-spacing: 1px;
+  margin: 0 0 6px;
+  letter-spacing: 0.5px;
 }
-
-.brand-tagline {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.6);
-  margin: 0 0 48px;
-}
-
-.feature-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.feature-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  color: rgba(255, 255, 255, 0.85);
-}
-.feature-item .el-icon {
-  margin-top: 2px;
-  color: #409eff;
-  flex-shrink: 0;
-}
-.feature-item > div {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.feature-name {
-  font-size: 15px;
-  font-weight: 600;
-}
-.feature-desc {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.brand-footer {
-  position: absolute;
-  bottom: 32px;
-  left: 80px;
-  z-index: 1;
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 13px;
-}
-
-/* 右侧表单面板 */
-.form-panel {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f5f7fa;
-}
-
-.form-wrapper {
-  width: 380px;
-  max-width: 90%;
-  padding: 40px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-}
-
-.form-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1a1a2e;
-  margin: 0 0 8px;
-}
-
-.form-subtitle {
+.brand-sub {
   font-size: 14px;
-  color: #909399;
-  margin: 0 0 32px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
 }
 
-.login-form {
-  margin-bottom: 24px;
+.glass-card {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 32px 36px;
+}
+.card-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 4px;
+}
+.card-sub {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0 0 24px;
+}
+
+:deep(.dark-input .el-input__wrapper) {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+  border-radius: 8px;
+}
+:deep(.dark-input .el-input__wrapper:hover) {
+  border-color: rgba(0, 82, 255, 0.5);
+}
+:deep(.dark-input .el-input__wrapper.is-focus) {
+  border-color: #0052FF;
+  box-shadow: 0 0 0 3px rgba(0, 82, 255, 0.15);
+}
+:deep(.dark-input .el-input__inner) {
+  color: #fff;
+}
+:deep(.dark-input .el-input__inner::placeholder) {
+  color: rgba(255, 255, 255, 0.35);
+}
+:deep(.dark-input .el-input__prefix) {
+  color: rgba(255, 255, 255, 0.4);
+}
+:deep(.dark-input .el-input__suffix) {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .login-btn {
   width: 100%;
-  height: 48px;
-  font-size: 16px;
+  height: 46px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 4px;
   border-radius: 8px;
+  border: none;
+  background: #0052FF;
+}
+.login-btn:hover {
+  background: #0040CC;
 }
 
 .quick-login {
-  border-top: 1px solid #ebeef5;
+  margin-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding-top: 20px;
 }
 .quick-label {
-  font-size: 13px;
-  color: #909399;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.35);
   display: block;
   margin-bottom: 10px;
 }
-.quick-tags {
+.quick-btns {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
-.quick-tag {
+.quick-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
 }
-.quick-tag:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
+.quick-btn:hover {
+  background: rgba(0, 82, 255, 0.15);
+  border-color: rgba(0, 82, 255, 0.4);
+  color: #fff;
 }
 
-@media (max-width: 768px) {
-  .brand-panel {
-    display: none;
-  }
-  .form-panel {
-    flex: 1;
-  }
+.feature-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.feature-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+}
+
+.footer-text {
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 12px;
 }
 </style>

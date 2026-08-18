@@ -361,11 +361,11 @@ watch(deptCode, () => {
   font-size: 24px;
   color: #fff;
 }
-.kpi-icon.total { background: linear-gradient(135deg, #409eff, #337ecc); }
-.kpi-icon.pending { background: linear-gradient(135deg, #e6a23c, #d48806); }
-.kpi-icon.answered { background: linear-gradient(135deg, #409eff, #66b1ff); }
-.kpi-icon.done { background: linear-gradient(135deg, #67c23a, #5daf34); }
-.kpi-icon.today { background: linear-gradient(135deg, #909399, #7e8c9a); }
+.kpi-icon.total { background: var(--grad-primary); }
+.kpi-icon.pending { background: var(--grad-warning); }
+.kpi-icon.answered { background: var(--grad-primary); }
+.kpi-icon.done { background: var(--grad-success); }
+.kpi-icon.today { background: var(--grad-neutral); }
 
 .kpi-num {
   font-size: 24px;

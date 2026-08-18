@@ -205,9 +205,9 @@ onBeforeUnmount(() => {
   color: #fff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
-.banner-healthy { background: linear-gradient(135deg, #67c23a, #5daf34); }
-.banner-degraded { background: linear-gradient(135deg, #e6a23c, #d48806); }
-.banner-unhealthy { background: linear-gradient(135deg, #f56c6c, #c45656); }
+.banner-healthy { background: var(--grad-success); }
+.banner-degraded { background: var(--grad-warning); }
+.banner-unhealthy { background: var(--grad-danger); }
 
 .banner-left {
   display: flex;

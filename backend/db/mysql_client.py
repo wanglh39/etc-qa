@@ -279,6 +279,33 @@ class MySQLClient:
             self._reset_conn()
             raise
 
+    def count_work_orders_by_dept(self, dept: str) -> dict[str, int]:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            cursor.execute(
+                "SELECT status, COUNT(*) as cnt FROM work_orders WHERE dept=%s GROUP BY status",
+                (dept,)
+            )
+            rows = cursor.fetchall()
+            cursor.execute(
+                "SELECT COUNT(*) as cnt FROM work_orders WHERE dept=%s AND DATE(created_at)=CURDATE()",
+                (dept,)
+            )
+            today_row = cursor.fetchone()
+            cursor.close()
+            result = {}
+            total = 0
+            for row in rows:
+                result[row["status"]] = row["cnt"]
+                total += row["cnt"]
+            result["total"] = total
+            result["today"] = today_row["cnt"] if today_row else 0
+            return result
+        except Exception:
+            self._reset_conn()
+            raise
+
     def get_category_stats(self) -> dict:
         conn = self._get_conn()
         try:

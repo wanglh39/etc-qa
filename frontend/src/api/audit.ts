@@ -49,6 +49,18 @@ export function getWorkOrders(params: {
   return request.get<WorkOrderListResponse>('/work_orders', { params }).then((r) => r.data)
 }
 
+export interface WorkOrderStats {
+  total: number
+  submitted: number
+  answered: number
+  processed: number
+  today?: number
+}
+
+export function getWorkOrderStats() {
+  return request.get<WorkOrderStats>('/work_orders/stats').then((r) => r.data)
+}
+
 export function processAgent(data: AgentProcessRequest) {
   return request.post<AgentProcessResponse>('/agent/process', data).then((r) => r.data)
 }

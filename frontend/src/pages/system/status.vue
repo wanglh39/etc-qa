@@ -1,68 +1,104 @@
 <template>
   <div class="status-wrap">
-    <el-card class="full-card">
-      <div class="card-body-inner">
-        <div class="header-bar">
-          <h3>系统状态总览</h3>
-          <div class="header-actions">
-            <el-button type="primary" plain @click="loadData">刷新</el-button>
-            <el-button type="success" plain @click="openLangSmith">LangSmith 追踪</el-button>
+    <!-- 健康摘要横幅 -->
+    <div class="health-banner" :class="overallClass">
+      <div class="banner-left">
+        <div class="banner-icon">
+          <el-icon :size="32">
+            <CircleCheck v-if="overall === 'healthy'" />
+            <Warning v-else-if="overall === 'degraded'" />
+            <CircleClose v-else />
+          </el-icon>
+        </div>
+        <div class="banner-info">
+          <div class="banner-title">{{ overallText }}</div>
+          <div class="banner-sub" v-if="timestamp">最后检查: {{ timestamp }}</div>
+        </div>
+      </div>
+      <div class="banner-right">
+        <div class="healthy-count">
+          <span class="hc-num">{{ healthyCount }}</span>
+          <span class="hc-label">/ {{ components.length }} 正常</span>
+        </div>
+        <el-button type="primary" plain @click="loadData" :loading="loading">
+          <el-icon><Refresh /></el-icon> 刷新
+        </el-button>
+        <el-button type="success" plain @click="openLangSmith">
+          <el-icon><Link /></el-icon> LangSmith
+        </el-button>
+      </div>
+    </div>
+
+    <!-- 组件状态卡片 -->
+    <el-row :gutter="16" class="component-row">
+      <el-col v-for="comp in components" :key="comp.name" :span="6">
+        <el-card class="comp-card" shadow="hover" :class="compCardClass(comp.status)">
+          <div class="comp-header">
+            <div class="comp-icon-wrap" :class="compCardClass(comp.status)">
+              <el-icon :size="20">
+                <Cpu v-if="comp.name.includes('API') || comp.name.includes('RAG')" />
+                <Coin v-else-if="comp.name.includes('MySQL')" />
+                <Box v-else-if="comp.name.includes('Milvus')" />
+                <Microphone v-else-if="comp.name.includes('ASR')" />
+                <Timer v-else-if="comp.name.includes('定时') || comp.name.includes('调度')" />
+                <Bell v-else-if="comp.name.includes('告警')" />
+                <Monitor v-else />
+              </el-icon>
+              <span class="pulse-ring" v-if="comp.status === 'healthy'"></span>
+            </div>
+            <div class="comp-info">
+              <div class="comp-name">{{ comp.name }}</div>
+              <el-tag :type="statusTagType(comp.status)" size="small" effect="dark">
+                {{ statusText(comp.status) }}
+              </el-tag>
+            </div>
           </div>
-        </div>
-
-        <div class="overall-bar">
-          <el-tag :type="overallTagType" size="large">
-            {{ overallText }}
-          </el-tag>
-          <span class="timestamp" v-if="timestamp">最后检查: {{ timestamp }}</span>
-        </div>
-
-        <el-row :gutter="16" class="component-row">
-          <el-col v-for="comp in components" :key="comp.name" :span="6">
-            <el-card class="comp-card" shadow="hover">
-              <div class="comp-header">
-                <span class="comp-name">{{ comp.name }}</span>
-                <el-tag :type="statusTagType(comp.status)" size="small">
-                  {{ statusText(comp.status) }}
-                </el-tag>
-              </div>
-              <div class="comp-detail">{{ comp.detail }}</div>
-              <div class="comp-latency" v-if="comp.latency_ms > 0">
-                延迟: {{ comp.latency_ms }}ms
-              </div>
-            </el-card>
-          </el-col>
-        </el-row>
-
-        <el-card class="log-card" shadow="never">
-          <template #header>
-            <div class="log-header">
-              <span>最近错误日志</span>
-              <div class="log-actions">
-                <el-select v-model="logLevel" placeholder="日志级别" clearable style="width: 120px" @change="loadLogs">
-                  <el-option label="ERROR" value="ERROR" />
-                  <el-option label="WARNING" value="WARNING" />
-                  <el-option label="INFO" value="INFO" />
-                </el-select>
-                <el-button size="small" style="margin-left: 8px" @click="loadLogs">刷新日志</el-button>
-              </div>
-            </div>
-          </template>
-          <div class="log-list">
-            <div v-for="(log, i) in logLines" :key="i" class="log-line" :class="'log-' + log.level.toLowerCase()">
-              {{ log.line }}
-            </div>
-            <div v-if="logLines.length === 0" class="log-empty">暂无日志</div>
+          <div class="comp-detail">{{ comp.detail }}</div>
+          <div class="comp-latency" v-if="comp.latency_ms > 0">
+            <el-icon><Stopwatch /></el-icon> {{ comp.latency_ms }}ms
           </div>
         </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 终端风格日志 -->
+    <el-card class="log-card" shadow="never">
+      <template #header>
+        <div class="log-header">
+          <div class="log-title">
+            <el-icon><Document /></el-icon>
+            <span>系统日志</span>
+            <span class="log-count" v-if="logLines.length">({{ logLines.length }}条)</span>
+          </div>
+          <div class="log-actions">
+            <el-select v-model="logLevel" placeholder="日志级别" clearable style="width: 120px" @change="loadLogs">
+              <el-option label="ERROR" value="ERROR" />
+              <el-option label="WARNING" value="WARNING" />
+              <el-option label="INFO" value="INFO" />
+            </el-select>
+            <el-button size="small" @click="loadLogs">
+              <el-icon><Refresh /></el-icon>
+            </el-button>
+          </div>
+        </div>
+      </template>
+      <div class="terminal">
+        <div v-for="(log, i) in logLines" :key="i" class="terminal-line" :class="'term-' + log.level.toLowerCase()">
+          <span class="term-prompt">$</span> {{ log.line }}
+        </div>
+        <div v-if="logLines.length === 0" class="terminal-empty">~ 暂无日志 ~</div>
       </div>
     </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
+import {
+  CircleCheck, CircleClose, Warning, Refresh, Link, Document,
+  Cpu, Coin, Box, Microphone, Timer, Bell, Monitor, Stopwatch
+} from '@element-plus/icons-vue'
 import { getSystemStatus, getSystemLogs, type SystemComponent, type SystemLogItem } from '@/api/system'
 
 const components = ref<SystemComponent[]>([])
@@ -70,9 +106,23 @@ const overall = ref('')
 const timestamp = ref('')
 const logLines = ref<SystemLogItem[]>([])
 const logLevel = ref('ERROR')
+const loading = ref(false)
 
-const overallTagType = ref<'success' | 'warning' | 'danger'>('success')
-const overallText = ref('')
+let refreshTimer: ReturnType<typeof setInterval> | null = null
+
+const healthyCount = computed(() => components.value.filter(c => c.status === 'healthy').length)
+
+const overallClass = computed(() => {
+  if (overall.value === 'healthy') return 'banner-healthy'
+  if (overall.value === 'degraded') return 'banner-degraded'
+  return 'banner-unhealthy'
+})
+
+const overallText = computed(() => {
+  if (overall.value === 'healthy') return '系统运行正常'
+  if (overall.value === 'degraded') return '系统部分降级'
+  return '系统异常'
+})
 
 const statusTagType = (s: string): 'success' | 'warning' | 'danger' | 'info' => {
   if (s === 'healthy') return 'success'
@@ -83,34 +133,30 @@ const statusTagType = (s: string): 'success' | 'warning' | 'danger' | 'info' => 
 
 const statusText = (s: string) => {
   const map: Record<string, string> = {
-    healthy: '正常',
-    unhealthy: '异常',
-    degraded: '降级',
-    standby: '待加载',
-    stopped: '已停止',
-    unknown: '未知'
+    healthy: '正常', unhealthy: '异常', degraded: '降级',
+    standby: '待加载', stopped: '已停止', unknown: '未知'
   }
   return map[s] || s
 }
 
+const compCardClass = (s: string) => {
+  if (s === 'healthy') return 'comp-healthy'
+  if (s === 'unhealthy') return 'comp-unhealthy'
+  if (s === 'degraded' || s === 'standby') return 'comp-degraded'
+  return 'comp-unknown'
+}
+
 const loadData = async () => {
+  loading.value = true
   try {
     const res = await getSystemStatus()
     components.value = res.components
     overall.value = res.overall
     timestamp.value = res.timestamp
-    if (res.overall === 'healthy') {
-      overallTagType.value = 'success'
-      overallText.value = '系统运行正常'
-    } else if (res.overall === 'degraded') {
-      overallTagType.value = 'warning'
-      overallText.value = '系统部分降级'
-    } else {
-      overallTagType.value = 'danger'
-      overallText.value = '系统异常'
-    }
   } catch {
     ElMessage.error('加载系统状态失败')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -130,117 +176,207 @@ const openLangSmith = () => {
 onMounted(() => {
   loadData()
   loadLogs()
+  refreshTimer = setInterval(() => {
+    loadData()
+  }, 10000)
+})
+
+onBeforeUnmount(() => {
+  if (refreshTimer) clearInterval(refreshTimer)
 })
 </script>
 
 <style scoped>
 .status-wrap {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-  overflow: hidden;
+  background-color: #f0f2f5;
 }
-.full-card {
-  height: 100%;
-}
-:deep(.el-card__body) {
-  height: 100%;
-  padding: 20px;
-  box-sizing: border-box;
+
+.health-banner {
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.card-body-inner {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-}
-.header-bar {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
-.header-actions {
-  display: flex;
-  gap: 8px;
-}
-.overall-bar {
-  margin: 16px 0;
+.banner-healthy { background: linear-gradient(135deg, #67c23a, #5daf34); }
+.banner-degraded { background: linear-gradient(135deg, #e6a23c, #d48806); }
+.banner-unhealthy { background: linear-gradient(135deg, #f56c6c, #c45656); }
+
+.banner-left {
   display: flex;
   align-items: center;
   gap: 16px;
 }
-.timestamp {
-  color: #999;
+.banner-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.banner-title {
+  font-size: 22px;
+  font-weight: 700;
+}
+.banner-sub {
   font-size: 13px;
+  opacity: 0.85;
+  margin-top: 4px;
 }
+
+.banner-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.healthy-count {
+  text-align: center;
+}
+.hc-num {
+  font-size: 28px;
+  font-weight: 700;
+}
+.hc-label {
+  font-size: 12px;
+  opacity: 0.85;
+  display: block;
+}
+
 .component-row {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
+
 .comp-card {
   margin-bottom: 12px;
+  transition: transform 0.2s;
 }
+.comp-card:hover {
+  transform: translateY(-2px);
+}
+.comp-healthy { border-left: 3px solid #67c23a; }
+.comp-unhealthy { border-left: 3px solid #f56c6c; }
+.comp-degraded { border-left: 3px solid #e6a23c; }
+.comp-unknown { border-left: 3px solid #909399; }
+
 .comp-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
   margin-bottom: 8px;
+}
+.comp-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.comp-icon-wrap.comp-healthy { background: #f0f9eb; color: #67c23a; }
+.comp-icon-wrap.comp-unhealthy { background: #fef0f0; color: #f56c6c; }
+.comp-icon-wrap.comp-degraded { background: #fdf6ec; color: #e6a23c; }
+.comp-icon-wrap.comp-unknown { background: #f4f4f5; color: #909399; }
+
+.pulse-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  border: 2px solid #67c23a;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+.comp-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .comp-name {
   font-weight: 600;
   font-size: 15px;
+  color: #303133;
 }
 .comp-detail {
-  color: #666;
+  color: #606266;
   font-size: 13px;
   margin-bottom: 4px;
+  line-height: 1.5;
 }
 .comp-latency {
-  color: #999;
+  color: #909399;
   font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
+
 .log-card {
-  flex: 1;
-  overflow: hidden;
+  margin-bottom: 20px;
 }
 .log-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+}
+.log-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.log-count {
+  color: #909399;
+  font-size: 13px;
+  font-weight: 400;
 }
 .log-actions {
   display: flex;
   align-items: center;
+  gap: 8px;
 }
-.log-list {
-  max-height: 300px;
+
+.terminal {
+  background: #1e1e1e;
+  border-radius: 8px;
+  padding: 16px;
+  max-height: 350px;
   overflow-y: auto;
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  line-height: 1.6;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.8;
 }
-.log-line {
-  padding: 2px 4px;
-  border-bottom: 1px solid #f0f0f0;
+.terminal-line {
+  color: #4caf50;
   word-break: break-all;
 }
-.log-error {
-  color: #f56c6c;
-  background: #fef0f0;
+.term-prompt {
+  color: #2196f3;
+  margin-right: 4px;
 }
-.log-warning {
-  color: #e6a23c;
-  background: #fdf6ec;
-}
-.log-info {
+.term-error { color: #f44336; }
+.term-warning { color: #ff9800; }
+.term-info { color: #4caf50; }
+.terminal-empty {
   color: #666;
-}
-.log-empty {
   text-align: center;
-  color: #999;
   padding: 20px;
 }
 </style>

@@ -434,6 +434,16 @@ def list_work_orders(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1
                                  page=result["page"], page_size=result["page_size"])
 
 
+@router.get("/work_orders/stats")
+def get_work_order_stats(user: dict = Depends(get_current_user)):
+    if mysql_client is None:
+        raise HTTPException(status_code=500, detail="服务未初始化")
+    dept = user.get("dept") if user.get("role") == "dept" else None
+    if dept:
+        return mysql_client.count_work_orders_by_dept(dept)
+    return mysql_client.count_work_orders()
+
+
 @router.post("/work_orders", response_model=WorkOrderDetailResponse)
 def create_work_order(req: WorkOrderCreateRequest):
     if mysql_client is None:

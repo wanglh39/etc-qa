@@ -1,24 +1,72 @@
 <template>
   <div class="audit-pending-wrap">
-    <el-card class="full-card">
-      <!-- 利用 el-card 默认的 body 容器，直接在其上写 flex 布局 -->
-      <div class="card-body-inner">
-        <h3>待审核新问题列表</h3>
-        <div class="btn-group">
-          <el-button type="primary" @click="batchApprove">批量入库</el-button>
-          <el-button type="danger" @click="batchReject">批量驳回</el-button>
+    <!-- KPI 概览卡片 -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #409eff, #667eea)">
+          <el-icon :size="24"><Clock /></el-icon>
         </div>
-        <!-- 表格不设置固定高度，高度随内容自适应，无滚动条 -->
-        <el-table border :data="currentPageList" @selection-change="handleSelectionChange">
+        <div class="kpi-info">
+          <div class="kpi-value">{{ total }}</div>
+          <div class="kpi-label">待审核总数</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #67c23a, #95d475)">
+          <el-icon :size="24"><Document /></el-icon>
+        </div>
+        <div class="kpi-info">
+          <div class="kpi-value">{{ currentPageList.length }}</div>
+          <div class="kpi-label">当前页条数</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #e6a23c, #f3d19e)">
+          <el-icon :size="24"><Select /></el-icon>
+        </div>
+        <div class="kpi-info">
+          <div class="kpi-value">{{ selectedRows.length }}</div>
+          <div class="kpi-label">已选中</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #9b59b6, #b39ddb)">
+          <el-icon :size="24"><Files /></el-icon>
+        </div>
+        <div class="kpi-info">
+          <div class="kpi-value">{{ categoryCount }}</div>
+          <div class="kpi-label">涉及分类</div>
+        </div>
+      </div>
+    </div>
+
+    <el-card class="full-card">
+      <div class="card-body-inner">
+        <div class="toolbar">
+          <h3>待审核新问题列表</h3>
+          <div class="toolbar-right">
+            <el-select v-model="filterCategory" placeholder="全部分类" clearable style="width: 180px" @change="onFilterChange">
+              <el-option v-for="c in categoryOptions" :key="c" :label="c" :value="c" />
+            </el-select>
+            <el-button type="primary" @click="batchApprove">批量入库</el-button>
+            <el-button type="danger" @click="batchReject">批量驳回</el-button>
+          </div>
+        </div>
+        <el-table border :data="currentPageList" @selection-change="handleSelectionChange" v-loading="loading">
           <el-table-column type="selection" width="55" />
           <el-table-column prop="id" label="知识ID" width="80" />
           <el-table-column prop="question" label="用户问题" min-width="260" />
           <el-table-column prop="category_l1" label="分类" width="120">
             <template #default="{ row }">
-              {{ row.category_l1 }}{{ row.category_l2 ? ' / ' + row.category_l2 : '' }}
+              <el-tag size="small">{{ row.category_l1 }}</el-tag>
+              <span v-if="row.category_l2" style="color: #909399; margin-left: 4px">/ {{ row.category_l2 }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="created_at" label="提交时间" width="170" />
+          <el-table-column prop="created_at" label="提交时间" width="170">
+            <template #default="{ row }">
+              <span style="color: #909399">{{ row.created_at || '-' }}</span>
+            </template>
+          </el-table-column>
           <el-table-column label="操作" width="220">
             <template #default="{ row }">
               <el-button link type="primary" @click="goDetail(row.id)">查看详情</el-button>
@@ -46,6 +94,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Clock, Document, Select, Files } from '@element-plus/icons-vue'
 import { getQAList, updateQAStatus, type QAListItem } from '@/api/knowledge'
 
 const router = useRouter()
@@ -55,21 +104,42 @@ const pageSize = ref(10)
 const tableAllData = ref<QAListItem[]>([])
 const total = ref(0)
 const selectedRows = ref<QAListItem[]>([])
+const loading = ref(false)
+const filterCategory = ref('')
 
 const currentPageList = computed(() => tableAllData.value)
+const categoryCount = computed(() => {
+  const set = new Set<string>()
+  tableAllData.value.forEach((r) => { if (r.category_l1) set.add(r.category_l1) })
+  return set.size
+})
+const categoryOptions = computed(() => {
+  const set = new Set<string>()
+  tableAllData.value.forEach((r) => { if (r.category_l1) set.add(r.category_l1) })
+  return Array.from(set).sort()
+})
 
 const loadData = async () => {
+  loading.value = true
   try {
     const res = await getQAList({
       page: page.value,
       page_size: pageSize.value,
-      status: 'deprecated'
+      status: 'deprecated',
+      category_l1: filterCategory.value || undefined
     })
     tableAllData.value = res.items
     total.value = res.total
   } catch {
     ElMessage.error('加载待审核列表失败')
+  } finally {
+    loading.value = false
   }
+}
+
+const onFilterChange = () => {
+  page.value = 1
+  loadData()
 }
 
 const goDetail = (id: number) => {
@@ -140,45 +210,72 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 外层容器：撑满屏幕可视区域，隐藏自身滚动条 */
 .audit-pending-wrap {
   width: 100%;
-  height: 100vh; /* 占满整个视口高度 */
   padding: 20px;
   box-sizing: border-box;
-  overflow: hidden; /* 关键：隐藏外层容器的滚动条 */
 }
 
-/* Card 填满父容器 */
-.full-card {
-  height: 100%;
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
 }
-
-/* 深度修改 el-card 的 body 容器：用 Flex 布局管理子元素，无溢出 */
-:deep(.el-card__body) {
-  height: 100%;
+.kpi-card {
+  background: #fff;
+  border-radius: 10px;
   padding: 20px;
-  box-sizing: border-box; /* 关键：padding 纳入高度计算，避免总高度超出 */
   display: flex;
-  flex-direction: column;
-  overflow: hidden; /* 禁止内部内容溢出产生滚动条 */
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s;
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+}
+.kpi-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+.kpi-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #303133;
+}
+.kpi-label {
+  font-size: 13px;
+  color: #909399;
+  margin-top: 2px;
 }
 
-/* 内部内容区：Flex 纵向布局，自动填充剩余空间 */
+.full-card {
+  min-height: 400px;
+}
 .card-body-inner {
-  height: 100%;
   display: flex;
   flex-direction: column;
 }
-
-/* 按钮组：上下间距 */
-.btn-group {
-  margin: 16px 0;
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
 }
-
-/* 表格：无固定高度，随内容自适应（每页 2 条数据时，仅渲染 2 行） */
-.el-table {
-  flex: 1; /* 自动填充剩余空间，但内容少时不会强制拉伸 */
-  overflow: visible; /* 允许内容自然显示，无内部滚动条 */
+.toolbar h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 </style>

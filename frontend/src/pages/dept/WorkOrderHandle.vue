@@ -1,23 +1,96 @@
 <template>
-  <!-- 外层容器：设置最小高度为视口高度，背景色加深以突出卡片 -->
   <div class="dept-page">
-    <!-- 卡片主体：使用 flex 布局撑开高度 -->
+    <!-- KPI概览卡片 -->
+    <div class="kpi-row">
+      <el-card class="kpi-card" shadow="hover" @click="filterByStatus('')">
+        <div class="kpi-inner">
+          <div class="kpi-icon total"><el-icon><Document /></el-icon></div>
+          <div class="kpi-info">
+            <div class="kpi-num">{{ stats.total || 0 }}</div>
+            <div class="kpi-label">全部工单</div>
+          </div>
+        </div>
+      </el-card>
+      <el-card class="kpi-card" shadow="hover" @click="filterByStatus('submitted')">
+        <div class="kpi-inner">
+          <div class="kpi-icon pending"><el-icon><Clock /></el-icon></div>
+          <div class="kpi-info">
+            <div class="kpi-num">{{ stats.submitted || 0 }}</div>
+            <div class="kpi-label">待处理</div>
+          </div>
+        </div>
+      </el-card>
+      <el-card class="kpi-card" shadow="hover" @click="filterByStatus('answered')">
+        <div class="kpi-inner">
+          <div class="kpi-icon answered"><el-icon><ChatDotRound /></el-icon></div>
+          <div class="kpi-info">
+            <div class="kpi-num">{{ stats.answered || 0 }}</div>
+            <div class="kpi-label">已回复</div>
+          </div>
+        </div>
+      </el-card>
+      <el-card class="kpi-card" shadow="hover" @click="filterByStatus('processed')">
+        <div class="kpi-inner">
+          <div class="kpi-icon done"><el-icon><CircleCheck /></el-icon></div>
+          <div class="kpi-info">
+            <div class="kpi-num">{{ stats.processed || 0 }}</div>
+            <div class="kpi-label">已办结</div>
+          </div>
+        </div>
+      </el-card>
+      <el-card class="kpi-card" shadow="hover">
+        <div class="kpi-inner">
+          <div class="kpi-icon today"><el-icon><Calendar /></el-icon></div>
+          <div class="kpi-info">
+            <div class="kpi-num">{{ stats.today || 0 }}</div>
+            <div class="kpi-label">今日新增</div>
+          </div>
+        </div>
+      </el-card>
+    </div>
+
+    <!-- 主卡片 -->
     <el-card shadow="hover" class="main-card">
       <template #header>
-        <div class="card-title">{{ currentDeptName }}工单处理</div>
+        <div class="card-header">
+          <span class="card-title">{{ currentDeptName }}工单处理</span>
+          <div class="header-actions" v-if="selectedIds.length > 0">
+            <el-tag type="info">已选 {{ selectedIds.length }} 条</el-tag>
+            <el-button type="success" size="small" :loading="batchLoading" @click="batchFinish">
+              批量办结
+            </el-button>
+          </div>
+        </div>
       </template>
 
-      <!-- 搜索区域：增加底部间距 -->
+      <!-- Tab状态筛选 -->
+      <el-tabs v-model="activeTab" class="status-tabs" @tab-change="onTabChange">
+        <el-tab-pane label="全部" name="">
+          <template #label>
+            <span>全部 <el-badge :value="stats.total" :max="999" type="primary" /></span>
+          </template>
+        </el-tab-pane>
+        <el-tab-pane name="submitted">
+          <template #label>
+            <span>待处理 <el-badge :value="stats.submitted" :max="999" type="warning" /></span>
+          </template>
+        </el-tab-pane>
+        <el-tab-pane name="answered">
+          <template #label>
+            <span>已回复 <el-badge :value="stats.answered" :max="999" type="primary" /></span>
+          </template>
+        </el-tab-pane>
+        <el-tab-pane name="processed">
+          <template #label>
+            <span>已办结 <el-badge :value="stats.processed" :max="999" type="success" /></span>
+          </template>
+        </el-tab-pane>
+      </el-tabs>
+
+      <!-- 搜索区域 -->
       <el-form :model="searchForm" inline class="search-form">
         <el-form-item label="工单编号">
-          <el-input v-model="searchForm.orderNo" placeholder="请输入工单编号" clearable style="width: 200px;"></el-input>
-        </el-form-item>
-        <el-form-item label="工单状态">
-          <el-select v-model="searchForm.status" placeholder="全部" clearable style="width: 150px;">
-            <el-option label="待处理" value="submitted"></el-option>
-            <el-option label="已回复" value="answered"></el-option>
-            <el-option label="已办结" value="processed"></el-option>
-          </el-select>
+          <el-input v-model="searchForm.orderNo" placeholder="请输入工单编号" clearable style="width: 200px;" @keyup.enter="handleSearch"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">查询</el-button>
@@ -25,7 +98,7 @@
         </el-form-item>
       </el-form>
 
-      <!-- 表格区域：flex:1 让它自动占据中间所有剩余空间 -->
+      <!-- 表格区域 -->
       <div class="table-wrapper">
         <el-table
           :data="displayList"
@@ -34,18 +107,40 @@
           style="width: 100%; height: 100%;"
           height="100%"
           v-loading="loading"
+          @selection-change="onSelectionChange"
         >
-          <el-table-column label="工单ID" prop="id" width="100" align="center"></el-table-column>
+          <el-table-column type="selection" width="45" align="center" :selectable="(row: WorkOrderListItem) => row.status !== 'processed'" />
+          <el-table-column label="工单ID" prop="id" width="80" align="center"></el-table-column>
           <el-table-column label="工单编号" prop="external_id" min-width="180"></el-table-column>
-          <el-table-column label="提交时间" prop="created_at" min-width="180" align="center"></el-table-column>
-          <el-table-column label="工单状态" prop="status" width="120" align="center">
+          <el-table-column label="问题类型" min-width="120" align="center">
+            <template #default="scope">
+              <el-tag v-if="parseRaw(scope.row).problem_type" size="small" effect="plain">
+                {{ parseRaw(scope.row).problem_type }}
+              </el-tag>
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="优先级" width="100" align="center">
+            <template #default="scope">
+              <el-tag
+                v-if="parseRaw(scope.row).priority"
+                :type="priorityType(parseRaw(scope.row).priority)"
+                size="small"
+              >
+                {{ parseRaw(scope.row).priority }}
+              </el-tag>
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="提交时间" prop="created_at" min-width="160" align="center"></el-table-column>
+          <el-table-column label="工单状态" prop="status" width="100" align="center">
             <template #default="scope">
               <el-tag v-if="scope.row.status === 'submitted'" type="warning" effect="light">待处理</el-tag>
               <el-tag v-else-if="scope.row.status === 'answered'" type="primary" effect="light">已回复</el-tag>
               <el-tag v-else-if="scope.row.status === 'processed'" type="success" effect="light">已办结</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="200" align="center">
+          <el-table-column label="操作" width="180" align="center" fixed="right">
             <template #default="scope">
               <el-button link type="primary" size="small" @click="openDetail(scope.row)">查看详情</el-button>
               <el-button
@@ -60,7 +155,7 @@
         </el-table>
       </div>
 
-      <!-- 分页区域：靠右对齐，保持固定间距 -->
+      <!-- 分页区域 -->
       <div class="pagination-container">
         <el-pagination
           v-model:current-page="page.pageNum"
@@ -79,15 +174,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { getWorkOrders, type WorkOrderListItem } from '@/api/audit'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Document, Clock, ChatDotRound, CircleCheck, Calendar } from '@element-plus/icons-vue'
+import { getWorkOrders, getWorkOrderStats, type WorkOrderListItem, type WorkOrderStats } from '@/api/audit'
 import { replyWorkOrder } from '@/api/workorder'
 
-// 路由实例，获取当前部门编码
 const route = useRoute()
 const router = useRouter()
 
-// ===================== 部门名称映射配置 =====================
 const deptNameMap: Record<string, string> = {
   aftersale: '售后处理部',
   ops: '技术运维部',
@@ -95,37 +189,34 @@ const deptNameMap: Record<string, string> = {
   market: '市场部',
   human: '人事部'
 }
-// 获取路由上的deptCode参数
 const deptCode = computed(() => route.params.deptCode as string)
-// 动态页面标题，匹配对应部门
 const currentDeptName = computed(() => deptNameMap[deptCode.value] || '通用部门')
-// ======================================================================
 
-// 搜索表单数据
-const searchForm = ref({
-  orderNo: '',
-  status: ''
-})
-
-// 分页参数
-const page = ref({
-  pageNum: 1,
-  pageSize: 10,
-  total: 0
-})
-
-// 表格工单数据
+const activeTab = ref('')
+const searchForm = ref({ orderNo: '' })
+const page = ref({ pageNum: 1, pageSize: 10, total: 0 })
 const tableData = ref<WorkOrderListItem[]>([])
 const loading = ref(false)
+const stats = ref<WorkOrderStats>({ total: 0, submitted: 0, answered: 0, processed: 0, today: 0 })
+const selectedIds = ref<number[]>([])
+const batchLoading = ref(false)
 
-// 工单编号本地过滤（仅作用于当前页）
+const parseRaw = (row: WorkOrderListItem): Record<string, any> => {
+  try { return JSON.parse(row.raw_data || '{}') } catch { return {} }
+}
+
+const priorityType = (p: string): 'danger' | 'warning' | 'info' => {
+  if (p === '高' || p === 'urgent') return 'danger'
+  if (p === '中' || p === 'normal') return 'warning'
+  return 'info'
+}
+
 const displayList = computed(() => {
   const kw = searchForm.value.orderNo.trim()
   if (!kw) return tableData.value
   return tableData.value.filter((item) => (item.external_id || '').includes(kw))
 })
 
-// 查询工单列表（按部门 + 状态）
 const getTableList = async () => {
   loading.value = true
   try {
@@ -133,7 +224,7 @@ const getTableList = async () => {
       page: page.value.pageNum,
       page_size: page.value.pageSize,
       dept: deptCode.value,
-      status: searchForm.value.status || undefined
+      status: activeTab.value || undefined
     })
     tableData.value = res.items
     page.value.total = res.total
@@ -144,102 +235,196 @@ const getTableList = async () => {
   }
 }
 
-// 查询按钮：重置到第一页再加载
+const getStats = async () => {
+  try {
+    stats.value = await getWorkOrderStats()
+  } catch {
+    stats.value = { total: 0, submitted: 0, answered: 0, processed: 0, today: 0 }
+  }
+}
+
+const onTabChange = () => {
+  page.value.pageNum = 1
+  getTableList()
+}
+
+const filterByStatus = (status: string) => {
+  activeTab.value = status
+  page.value.pageNum = 1
+  getTableList()
+}
+
 const handleSearch = () => {
   page.value.pageNum = 1
   getTableList()
 }
 
-// 重置搜索条件
 const resetSearch = () => {
-  searchForm.value = { orderNo: '', status: '' }
+  searchForm.value = { orderNo: '' }
+  activeTab.value = ''
   page.value.pageNum = 1
   getTableList()
 }
 
-// 打开工单详情页面，携带部门编码与工单ID
-const openDetail = (row: WorkOrderListItem) => {
-  router.push({
-    path: `/dept/handle/${deptCode.value}/detail/${row.id}`
-  })
+const onSelectionChange = (rows: WorkOrderListItem[]) => {
+  selectedIds.value = rows.map((r) => r.id)
 }
 
-// 办结工单操作
+const openDetail = (row: WorkOrderListItem) => {
+  router.push({ path: `/dept/handle/${deptCode.value}/detail/${row.id}` })
+}
+
 const handleFinish = async (row: WorkOrderListItem) => {
   try {
+    await ElMessageBox.confirm(`确认办结工单 ${row.external_id}？`, '提示', { type: 'warning' })
     await replyWorkOrder(row.id, { handle_remark: '快速办结' })
     ElMessage.success(`工单${row.external_id}已办结`)
     getTableList()
+    getStats()
   } catch {
     ElMessage.error('办结失败')
   }
 }
 
-// 页面初始化加载数据
+const batchFinish = async () => {
+  try {
+    await ElMessageBox.confirm(`确认批量办结 ${selectedIds.value.length} 条工单？`, '批量办结', { type: 'warning' })
+    batchLoading.value = true
+    let ok = 0
+    for (const id of selectedIds.value) {
+      try {
+        await replyWorkOrder(id, { handle_remark: '批量办结' })
+        ok++
+      } catch { /* skip */ }
+    }
+    ElMessage.success(`成功办结 ${ok}/${selectedIds.value.length} 条`)
+    selectedIds.value = []
+    getTableList()
+    getStats()
+  } catch {
+    ElMessage.error('批量办结失败')
+  } finally {
+    batchLoading.value = false
+  }
+}
+
 onMounted(() => {
   getTableList()
+  getStats()
 })
 
-// 切换左侧菜单（切换部门）自动重置第一页并刷新数据
 watch(deptCode, () => {
   page.value.pageNum = 1
   getTableList()
+  getStats()
 })
 </script>
 
 <style scoped>
-/* 1. 页面整体布局：灰色背景，撑满全屏 */
 .dept-page {
   width: 100%;
   min-height: 100vh;
-  background-color: #f0f2f5; /* 浅灰背景 */
+  background-color: #f0f2f5;
   padding: 20px;
   box-sizing: border-box;
-  display: flex;
-  justify-content: center;
 }
 
-/* 2. 卡片样式：限制最大宽度，内部使用 Flex 纵向布局 */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.kpi-card {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.kpi-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kpi-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #fff;
+}
+.kpi-icon.total { background: linear-gradient(135deg, #409eff, #337ecc); }
+.kpi-icon.pending { background: linear-gradient(135deg, #e6a23c, #d48806); }
+.kpi-icon.answered { background: linear-gradient(135deg, #409eff, #66b1ff); }
+.kpi-icon.done { background: linear-gradient(135deg, #67c23a, #5daf34); }
+.kpi-icon.today { background: linear-gradient(135deg, #909399, #7e8c9a); }
+
+.kpi-num {
+  font-size: 24px;
+  font-weight: 700;
+  color: #303133;
+  line-height: 1.2;
+}
+.kpi-label {
+  font-size: 13px;
+  color: #909399;
+  margin-top: 2px;
+}
+
 .main-card {
-  width: 100%;
-  max-width: 1400px; /* 防止在大屏上太宽 */
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 40px); /* 关键：减去上下 padding，确保不出现滚动条 */
+  height: calc(100vh - 180px);
 }
 
-/* 3. 标题样式优化 */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 .card-title {
   font-size: 18px;
   font-weight: 600;
   color: #303133;
 }
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-/* 4. 搜索表单：增加底部间距，添加分割线 */
+.status-tabs {
+  margin-bottom: 8px;
+}
+
 .search-form {
-  margin-bottom: 20px;
-  padding-bottom: 20px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
   border-bottom: 1px solid #ebeef5;
 }
 
-/* 5. 表格容器：关键！使用 flex:1 自动填满中间剩余空间 */
 .table-wrapper {
   flex: 1;
-  margin-bottom: 20px; /* 与分页保持间距 */
-  overflow: hidden; /* 防止内容溢出 */
+  margin-bottom: 16px;
+  overflow: hidden;
 }
 
-/* 6. 分页容器：靠右对齐 */
 .pagination-container {
   display: flex;
   justify-content: flex-end;
-  padding-top: 10px;
+  padding-top: 8px;
 }
 
-/* 深度选择器：调整卡片内部 Padding，使其更紧凑一致 */
 :deep(.el-card__header) {
-  padding: 20px;
-  border-bottom: 1px solid #ebeef5;
+  padding: 16px 20px;
 }
 :deep(.el-card__body) {
   padding: 20px;

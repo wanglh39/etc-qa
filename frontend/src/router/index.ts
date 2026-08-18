@@ -55,6 +55,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'A/B影子测试', roleAuth: 'admin' }
       },
       {
+        path: 'workbench/admin/prompt',
+        name: 'PromptManage',
+        component: () => import('@/pages/system/prompt.vue'),
+        meta: { title: '提示词管理', roleAuth: 'admin' }
+      },
+      {
         path: 'workbench/admin/knowledge',
         name: 'KnowledgeList',
         component: () => import('@/pages/knowledge/list.vue'),

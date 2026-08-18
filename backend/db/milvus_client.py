@@ -3,6 +3,12 @@ from pymilvus import DataType, MilvusClient
 
 from utils.config import get_config
 
+_GRPC_OPTIONS = {
+    "grpc.keepalive_time_ms": 300000,
+    "grpc.keepalive_timeout_ms": 20000,
+    "grpc.keepalive_permit_without_calls": False,
+}
+
 
 class MilvusQA:
     def __init__(self):
@@ -16,8 +22,6 @@ class MilvusQA:
         self.schema_cfg = cfg.get("schema", {"category_l1_max_length": 50})
         self._client = None
         self._collection_loaded = False
-        self._query_count = 0
-        self._reconnect_interval = 30
 
     def _reconnect(self):
         if self._client:
@@ -25,13 +29,13 @@ class MilvusQA:
                 self._client.close()
             except Exception:
                 pass
-        self._client = MilvusClient(self.db_path)
+        self._client = MilvusClient(self.db_path, grpc_options=_GRPC_OPTIONS)
         self._collection_loaded = False
 
     @property
     def client(self) -> MilvusClient:
         if self._client is None:
-            self._client = MilvusClient(self.db_path)
+            self._client = MilvusClient(self.db_path, grpc_options=_GRPC_OPTIONS)
         return self._client
 
     def init_collection(self):
@@ -80,13 +84,7 @@ class MilvusQA:
         import time
         from alert.monitor import record_metric
         start = time.time()
-        self._query_count += 1
-        if self._query_count >= self._reconnect_interval:
-            self._query_count = 0
-            from utils.logger import get_logger
-            get_logger("milvus").info(f"定期重连(每{self._reconnect_interval}次查询)")
-            self._reconnect()
-            self._ensure_loaded()
+
         try:
             result = self.client.search(**kwargs)
             record_metric("milvus_search", time.time() - start, True)

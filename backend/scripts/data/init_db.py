@@ -19,6 +19,12 @@ from sentence_transformers import SentenceTransformer
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
+_GRPC_OPTIONS = {
+    "grpc.keepalive_time_ms": 300000,
+    "grpc.keepalive_timeout_ms": 20000,
+    "grpc.keepalive_permit_without_calls": False,
+}
+
 env = sys.argv[1] if len(sys.argv) > 1 else "test"
 os.environ['ETC_QA_ENV'] = env
 
@@ -360,7 +366,7 @@ def import_to_mysql():
 def init_milvus():
     print("\n=== 第3步：初始化Milvus ===")
 
-    client = MilvusClient(MILVUS_DB)
+    client = MilvusClient(MILVUS_DB, grpc_options=_GRPC_OPTIONS)
 
     if client.has_collection(COLLECTION_NAME):
         try:
@@ -372,7 +378,7 @@ def init_milvus():
                 import shutil
                 if os.path.exists(MILVUS_DB):
                     shutil.rmtree(MILVUS_DB, ignore_errors=True)
-                client = MilvusClient(MILVUS_DB)
+                client = MilvusClient(MILVUS_DB, grpc_options=_GRPC_OPTIONS)
             else:
                 raise
 
@@ -423,7 +429,7 @@ def import_to_milvus():
     print("  加载Embedding模型...")
     embed_model = SentenceTransformer(EMBED_MODEL_PATH)
 
-    client = MilvusClient(MILVUS_DB)
+    client = MilvusClient(MILVUS_DB, grpc_options=_GRPC_OPTIONS)
 
     batch_size = 100
     total_inserted = 0
@@ -469,7 +475,7 @@ def main():
     else:
         if not force:
             try:
-                test_client = MilvusClient(MILVUS_DB)
+                test_client = MilvusClient(MILVUS_DB, grpc_options=_GRPC_OPTIONS)
                 if test_client.has_collection(COLLECTION_NAME):
                     test_client.load_collection(COLLECTION_NAME)
                     count = test_client.query(COLLECTION_NAME, filter="id >= 0", output_fields=["id"], limit=1)

@@ -86,7 +86,7 @@ const statusText = (s: string) => {
     healthy: '正常',
     unhealthy: '异常',
     degraded: '降级',
-    standby: '待机',
+    standby: '待加载',
     stopped: '已停止',
     unknown: '未知'
   }

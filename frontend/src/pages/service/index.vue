@@ -56,6 +56,21 @@
       <el-card>
         <!-- 搜索区 -->
         <div class="search-section">
+          <div class="search-header">
+            <div class="search-title-row">
+              <span class="search-title">客服工作台</span>
+              <el-tag
+                v-if="asrHealth"
+                :type="asrHealth.loaded ? 'success' : 'warning'"
+                size="small"
+                effect="plain"
+                round
+              >
+                <el-icon style="margin-right: 2px"><CircleCheck /></el-icon>
+                ASR {{ asrHealth.loaded ? '已就绪' : '待加载' }}
+              </el-tag>
+            </div>
+          </div>
           <el-input
             v-model="searchText"
             type="textarea"
@@ -65,17 +80,58 @@
             @keydown.enter.exact.prevent="handleSearch"
           />
           <div class="button-row">
+            <div v-if="recordingState === 'recording'" class="recording-pulse-wrapper">
+              <el-button
+                :icon="VideoPause"
+                circle
+                size="large"
+                type="warning"
+                @click="pauseRecording"
+                title="暂停录音"
+              />
+              <span class="pulse-ring" />
+            </div>
             <el-button
+              v-if="recordingState === 'idle'"
               :icon="Microphone"
               circle
               size="large"
-              :type="asr.isRecording.value ? 'danger' : 'default'"
-              @click="toggleRecording"
-              :title="asr.isRecording.value ? '停止录音' : '语音转文字'"
+              @click="startRecordingSession"
+              title="开始录音"
+            />
+            <el-button
+              v-if="recordingState === 'paused'"
+              :icon="VideoPlay"
+              circle
+              size="large"
+              type="success"
+              @click="resumeRecording"
+              title="继续录音"
+            />
+            <el-button
+              v-if="recordingState !== 'idle'"
+              :icon="VideoPause"
+              circle
+              size="large"
+              type="danger"
+              @click="stopRecordingSession"
+              title="停止录音"
             />
             <el-button type="danger" size="large" @click="openCreateDialog">创建工单</el-button>
             <el-button type="primary" size="large" :loading="searching" @click="handleSearch">搜索</el-button>
-            <el-button size="large" @click="clearAll" :disabled="asr.isRecording.value">清空</el-button>
+            <el-button size="large" @click="clearAll" :disabled="recordingState !== 'idle'">清空</el-button>
+          </div>
+          <div v-if="searchHistory.length" class="search-history">
+            <span class="history-label">最近搜索：</span>
+            <el-tag
+              v-for="(q, i) in searchHistory"
+              :key="i"
+              size="small"
+              class="history-tag"
+              @click="searchText = q; handleSearch()"
+            >
+              {{ q.length > 12 ? q.slice(0, 12) + '…' : q }}
+            </el-tag>
           </div>
           <div v-if="selectedCategory" class="category-hint">
             <el-tag type="warning" closable @close="clearCategoryFilter">
@@ -85,10 +141,11 @@
         </div>
 
         <!-- 实时识别区 -->
-        <div v-if="asr.isRecording.value || asr.fullText.value" class="asr-section">
+        <div v-if="recordingState !== 'idle' || asr.fullText.value" class="asr-section">
           <div class="asr-header">
             <span class="asr-title">
-              <el-tag v-if="asr.isRecording.value" type="danger" size="small" effect="dark">录音中</el-tag>
+              <el-tag v-if="recordingState === 'recording'" type="danger" size="small" effect="dark">录音中</el-tag>
+              <el-tag v-else-if="recordingState === 'paused'" type="warning" size="small" effect="dark">已暂停</el-tag>
               实时语音识别
             </span>
             <el-tag size="small" type="info">{{ asr.asrState.value }}</el-tag>
@@ -101,34 +158,36 @@
         </div>
 
         <!-- 空状态 -->
-        <div v-if="!searched" class="empty-state">
-          <el-empty description="输入客户问题，搜索匹配的标准回复话术" />
+        <div v-if="!searched && !finalReply" class="empty-state">
+          <el-empty description="输入客户问题搜索匹配话术，也可直接点击左侧快捷话术" />
         </div>
 
+
         <!-- 结果区 -->
-        <div v-if="searched" class="result-section">
+        <div v-if="searched || finalReply" class="result-section">
           <!-- 最终回复区 -->
           <div class="reply-area">
             <div class="reply-header">
-              <span class="reply-title">{{ hasCandidates ? '最终答复' : '无匹配结果' }}</span>
-              <el-button v-if="hasCandidates && finalReply" size="small" type="primary" plain @click="copyToClipboard(finalReply)">
+              <span class="reply-title">最终答复</span>
+              <el-button v-if="finalReply" size="small" type="primary" plain @click="copyToClipboard(finalReply)">
                 <el-icon style="margin-right: 4px"><CopyDocument /></el-icon>
                 复制答复
               </el-button>
             </div>
             <el-input
-              v-if="hasCandidates"
               v-model="finalReply"
               type="textarea"
               :rows="5"
-              placeholder="勾选候选答案后自动填充，可自行修改"
-            />
-            <el-empty
-              v-else
-              description="未检索到匹配结果，可创建工单流转到对应部门处理"
-              :image-size="80"
+              placeholder="勾选候选答案自动填充，也可点左侧快捷话术插入，可自行修改"
             />
           </div>
+
+          <!-- 无匹配结果提示 -->
+          <el-empty
+            v-if="searched && !hasCandidates"
+            description="未检索到匹配结果，可创建工单流转到对应部门处理"
+            :image-size="80"
+          />
 
           <!-- 检索信息 -->
           <div v-if="hasCandidates" class="meta-row">
@@ -166,9 +225,14 @@
                 <span class="card-category" v-if="item.category_l1">
                   {{ item.category_l1 }}{{ item.category_l2 ? ' / ' + item.category_l2 : '' }}
                 </span>
-                <span class="card-score" :style="{ color: scoreColor(item.score) }">
-                  {{ (item.score * 100).toFixed(1) }}%
-                </span>
+                <div class="card-score-bar">
+                  <div class="score-track">
+                    <div class="score-fill" :style="{ width: (item.score * 100) + '%', background: scoreColor(item.score) }" />
+                  </div>
+                  <span class="score-value" :style="{ color: scoreColor(item.score) }">
+                    {{ (item.score * 100).toFixed(1) }}%
+                  </span>
+                </div>
               </div>
               <div class="card-question">{{ item.question }}</div>
               <div class="card-answer">{{ item.answer }}</div>
@@ -235,8 +299,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { Microphone, CopyDocument, ChatDotRound, Files } from '@element-plus/icons-vue'
-import { queryQA, type QueryResponse, type CandidateResult } from '@/api/workbench'
+import { Microphone, CopyDocument, ChatDotRound, Files, VideoPause, VideoPlay, CircleCheck } from '@element-plus/icons-vue'
+import { queryQA, getAsrHealth, type QueryResponse, type CandidateResult } from '@/api/workbench'
 import { createWorkOrder } from '@/api/workorder'
 import { getCategories } from '@/api/knowledge'
 import { useStreamingASR } from '@/composables/useStreamingASR'
@@ -361,6 +425,38 @@ const copyToClipboard = async (text: string) => {
   }
 }
 
+// ===== ASR文本清洗 =====
+const FILLER_WORDS = [
+  '嗯', '啊', '哦', '噢', '唉', '诶', '呃', '额', '哈', '嘿',
+  '那个', '这个', '然后', '就是', '就是说', '那么', '对吧',
+  '你知道吗', '怎么说呢', '事实上', '其实'
+]
+
+const cleanAsrText = (text: string): string => {
+  let result = text
+  for (const word of FILLER_WORDS) {
+    result = result.replace(new RegExp(word, 'g'), '')
+  }
+  result = result.replace(/[。]{2,}/g, '。')
+  result = result.replace(/[，]{2,}/g, '，')
+  result = result.replace(/[！]{2,}/g, '！')
+  result = result.replace(/[？]{2,}/g, '？')
+  result = result.replace(/[、]{2,}/g, '、')
+  result = result.replace(/\s+/g, ' ')
+  result = result.replace(/^[\s。，、！？]+/g, '')
+  result = result.replace(/[\s。，、！？]+$/g, '')
+  return result
+}
+
+const isMeaningfulQuery = (text: string): boolean => {
+  const cleaned = cleanAsrText(text)
+  if (cleaned.length < 4) return false
+  const contentOnly = cleaned.replace(/[\s。，、！？.,!?]/g, '')
+  if (contentOnly.length < 3) return false
+  if (/^\d+$/.test(contentOnly)) return false
+  return true
+}
+
 // ===== 输入 & 检索 =====
 const searchText = ref('')
 const searching = ref(false)
@@ -373,6 +469,7 @@ const queryResult = ref<QueryResponse>({
   total_candidates: 0
 })
 const hasCandidates = computed(() => queryResult.value.candidates.length > 0)
+
 
 // ===== 置信度 =====
 const confidenceType = ref<'success' | 'warning' | 'danger' | 'info'>('info')
@@ -413,8 +510,11 @@ const rebuildFinalReply = () => {
   finalReply.value = parts.join('\n\n')
 }
 
+
 // ===== 流式语音识别 =====
 const asr = useStreamingASR()
+const recordingState = ref<'idle' | 'recording' | 'paused'>('idle')
+const consumedTextLength = ref(0)
 
 const clearAll = () => {
   searchText.value = ''
@@ -428,59 +528,78 @@ const clearAll = () => {
   asr.partialText.value = ''
   asr.queryResult.value = null
   asr.errorMsg.value = ''
+  consumedTextLength.value = 0
   asr.reset()
 }
 
-const toggleRecording = async () => {
-  if (asr.isRecording.value) {
-    asr.stopRecording()
-    if (asr.fullText.value) {
-      searchText.value = asr.fullText.value
-    }
+const handleRecordingError = (e: any) => {
+  const msg = e?.message || ''
+  if (msg.includes('非安全上下文') || msg.includes('mediaDevices')) {
+    ElMessage.error(msg)
+  } else if (msg.includes('NotAllowed') || msg.includes('Permission')) {
+    ElMessage.error('麦克风权限被拒绝，请在浏览器设置中允许访问麦克风后重试')
+  } else if (msg.includes('NotFound') || msg.includes('DevicesNotFoundError')) {
+    ElMessage.error('未检测到麦克风设备，请确认麦克风已连接')
+  } else if (msg.includes('WebSocket')) {
+    ElMessage.error('WebSocket连接失败，请确认后端服务已启动')
   } else {
-    clearAll()
-    try {
-      await asr.startRecording()
-    } catch (e: any) {
-      const msg = e?.message || ''
-      if (msg.includes('非安全上下文') || msg.includes('mediaDevices')) {
-        ElMessage.error(msg)
-      } else if (msg.includes('NotAllowed') || msg.includes('Permission')) {
-        ElMessage.error('麦克风权限被拒绝，请在浏览器设置中允许访问麦克风后重试')
-      } else if (msg.includes('NotFound') || msg.includes('DevicesNotFoundError')) {
-        ElMessage.error('未检测到麦克风设备，请确认麦克风已连接')
-      } else if (msg.includes('WebSocket')) {
-        ElMessage.error('WebSocket连接失败，请确认后端服务已启动')
-      } else {
-        ElMessage.error(`录音启动失败: ${msg || '请检查麦克风权限'}`)
-      }
-    }
+    ElMessage.error(`录音启动失败: ${msg || '请检查麦克风权限'}`)
   }
 }
 
-watch(() => asr.queryResult.value, (result) => {
-  if (result && result.candidates.length > 0) {
-    queryResult.value = {
-      query: result.query_text,
-      standardized_query: result.standardized_query || result.query_text,
-      confidence: result.confidence,
-      candidates: result.candidates as CandidateResult[],
-      total_candidates: result.candidates.length
-    }
-    const info = confidenceMap[result.confidence] || confidenceMap.none
-    confidenceType.value = info.type
-    confidenceText.value = info.text
-    selectedIds.value = []
-    finalReply.value = ''
-    searched.value = true
+const startRecordingSession = async () => {
+  clearAll()
+  try {
+    await asr.startRecording()
+    recordingState.value = 'recording'
+  } catch (e: any) {
+    handleRecordingError(e)
   }
-})
+}
+
+const pauseRecording = () => {
+  asr.stopRecording()
+  const full = asr.fullText.value
+  const newText = full.slice(consumedTextLength.value)
+  if (newText.trim()) {
+    searchText.value = cleanAsrText(newText)
+  }
+  consumedTextLength.value = full.length
+  recordingState.value = 'paused'
+}
+
+const resumeRecording = async () => {
+  try {
+    await asr.startRecording()
+    recordingState.value = 'recording'
+  } catch (e: any) {
+    handleRecordingError(e)
+  }
+}
+
+const stopRecordingSession = () => {
+  asr.stopRecording()
+  asr.disconnect()
+  const full = asr.fullText.value
+  const newText = full.slice(consumedTextLength.value)
+  if (newText.trim()) {
+    searchText.value = cleanAsrText(newText)
+  }
+  consumedTextLength.value = 0
+  recordingState.value = 'idle'
+}
+
 
 // ===== 搜索 =====
 const handleSearch = async () => {
-  const q = searchText.value.trim()
-  if (!q) {
+  const raw = searchText.value.trim()
+  if (!raw) {
     ElMessage.warning('请输入问题')
+    return
+  }
+  const q = cleanAsrText(raw)
+  if (!isMeaningfulQuery(raw)) {
+    ElMessage.warning('问题文本过短或无意义，请编辑后重试')
     return
   }
   searching.value = true
@@ -496,6 +615,7 @@ const handleSearch = async () => {
     confidenceType.value = info.type
     confidenceText.value = info.text
     searched.value = true
+    addSearchHistory(q)
   } catch {
     ElMessage.error('查询失败')
   } finally {
@@ -531,7 +651,8 @@ const workRules: FormRules = {
 }
 
 const openCreateDialog = () => {
-  workForm.value.detail_desc = searchText.value
+  const full = asr.fullText.value
+  workForm.value.detail_desc = full ? cleanAsrText(full) : cleanAsrText(searchText.value)
   dialogVisible.value = true
 }
 
@@ -563,8 +684,26 @@ const submitWorkOrder = async () => {
   }
 }
 
+const asrHealth = ref<{ loaded: boolean; model?: string; device?: string } | null>(null)
+const searchHistory = ref<string[]>([])
+
+const checkAsrHealth = async () => {
+  try {
+    asrHealth.value = await getAsrHealth()
+  } catch {
+    asrHealth.value = null
+  }
+}
+
+const addSearchHistory = (q: string) => {
+  const trimmed = q.trim()
+  if (!trimmed) return
+  searchHistory.value = [trimmed, ...searchHistory.value.filter((h) => h !== trimmed)].slice(0, 6)
+}
+
 onMounted(() => {
   loadCategories()
+  checkAsrHealth()
 })
 </script>
 
@@ -626,11 +765,63 @@ onMounted(() => {
   max-width: 900px;
   margin: 0 auto;
 }
+.search-header {
+  margin-bottom: 16px;
+}
+.search-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.search-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
 .button-row {
   display: flex;
   gap: 12px;
+  align-items: center;
   justify-content: flex-end;
   margin-top: 16px;
+}
+.recording-pulse-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.pulse-ring {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border: 3px solid #e6a23c;
+  border-radius: 50%;
+  animation: pulse-ring 1.5s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+.search-history {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.history-label {
+  font-size: 13px;
+  color: #909399;
+}
+.history-tag {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.history-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(64, 158, 255, 0.15);
 }
 .category-hint {
   margin-top: 8px;
@@ -679,6 +870,7 @@ onMounted(() => {
 .empty-state {
   margin-top: 60px;
 }
+
 
 .result-section {
   max-width: 900px;
@@ -731,16 +923,18 @@ onMounted(() => {
 
 .candidate-card {
   border: 1px solid #e4e7ed;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 16px;
-  transition: box-shadow 0.2s, border-color 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .candidate-card:hover {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 .candidate-card.selected {
   border-color: #409eff;
   background: #f5f9ff;
+  box-shadow: 0 2px 12px rgba(64, 158, 255, 0.15);
 }
 
 .card-header {
@@ -760,10 +954,30 @@ onMounted(() => {
   padding: 2px 8px;
   border-radius: 4px;
 }
-.card-score {
+.card-score-bar {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+}
+.score-track {
+  flex: 1;
+  height: 6px;
+  background: #ebeef5;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.score-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.score-value {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
+  min-width: 48px;
+  text-align: right;
 }
 .card-question {
   font-weight: 500;
@@ -775,7 +989,8 @@ onMounted(() => {
   line-height: 1.7;
   background: #fff;
   padding: 12px;
-  border-radius: 4px;
+  border-radius: 6px;
   white-space: pre-wrap;
+  border: 1px solid #f0f0f0;
 }
 </style>

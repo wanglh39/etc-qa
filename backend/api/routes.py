@@ -852,15 +852,17 @@ def get_system_status():
         components.append({"name": "MySQL", "status": "unhealthy", "latency_ms": 0, "detail": str(e)[:100]})
 
     try:
-        from db.milvus_client import MilvusQA
-        milvus = MilvusQA.get_instance()
-        if milvus and milvus.client:
-            start = time.time()
-            milvus.client.list_collections()
-            latency = round((time.time() - start) * 1000, 1)
-            components.append({"name": "Milvus", "status": "healthy", "latency_ms": latency, "detail": "连接正常"})
+        if service is not None and hasattr(service, "recall") and hasattr(service.recall, "milvus"):
+            milvus = service.recall.milvus
+            if milvus and milvus.client:
+                start = time.time()
+                milvus.client.list_collections()
+                latency = round((time.time() - start) * 1000, 1)
+                components.append({"name": "Milvus", "status": "healthy", "latency_ms": latency, "detail": "连接正常"})
+            else:
+                components.append({"name": "Milvus", "status": "unknown", "latency_ms": 0, "detail": "未初始化"})
         else:
-            components.append({"name": "Milvus", "status": "unknown", "latency_ms": 0, "detail": "未初始化"})
+            components.append({"name": "Milvus", "status": "unknown", "latency_ms": 0, "detail": "服务未加载"})
     except Exception as e:
         components.append({"name": "Milvus", "status": "unhealthy", "latency_ms": 0, "detail": str(e)[:100]})
 
@@ -872,8 +874,9 @@ def get_system_status():
     try:
         from asr.service import get_asr_service
         asr = get_asr_service()
-        if asr and asr.model is not None:
-            components.append({"name": "ASR模型", "status": "healthy", "latency_ms": 0, "detail": "已加载"})
+        asr_h = asr.health()
+        if asr_h.loaded:
+            components.append({"name": "ASR模型", "status": "healthy", "latency_ms": 0, "detail": f"已加载({asr_h.model})"})
         else:
             components.append({"name": "ASR模型", "status": "standby", "latency_ms": 0, "detail": "未加载(按需启动)"})
     except Exception:

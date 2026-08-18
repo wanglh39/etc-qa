@@ -28,3 +28,7 @@ export interface QueryResponse {
 export function queryQA(params: QueryRequest): Promise<QueryResponse> {
   return request.post('/query', params).then((res) => res.data)
 }
+
+export function getAsrHealth(): Promise<{ loaded: boolean; model?: string; device?: string; finetuned?: boolean }> {
+  return request.get('/asr/health').then((res) => res.data)
+}

@@ -203,8 +203,14 @@ class ASRService:
 
     def health(self) -> ASRHealthResponse:
         diarizer = self._get_diarizer()
+        streaming_loaded = False
+        try:
+            from asr.streaming import get_streaming_service
+            streaming_loaded = get_streaming_service()._backend is not None
+        except Exception:
+            pass
         return ASRHealthResponse(
-            loaded=self._model is not None,
+            loaded=self._model is not None or streaming_loaded,
             model=self._finetuned_path if self._finetuned_path else self._model_name,
             device=self._device,
             finetuned=bool(self._finetuned_path),

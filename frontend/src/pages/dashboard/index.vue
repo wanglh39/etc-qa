@@ -1,5 +1,17 @@
 <template>
   <div style="padding:16px">
+    <!-- 欢迎横幅 -->
+    <div class="welcome-banner">
+      <div class="welcome-left">
+        <h2 class="welcome-title">{{ greetingText }}，{{ authStore.username || roleText }}</h2>
+        <p class="welcome-desc">欢迎使用智能客服话术系统数据看板</p>
+      </div>
+      <div class="welcome-right">
+        <div class="clock-display">{{ currentTime }}</div>
+        <div class="date-display">{{ currentDate }}</div>
+      </div>
+    </div>
+
     <!-- 时间范围选择器 + 刷新 -->
     <div class="dashboard-header">
       <el-radio-group v-model="days" @change="loadTrend">
@@ -104,7 +116,30 @@ import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const currentRole = authStore.role
+const roleText = authStore.roleText
 const days = ref(7)
+
+const currentTime = ref('')
+const currentDate = ref('')
+const greetingText = ref('')
+let clockTimer: ReturnType<typeof setInterval> | null = null
+
+const updateClock = () => {
+  const now = new Date()
+  const h = String(now.getHours()).padStart(2, '0')
+  const m = String(now.getMinutes()).padStart(2, '0')
+  const s = String(now.getSeconds()).padStart(2, '0')
+  currentTime.value = `${h}:${m}:${s}`
+  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+  currentDate.value = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 ${weekdays[now.getDay()]}`
+  const hour = now.getHours()
+  if (hour < 6) greetingText.value = '凌晨好'
+  else if (hour < 9) greetingText.value = '早上好'
+  else if (hour < 12) greetingText.value = '上午好'
+  else if (hour < 14) greetingText.value = '中午好'
+  else if (hour < 18) greetingText.value = '下午好'
+  else greetingText.value = '晚上好'
+}
 
 const stats = ref<StatsResponse>({
   qa_total: 0,
@@ -259,6 +294,8 @@ const loadAll = () => {
 
 onMounted(() => {
   loadAll()
+  updateClock()
+  clockTimer = setInterval(updateClock, 1000)
 })
 
 onUnmounted(() => {
@@ -266,10 +303,51 @@ onUnmounted(() => {
   pieChart?.dispose()
   woStatusChart?.dispose()
   qaStatusChart?.dispose()
+  if (clockTimer) clearInterval(clockTimer)
 })
 </script>
 
 <style scoped>
+.welcome-banner {
+  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
+  border-radius: 12px;
+  padding: 24px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.25);
+}
+.welcome-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.welcome-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+.welcome-desc {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+.welcome-right {
+  text-align: right;
+}
+.clock-display {
+  font-size: 28px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 2px;
+}
+.date-display {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 4px;
+}
 .dashboard-header {
   display: flex;
   justify-content: space-between;

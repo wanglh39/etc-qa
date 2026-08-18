@@ -54,6 +54,24 @@ export function rollbackPrompt(promptKey: string, targetVersion?: number) {
   return request.post('/prompts/rollback', { prompt_key: promptKey, target_version: targetVersion }).then((r) => r.data)
 }
 
+// ===== 提示词影子测试 =====
+export function startShadowTest(promptKey: string, candidateVersion: number) {
+  return request.post('/prompts/shadow/start', { prompt_key: promptKey, candidate_version: candidateVersion }).then((r) => r.data)
+}
+
+export function stopShadowTest(promptKey: string) {
+  return request.post('/prompts/shadow/stop', { prompt_key: promptKey }).then((r) => r.data)
+}
+
+export function getShadowStats(promptKey?: string) {
+  const params = promptKey ? { prompt_key: promptKey } : {}
+  return request.get('/prompts/shadow/stats', { params }).then((r) => r.data)
+}
+
+export function getShadowRecords(params: { prompt_key?: string; page?: number; page_size?: number }) {
+  return request.get('/prompts/shadow/records', { params }).then((r) => r.data)
+}
+
 // ===== 账号管理 =====
 
 export interface UserListItem {

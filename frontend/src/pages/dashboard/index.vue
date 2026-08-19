@@ -23,7 +23,7 @@
     </div>
 
     <!-- KPI卡片 -->
-    <el-row :gutter="16" class="mb-4">
+    <el-row :gutter="16" class="mb-4" align="stretch">
       <el-col :span="6">
         <StatisticCard
           title="知识库总数"
@@ -72,37 +72,36 @@
       </el-col>
     </el-row>
 
-    <!-- 趋势图 + 分类占比 -->
-    <el-row :gutter="16" class="mb-4">
+    <el-row :gutter="16" class="mb-4" align="stretch">
       <el-col :span="12">
-        <el-card>
+        <el-card class="chart-card">
           <template #header>每日咨询趋势</template>
           <div ref="lineRef" style="height:300px"></div>
         </el-card>
       </el-col>
       <el-col :span="12">
-        <el-card>
+        <el-card class="chart-card">
           <template #header>问题分类占比</template>
           <div ref="pieRef" style="height:300px"></div>
         </el-card>
       </el-col>
     </el-row>
 
-    <!-- 分布图 -->
-    <el-row :gutter="16">
+    <el-row :gutter="16" align="stretch">
       <el-col :span="12">
-        <el-card>
+        <el-card class="chart-card">
           <template #header>工单状态分布</template>
           <div ref="woStatusRef" style="height:280px"></div>
         </el-card>
       </el-col>
       <el-col :span="12">
-        <el-card>
+        <el-card class="chart-card">
           <template #header>知识库状态分布</template>
           <div ref="qaStatusRef" style="height:280px"></div>
         </el-card>
       </el-col>
     </el-row>
+
   </div>
 </template>
 
@@ -366,5 +365,8 @@ onUnmounted(() => {
 }
 .mb-4 {
   margin-bottom: 16px;
+}
+.chart-card {
+  height: 100%;
 }
 </style>

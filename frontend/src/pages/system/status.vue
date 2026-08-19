@@ -30,7 +30,7 @@
     </div>
 
     <!-- 组件状态卡片 -->
-    <el-row :gutter="16" class="component-row">
+    <el-row :gutter="16" class="component-row" align="stretch">
       <el-col v-for="comp in components" :key="comp.name" :span="6">
         <el-card class="comp-card" shadow="hover" :class="compCardClass(comp.status)">
           <div class="comp-header">
@@ -254,10 +254,14 @@ onBeforeUnmount(() => {
 .component-row {
   margin-bottom: 20px;
 }
+.component-row :deep(.el-col) {
+  margin-bottom: 16px;
+}
 
 .comp-card {
   margin-bottom: 12px;
   transition: transform 0.2s;
+  height: 100%;
 }
 .comp-card:hover {
   border-color: #CBD5E1;
@@ -281,6 +285,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   position: relative;
+  line-height: 0;
 }
 .comp-icon-wrap.comp-healthy { background: #E6F4FF; color: #1677FF; }
 .comp-icon-wrap.comp-unhealthy { background: #F1F5F9; color: #64748B; }
@@ -289,13 +294,11 @@ onBeforeUnmount(() => {
 
 .pulse-ring {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   border-radius: 8px;
   border: 2px solid #1677FF;
   animation: pulse 2s infinite;
+  transform-origin: center;
 }
 @keyframes pulse {
   0% { transform: scale(1); opacity: 1; }

@@ -250,7 +250,7 @@ onBeforeUnmount(() => {
   gap: 16px;
   margin-bottom: 20px;
 }
-.kpi-card { transition: transform 0.2s; }
+.kpi-card { transition: transform 0.2s; height: 100%; }
 .kpi-card:hover { border-color: #CBD5E1 !important; }
 .kpi-inner {
   display: flex;

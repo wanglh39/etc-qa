@@ -64,30 +64,30 @@
     </div>
 
     <!-- 图表区 -->
-    <el-row :gutter="16" class="chart-row">
+    <el-row :gutter="16" class="chart-row" align="stretch">
       <el-col :span="12">
-        <el-card shadow="never">
+        <el-card shadow="never" class="chart-card">
           <template #header>各组件失败率 (%)</template>
           <div ref="failureChartRef" class="chart-box"></div>
         </el-card>
       </el-col>
       <el-col :span="12">
-        <el-card shadow="never">
+        <el-card shadow="never" class="chart-card">
           <template #header>各组件 P95 延迟 (ms)</template>
           <div ref="latencyChartRef" class="chart-box"></div>
         </el-card>
       </el-col>
     </el-row>
 
-    <el-row :gutter="16" class="chart-row">
+    <el-row :gutter="16" class="chart-row" align="stretch">
       <el-col :span="12">
-        <el-card shadow="never">
+        <el-card shadow="never" class="chart-card">
           <template #header>调用量分布</template>
           <div ref="distributionChartRef" class="chart-box"></div>
         </el-card>
       </el-col>
       <el-col :span="12">
-        <el-card shadow="never">
+        <el-card shadow="never" class="chart-card">
           <template #header>指标明细</template>
           <el-table :data="metricTable" border size="small" style="width: 100%" :max-height="280">
             <el-table-column prop="name" label="指标" width="120" />
@@ -310,7 +310,7 @@ onBeforeUnmount(() => {
   gap: 16px;
   margin-bottom: 20px;
 }
-.kpi-card { transition: transform 0.2s; }
+.kpi-card { transition: transform 0.2s; height: 100%; }
 .kpi-card:hover { border-color: #CBD5E1 !important; }
 .kpi-inner {
   display: flex;
@@ -340,6 +340,9 @@ onBeforeUnmount(() => {
 
 .chart-row {
   margin-bottom: 16px;
+}
+.chart-card {
+  height: 100%;
 }
 .chart-box {
   height: 280px;

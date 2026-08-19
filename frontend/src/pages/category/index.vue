@@ -5,10 +5,9 @@
       <el-button type="primary" @click="resetForm">新增分类</el-button>
     </template>
 
-    <el-row :gutter="20">
-      <!-- 左侧分类树 -->
+    <el-row :gutter="20" align="stretch">
       <el-col :span="8">
-        <el-card>
+        <el-card class="full-height-card">
           <template #header>分类树</template>
           <el-input v-model="searchKey" placeholder="搜索分类" clearable style="margin-bottom:10px"/>
           <el-tree
@@ -21,7 +20,7 @@
       </el-col>
       <!-- 右侧表单 -->
       <el-col :span="16">
-        <el-card>
+        <el-card class="full-height-card">
           <template #header>分类详情</template>
           <el-form label-width="100px">
             <el-form-item label="分类名称">
@@ -54,7 +53,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import PageLayout from '@/components/layout/PageLayout.vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCategories, createCategory, updateCategory, deleteCategory } from '@/api/knowledge'
 
 const searchKey = ref('')
@@ -115,6 +114,15 @@ const save = async () => {
 const remove = async () => {
   if (!form.value.id) return ElMessage.warning('请先选择一个分类')
   try {
+    await ElMessageBox.confirm(
+      `确定删除分类「${form.value.label}」吗？该操作不可恢复。`,
+      '删除确认',
+      { type: 'warning', confirmButtonText: '确定删除', cancelButtonText: '取消' }
+    )
+  } catch {
+    return
+  }
+  try {
     await deleteCategory(form.value.id)
     ElMessage.success('分类已删除')
     resetForm()
@@ -124,3 +132,9 @@ const remove = async () => {
   }
 }
 </script>
+
+<style scoped>
+.full-height-card {
+  height: 100%;
+}
+</style>

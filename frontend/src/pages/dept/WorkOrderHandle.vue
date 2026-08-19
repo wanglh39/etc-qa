@@ -339,6 +339,7 @@ watch(deptCode, () => {
 .kpi-card {
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
+  height: 100%;
 }
 .kpi-card:hover {
   border-color: #CBD5E1 !important;

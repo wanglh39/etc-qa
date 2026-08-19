@@ -102,6 +102,7 @@ const handleClick = () => {
   cursor: default;
   transition: border-color 0.2s;
   position: relative;
+  height: 100%;
 }
 .stat-card.clickable {
   cursor: pointer;
@@ -133,6 +134,7 @@ const handleClick = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: auto;
 }
 .stat-desc {
   font-size: 12px;

@@ -569,7 +569,7 @@ async def asr_query(file: UploadFile = File(...), category_l1: str | None = None
 
 
 @router.get("/users", response_model=UserListResponse, dependencies=[Depends(require_role("superadmin"))])
-def list_users(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
+def list_users(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=999),
                role: str | None = None, status: str | None = None):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -628,6 +628,21 @@ def delete_user(user_id: int, user: dict = Depends(require_role("superadmin"))):
     return {"user_id": user_id, "message": "账号已删除"}
 
 
+@router.get("/roles/permissions")
+def get_my_permissions(user: dict = Depends(get_current_user)):
+    if mysql_client is None:
+        raise HTTPException(status_code=500, detail="服务未初始化")
+    rows = mysql_client.list_roles()
+    for row in rows:
+        if row["role_key"] == user["role"]:
+            perms = row.get("permissions") or []
+            if isinstance(perms, str):
+                import json as _json
+                perms = _json.loads(perms)
+            return {"permissions": perms}
+    return {"permissions": []}
+
+
 @router.get("/roles", response_model=list[RoleItem], dependencies=[Depends(require_role("superadmin"))])
 def list_roles():
     if mysql_client is None:
@@ -641,7 +656,7 @@ def create_role(req: RoleCreateRequest, user: dict = Depends(require_role("super
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
     try:
-        role_id = mysql_client.create_role(req.role_key, req.role_name, req.description)
+        role_id = mysql_client.create_role(req.role_key, req.role_name, req.description, req.permissions)
     except Exception as e:
         raise HTTPException(status_code=409, detail=f"角色key已存在: {e}")
     mysql_client.insert_operation_log(user["sub"], "create", "role", role_id, f"创建角色 {req.role_key}")
@@ -652,7 +667,7 @@ def create_role(req: RoleCreateRequest, user: dict = Depends(require_role("super
 def update_role(role_id: int, req: RoleUpdateRequest, user: dict = Depends(require_role("superadmin"))):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
-    ok = mysql_client.update_role(role_id, role_name=req.role_name, description=req.description)
+    ok = mysql_client.update_role(role_id, role_name=req.role_name, description=req.description, permissions=req.permissions)
     if not ok:
         raise HTTPException(status_code=404, detail="角色不存在或无更新字段")
     mysql_client.insert_operation_log(user["sub"], "update", "role", role_id, "修改角色")

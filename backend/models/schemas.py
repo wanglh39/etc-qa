@@ -294,6 +294,7 @@ class RoleItem(BaseModel):
     role_key: str
     role_name: str
     description: str = ""
+    permissions: list[str] = []
     created_at: str | None = None
 
 
@@ -301,8 +302,10 @@ class RoleCreateRequest(BaseModel):
     role_key: str = Field(..., max_length=50)
     role_name: str = Field(..., max_length=100)
     description: str = Field("", max_length=500)
+    permissions: list[str] = []
 
 
 class RoleUpdateRequest(BaseModel):
     role_name: str | None = Field(None, max_length=100)
     description: str | None = Field(None, max_length=500)
+    permissions: list[str] | None = None

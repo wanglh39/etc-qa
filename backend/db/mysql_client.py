@@ -845,21 +845,30 @@ class MySQLClient:
         conn = self._get_conn()
         try:
             cursor = conn.cursor(pymysql.cursors.DictCursor)
-            cursor.execute("SELECT id, role_key, role_name, description, created_at FROM roles ORDER BY id ASC")
+            cursor.execute("SELECT id, role_key, role_name, description, permissions, created_at FROM roles ORDER BY id ASC")
             rows = cursor.fetchall()
+            for row in rows:
+                if row.get("permissions") is None:
+                    row["permissions"] = []
+                elif isinstance(row["permissions"], str):
+                    import json as _json
+                    row["permissions"] = _json.loads(row["permissions"])
             cursor.close()
             return rows
         except Exception:
             self._reset_conn()
             raise
 
-    def create_role(self, role_key: str, role_name: str, description: str = "") -> int:
+    def create_role(self, role_key: str, role_name: str, description: str = "",
+                    permissions: list[str] | None = None) -> int:
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
+            import json as _json
+            perms_json = _json.dumps(permissions or [])
             cursor.execute(
-                "INSERT INTO roles (role_key, role_name, description) VALUES (%s, %s, %s)",
-                (role_key, role_name, description),
+                "INSERT INTO roles (role_key, role_name, description, permissions) VALUES (%s, %s, %s, %s)",
+                (role_key, role_name, description, perms_json),
             )
             conn.commit()
             role_id = cursor.lastrowid
@@ -871,7 +880,8 @@ class MySQLClient:
             raise
 
     def update_role(self, role_id: int, role_name: str | None = None,
-                    description: str | None = None) -> bool:
+                    description: str | None = None,
+                    permissions: list[str] | None = None) -> bool:
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
@@ -882,6 +892,10 @@ class MySQLClient:
             if description is not None:
                 sets.append("description = %s")
                 params.append(description)
+            if permissions is not None:
+                import json as _json
+                sets.append("permissions = %s")
+                params.append(_json.dumps(permissions))
             if not sets:
                 cursor.close()
                 return False

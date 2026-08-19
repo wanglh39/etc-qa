@@ -189,10 +189,12 @@ def init_mysql():
             role_key VARCHAR(50) NOT NULL UNIQUE,
             role_name VARCHAR(100) NOT NULL,
             description VARCHAR(500),
+            permissions JSON,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """)
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -248,16 +250,50 @@ def init_mysql():
     """)
     conn.commit()
 
+    try:
+        cursor.execute("ALTER TABLE roles ADD COLUMN permissions JSON NULL")
+        conn.commit()
+    except Exception:
+        conn.rollback()
+
     from utils.password import hash_password
     default_pwd_hash = hash_password("123456")
+
+    import json
+    default_permissions = {
+        "superadmin": json.dumps([
+            "/workbench/admin/account", "/workbench/admin/role",
+            "/workbench/admin/operationLog", "/workbench/admin/impersonate"
+        ]),
+        "admin": json.dumps([
+            "/workbench/admin/dashboard", "/workbench/admin/auditList",
+            "/workbench/admin/auditHistory", "/workbench/admin/knowledge",
+            "/workbench/admin/category", "/workbench/admin/config"
+        ]),
+        "ops": json.dumps([
+            "/workbench/admin/status", "/workbench/admin/monitor",
+            "/workbench/admin/scheduler", "/workbench/admin/alert"
+        ]),
+        "service": json.dumps(["/service"]),
+        "dept": json.dumps([
+            "/dept/handle/aftersale", "/dept/handle/ops", "/dept/handle/finance"
+        ]),
+    }
+
     cursor.executemany(
-        "INSERT IGNORE INTO roles (role_key, role_name, description) VALUES (%s, %s, %s)",
-         [("superadmin", "超级管理员", "系统全权限，含账号/角色管理"),
-          ("admin", "业务管理员", "业务管理+内容管理，不含账号/角色"),
-          ("ops", "运维工程师", "系统运维监控+定时任务+告警管理"),
-          ("service", "客服", "一线客服处理"),
-          ("dept", "部门处理员", "业务部门工单处理")]
+        "INSERT IGNORE INTO roles (role_key, role_name, description, permissions) VALUES (%s, %s, %s, %s)",
+         [("superadmin", "超级管理员", "系统全权限，含账号/角色管理", default_permissions["superadmin"]),
+          ("admin", "业务管理员", "业务管理+内容管理，不含账号/角色", default_permissions["admin"]),
+          ("ops", "运维工程师", "系统运维监控+定时任务+告警管理", default_permissions["ops"]),
+          ("service", "客服", "一线客服处理", default_permissions["service"]),
+          ("dept", "部门处理员", "业务部门工单处理", default_permissions["dept"])]
     )
+    for role_key, perms in default_permissions.items():
+        cursor.execute(
+            "UPDATE roles SET permissions = %s WHERE role_key = %s AND (permissions IS NULL)",
+            (perms, role_key)
+        )
+    conn.commit()
     cursor.executemany(
         "INSERT IGNORE INTO users (username, password_hash, role, dept, status) VALUES (%s, %s, %s, %s, %s)",
          [("superadmin", default_pwd_hash, "superadmin", "", "active"),

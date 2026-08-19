@@ -178,6 +178,7 @@ watch(currentRole, async () => {
 const loadMenu = async () => {
   try {
     const perms = await getMyPermissions()
+    authStore.setPermissions(perms)
     menuGroups.value = buildMenu(perms)
   } catch {
     menuGroups.value = []

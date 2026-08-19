@@ -14,8 +14,21 @@ const roleOrder: Record<string, number> = {
   dept: 4
 }
 
+const extraShades = [
+  '#2E8FFF', '#5AA8FF', '#78BAFF', '#A5D4FF', '#CCE8FF', '#D6E4FF'
+]
+
+function hashString(s: string): number {
+  let h = 0
+  for (let i = 0; i < s.length; i++) {
+    h = (h * 31 + s.charCodeAt(i)) >>> 0
+  }
+  return h
+}
+
 export function roleColor(key: string): string {
-  return roleColorMap[key] || '#1677FF'
+  if (roleColorMap[key]) return roleColorMap[key]
+  return extraShades[hashString(key) % extraShades.length]
 }
 
 export function roleSortKey(key: string): number {

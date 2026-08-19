@@ -7,6 +7,7 @@ export const useAuthStore = defineStore('auth', () => {
   const username = ref(sessionStorage.getItem('userName') ?? '')
   const dept = ref(sessionStorage.getItem('userDept') ?? '')
   const impersonatorToken = ref(sessionStorage.getItem('impersonator_token') ?? '')
+  const permissions = ref<string[]>(JSON.parse(sessionStorage.getItem('permissions') || '[]'))
 
   const isImpersonating = computed(() => !!impersonatorToken.value)
 
@@ -17,7 +18,7 @@ export const useAuthStore = defineStore('auth', () => {
       case 'ops': return '运维工程师'
       case 'service': return '客服'
       case 'dept': return '部门处理员'
-      default: return '未知账号'
+      default: return role.value || '未知账号'
     }
   })
 
@@ -54,18 +55,25 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  function setPermissions(perms: string[]) {
+    permissions.value = perms
+    sessionStorage.setItem('permissions', JSON.stringify(perms))
+  }
+
   function clearAuth() {
     token.value = ''
     role.value = ''
     username.value = ''
     dept.value = ''
     impersonatorToken.value = ''
+    permissions.value = []
     sessionStorage.removeItem('token')
     sessionStorage.removeItem('userRole')
     sessionStorage.removeItem('userDept')
     sessionStorage.removeItem('userName')
     sessionStorage.removeItem('impersonator_token')
     sessionStorage.removeItem('impersonator_role')
+    sessionStorage.removeItem('permissions')
   }
 
   return {
@@ -74,9 +82,11 @@ export const useAuthStore = defineStore('auth', () => {
     username,
     dept,
     impersonatorToken,
+    permissions,
     isImpersonating,
     roleText,
     setAuth,
+    setPermissions,
     startImpersonation,
     exitImpersonation,
     clearAuth,

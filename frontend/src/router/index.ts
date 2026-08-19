@@ -198,6 +198,12 @@ const routes: RouteRecordRaw[] = [
   }
 ]
 
+routes.push({
+  path: '/:pathMatch(.*)*',
+  name: 'NotFound',
+  component: () => import('@/pages/NotFound.vue')
+})
+
 const router = createRouter({
   history: createWebHistory(),
   routes
@@ -217,8 +223,11 @@ export function getDefaultPath(role: string): string {
       return DEFAULT_SERVICE_PATH
     case 'dept':
       return `/dept/handle/${authStore.dept || 'aftersale'}`
-    default:
-      return '/login'
+    default: {
+      const perms = authStore.permissions
+      if (perms.length > 0) return perms[0]
+      return DEFAULT_ADMIN_PATH
+    }
   }
 }
 
@@ -294,6 +303,9 @@ router.beforeEach(async (to, from, next) => {
     if (role !== 'superadmin') {
       const allowedRoles = roleAuth.split(',').map(r => r.trim())
       if (!allowedRoles.includes(role!)) {
+        if (authStore.permissions.includes(to.path)) {
+          return next()
+        }
         ElMessage.warning('无权访问该页面')
         return next(getDefaultPath(role!))
       }

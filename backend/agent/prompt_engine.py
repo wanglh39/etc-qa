@@ -20,7 +20,7 @@ class PromptEngine:
     def __init__(self):
         self._env = Environment(loader=BaseLoader())
         self._mysql = None
-        self._shadow_enabled = False
+
 
     def _get_mysql(self) -> MySQLClient:
         if self._mysql is None:
@@ -60,14 +60,6 @@ class PromptEngine:
             return text
         return ""
 
-    def _load_shadow_template(self, prompt_key: str) -> str:
-        try:
-            from prompt.version_manager import get_version_manager
-            vm = get_version_manager()
-            return vm.get_shadow_template(prompt_key) or ""
-        except Exception:
-            return ""
-
     def render(self, prompt_key: str, fallback: str = "", **overrides) -> str:
         template_text = self._load_template(prompt_key)
         if not template_text:
@@ -87,31 +79,7 @@ class PromptEngine:
             logger.error(f"模板{prompt_key}渲染失败: {e}")
             rendered = template_text.format(**{k: str(v) for k, v in variables.items()})
 
-        if self._shadow_enabled:
-            self._run_shadow(prompt_key, variables, rendered)
-
         return rendered
-
-    def _run_shadow(self, prompt_key: str, variables: dict, primary_result: str):
-        try:
-            shadow_text = self._load_shadow_template(prompt_key)
-            if not shadow_text:
-                return
-            template = self._env.from_string(shadow_text)
-            shadow_result = template.render(**variables)
-            from prompt.shadow_recorder import record_shadow
-            query = variables.get("question", "")
-            record_shadow(
-                prompt_key=prompt_key,
-                primary_result=primary_result,
-                shadow_result=shadow_result,
-                query=query,
-            )
-        except Exception as e:
-            logger.debug(f"影子测试执行失败: {e}")
-
-    def enable_shadow(self, enabled: bool = True):
-        self._shadow_enabled = enabled
 
     def _resolve_variables(self, **overrides) -> dict:
         variables = {

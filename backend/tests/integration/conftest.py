@@ -119,15 +119,11 @@ def qa_service(recall_engine, threshold_judge, reranker, mysql_conn):
 def real_app(qa_service, mysql_conn):
     from api import routes
     from api.work_order.client import WorkOrderClient
-    from prompt.version_manager import get_version_manager
     from utils.config import get_config
     cfg = get_config()
     routes.set_service(qa_service)
     routes.set_mysql_client(mysql_conn)
     routes.set_work_order_client(WorkOrderClient(use_mock=cfg.get("work_order", {}).get("use_mock", True)))
-    vm = get_version_manager()
-    vm._mysql = mysql_conn
-    vm._cols_cache = None
     from fastapi import FastAPI
     from utils.auth_middleware import get_current_user
     app = FastAPI()
@@ -148,8 +144,8 @@ def pytest_collection_modifyitems(config, items):
 
 _TEST_PROMPT_KEYS = [
     "test_int_prompt", "test_api_prompt", "test_int_tpl",
-    "test_pe_key", "test_pe_shadow", "test_pe_syntax",
-    "test_pe_cache", "test_pe_noshadow", "test_cc_ptpl", "test_cc_prompt",
+    "test_pe_key", "test_pe_syntax",
+    "test_pe_cache", "test_cc_ptpl", "test_cc_prompt",
 ]
 
 

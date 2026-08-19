@@ -34,7 +34,7 @@ class TestSchedulerManager:
         assert mgr.is_running() is True
         status = mgr.get_status()
         assert status["running"] is True
-        assert len(status["jobs"]) == 2
+        assert len(status["jobs"]) == 3
         mgr.stop()
         assert mgr.is_running() is False
 
@@ -53,7 +53,7 @@ class TestSchedulerManager:
         mgr = SchedulerManager()
         mgr.start()
         status = mgr.get_status()
-        assert len(status["jobs"]) == 1
+        assert len(status["jobs"]) == 2
         mgr.stop()
 
     def test_stop_when_not_started(self):

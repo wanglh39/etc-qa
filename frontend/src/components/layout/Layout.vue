@@ -69,9 +69,9 @@
             </template>
             <el-menu-item index="/workbench/admin/knowledge">知识库管理</el-menu-item>
             <el-menu-item index="/workbench/admin/category">分类管理</el-menu-item>
-            <el-menu-item index="/workbench/admin/prompt">提示词管理</el-menu-item>
+
             <el-menu-item index="/workbench/admin/config">配置管理</el-menu-item>
-            <el-menu-item index="/workbench/admin/shadowTest">A/B影子测试</el-menu-item>
+
           </el-sub-menu>
         </template>
 
@@ -287,8 +287,8 @@ const allPages: PaletteItem[] = [
   { label: '待审核列表', path: '/workbench/admin/auditList', icon: Document },
   { label: '审核历史', path: '/workbench/admin/auditHistory', icon: Document },
   { label: '配置管理', path: '/workbench/admin/config', icon: Setting },
-  { label: '提示词管理', path: '/workbench/admin/prompt', icon: Document },
-  { label: 'A/B影子测试', path: '/workbench/admin/shadowTest', icon: Setting },
+
+
   { label: '账号管理', path: '/workbench/admin/account', icon: UserFilled },
   { label: '角色管理', path: '/workbench/admin/role', icon: UserFilled },
   { label: '操作日志', path: '/workbench/admin/operationLog', icon: Document },

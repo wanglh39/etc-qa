@@ -27,7 +27,7 @@ from api.routes import (
     query_qa,
     reply_work_order,
     reset_password,
-    rollback_prompt,
+
     set_mysql_client,
     set_service,
     stats_trend,
@@ -41,7 +41,6 @@ from models.schemas import (
     AgentProcessRequest,
     CategoryCreateRequest,
     CategoryUpdateRequest,
-    PromptRollbackRequest,
     QASearchRequest,
     QueryRequest,
     ResetPasswordRequest,
@@ -766,25 +765,6 @@ class TestASRQueryAPI:
             asyncio.run(asr_query(self._make_file()))
         assert exc.value.status_code == 500
 
-
-class TestRollbackPromptAPI:
-    def test_rollback_prompt_success(self):
-        with patch("api.routes.get_version_manager") as mock_vm:
-            mock_vm.return_value.rollback.return_value = {
-                "prompt_key": "judge", "version": 1, "status": "active",
-            }
-            req = PromptRollbackRequest(prompt_key="judge", target_version=1)
-            result = rollback_prompt(req)
-            assert result["prompt_key"] == "judge"
-            assert result["version"] == 1
-
-    def test_rollback_prompt_error(self):
-        with patch("api.routes.get_version_manager") as mock_vm:
-            mock_vm.return_value.rollback.return_value = {"error": "无可回滚版本"}
-            req = PromptRollbackRequest(prompt_key="judge", target_version=1)
-            with pytest.raises(HTTPException) as exc:
-                rollback_prompt(req)
-            assert exc.value.status_code == 400
 
 
 class TestUserAPI:

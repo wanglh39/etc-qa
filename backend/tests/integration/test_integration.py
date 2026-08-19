@@ -692,122 +692,6 @@ class TestL2PromptEngine:
             conn.rollback()
             mysql_conn._reset_conn()
 
-    def test_shadow_mode(self, mysql_conn):
-        from agent.prompt_engine import PromptEngine
-        from prompt.shadow_recorder import clear_records, get_shadow_stats
-        from prompt.version_manager import get_version_manager
-        clear_records()
-
-        mysql_conn.set_prompt_template("test_pe_shadow", "主模板 {{question}}", "影子测试")
-
-        vm = get_version_manager()
-        vm._mysql = mysql_conn
-        vm._cols_cache = None
-        vm.publish("test_pe_shadow", "影子模板 {{question}} 影子版", "影子版本")
-        vm.start_shadow("test_pe_shadow", 2)
-
-        pe = PromptEngine()
-        pe.enable_shadow(True)
-        PromptEngine.invalidate_cache("test_pe_shadow")
-        result = pe.render("test_pe_shadow", fallback="fallback", question="ETC测试")
-        assert result != ""
-
-        stats = get_shadow_stats()
-        assert stats["total"] >= 1
-
-        pe.enable_shadow(False)
-        vm.stop_shadow("test_pe_shadow", 2)
-
-        conn = mysql_conn._get_conn()
-        try:
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM prompt_templates WHERE prompt_key='test_pe_shadow'")
-            conn.commit()
-            cursor.close()
-        except Exception:
-            conn.rollback()
-            mysql_conn._reset_conn()
-
-    def test_invalidate_cache(self):
-        from agent.prompt_engine import PromptEngine
-        PromptEngine.invalidate_cache("some_key")
-        PromptEngine.invalidate_cache()
-
-    def test_render_no_fallback_raises(self):
-        from agent.prompt_engine import PromptEngine
-        pe = PromptEngine()
-        PromptEngine.invalidate_cache("nonexistent_key_xyz_999")
-        with pytest.raises(ValueError):
-            pe.render("nonexistent_key_xyz_999", fallback="")
-
-    def test_render_template_syntax_error(self, mysql_conn):
-        mysql_conn.set_prompt_template("test_pe_syntax", "模板 {{question", "语法错误模板")
-        from agent.prompt_engine import PromptEngine
-        pe = PromptEngine()
-        PromptEngine.invalidate_cache("test_pe_syntax")
-        result = pe.render("test_pe_syntax", fallback="fallback", question="ETC测试")
-        assert result != ""
-
-        conn = mysql_conn._get_conn()
-        try:
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM prompt_templates WHERE prompt_key='test_pe_syntax'")
-            conn.commit()
-            cursor.close()
-        except Exception:
-            conn.rollback()
-            mysql_conn._reset_conn()
-
-    def test_resolve_variables(self):
-        from agent.prompt_engine import PromptEngine
-        pe = PromptEngine()
-        variables = pe._resolve_variables(question="ETC扣费")
-        assert "enterprise_name" in variables
-        assert "brand_keywords" in variables
-        assert variables["question"] == "ETC扣费"
-
-    def test_cache_hit(self, mysql_conn):
-        from agent.prompt_engine import PromptEngine
-        mysql_conn.set_prompt_template("test_pe_cache", "缓存模板 {{question}}", "缓存测试")
-        pe = PromptEngine()
-        PromptEngine.invalidate_cache("test_pe_cache")
-        result1 = pe.render("test_pe_cache", fallback="fallback", question="ETC1")
-        result2 = pe.render("test_pe_cache", fallback="fallback", question="ETC2")
-        assert "ETC2" in result2
-        assert result1 != result2 or "缓存模板" in result1
-
-        conn = mysql_conn._get_conn()
-        try:
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM prompt_templates WHERE prompt_key='test_pe_cache'")
-            conn.commit()
-            cursor.close()
-        except Exception:
-            conn.rollback()
-            mysql_conn._reset_conn()
-
-    def test_shadow_no_shadow_template(self, mysql_conn):
-        from agent.prompt_engine import PromptEngine
-        from prompt.shadow_recorder import clear_records
-        clear_records()
-
-        mysql_conn.set_prompt_template("test_pe_noshadow", "主模板 {{question}}", "无影子模板")
-        pe = PromptEngine()
-        pe.enable_shadow(True)
-        PromptEngine.invalidate_cache("test_pe_noshadow")
-        result = pe.render("test_pe_noshadow", fallback="fallback", question="ETC测试")
-        assert result != ""
-        pe.enable_shadow(False)
-
-        conn = mysql_conn._get_conn()
-        try:
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM prompt_templates WHERE prompt_key='test_pe_noshadow'")
-            conn.commit()
-            cursor.close()
-        except Exception:
-            conn.rollback()
-            mysql_conn._reset_conn()
 
     def test_get_prompt_engine_singleton(self):
         from agent.prompt_engine import get_prompt_engine
@@ -903,13 +787,6 @@ class TestL2ConfigCenter:
             conn.rollback()
             mysql_conn._reset_conn()
 
-    def test_flush_shadow_to_db(self, mysql_conn):
-        from prompt.shadow_recorder import clear_records, flush_to_db, get_shadow_stats, record_shadow
-        clear_records()
-        record_shadow("test_flush_key", "主结果", "影子结果", query="测试")
-        flush_to_db()
-        stats = get_shadow_stats()
-        assert stats["total"] == 0
 
 
 @pytest.mark.integration

@@ -25,11 +25,7 @@ from models.schemas import (
     CategoryUpdateRequest,
     OperationLogItem,
     OperationLogListResponse,
-    PromptKeySummary,
-    PromptPublishRequest,
-    PromptRollbackRequest,
-    PromptShadowRequest,
-    PromptVersionInfo,
+
     QADetailResponse,
     QAListItem,
     QAListResponse,
@@ -55,8 +51,7 @@ from models.schemas import (
     UserListResponse,
     UserUpdateRequest,
 )
-from prompt.shadow_recorder import get_shadow_records, get_shadow_stats
-from prompt.version_manager import get_version_manager
+
 from rag.service import QAService
 from utils.auth_middleware import get_current_user, require_role
 
@@ -571,83 +566,6 @@ async def asr_query(file: UploadFile = File(...), category_l1: str | None = None
     finally:
         os.unlink(tmp_path)
 
-
-@router.get("/prompts", response_model=list[PromptKeySummary], dependencies=[Depends(require_role("admin", "superadmin"))])
-def list_prompt_keys():
-    vm = get_version_manager()
-    keys = vm.list_all_keys()
-    return [PromptKeySummary(
-        prompt_key=k["prompt_key"],
-        latest_version=k["latest_version"] or 0,
-        active_count=k["active_count"] or 0,
-        shadow_count=k["shadow_count"] or 0,
-    ) for k in keys]
-
-
-@router.get("/prompts/{prompt_key}/versions", response_model=list[PromptVersionInfo], dependencies=[Depends(require_role("admin", "superadmin"))])
-def list_prompt_versions(prompt_key: str):
-    vm = get_version_manager()
-    versions = vm.list_versions(prompt_key)
-    return [PromptVersionInfo(
-        id=v.get("id"),
-        prompt_key=v["prompt_key"],
-        version=v["version"],
-        is_active=v["is_active"],
-        status=v.get("status", "active"),
-        description=v.get("description", ""),
-        created_at=str(v.get("created_at", "")) if v.get("created_at") else None,
-        template_text_preview=v["template_text"][:100] + "..." if len(v["template_text"]) > 100 else v["template_text"],
-    ) for v in versions]
-
-
-@router.get("/prompts/{prompt_key}/versions/{version}", dependencies=[Depends(require_role("admin", "superadmin"))])
-def get_prompt_version(prompt_key: str, version: int):
-    vm = get_version_manager()
-    v = vm.get_version(prompt_key, version)
-    if v is None:
-        raise HTTPException(status_code=404, detail="版本不存在")
-    return v
-
-
-@router.post("/prompts/publish", dependencies=[Depends(require_role("admin", "superadmin"))])
-def publish_prompt(req: PromptPublishRequest):
-    vm = get_version_manager()
-    result = vm.publish(req.prompt_key, req.template_text, req.description)
-    return result
-
-
-@router.post("/prompts/rollback", dependencies=[Depends(require_role("admin", "superadmin"))])
-def rollback_prompt(req: PromptRollbackRequest):
-    vm = get_version_manager()
-    result = vm.rollback(req.prompt_key, req.target_version)
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result["error"])
-    return result
-
-
-@router.post("/prompts/shadow/start", dependencies=[Depends(require_role("admin", "superadmin"))])
-def start_shadow(req: PromptShadowRequest):
-    vm = get_version_manager()
-    result = vm.start_shadow(req.prompt_key, req.shadow_version)
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result["error"])
-    return result
-
-
-@router.post("/prompts/shadow/stop", dependencies=[Depends(require_role("admin", "superadmin"))])
-def stop_shadow(req: PromptShadowRequest):
-    vm = get_version_manager()
-    return vm.stop_shadow(req.prompt_key, req.shadow_version)
-
-
-@router.get("/prompts/shadow/stats", dependencies=[Depends(require_role("admin", "superadmin"))])
-def shadow_stats():
-    return get_shadow_stats()
-
-
-@router.get("/prompts/shadow/records", dependencies=[Depends(require_role("admin", "superadmin"))])
-def shadow_records(prompt_key: str | None = None, diff_only: bool = False, limit: int = 50):
-    return get_shadow_records(prompt_key=prompt_key, diff_only=diff_only, limit=limit)
 
 
 @router.get("/users", response_model=UserListResponse, dependencies=[Depends(require_role("superadmin"))])

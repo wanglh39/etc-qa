@@ -149,39 +149,6 @@ class WorkOrderListResponse(BaseModel):
     page_size: int
 
 
-class PromptPublishRequest(BaseModel):
-    prompt_key: str
-    template_text: str
-    description: str = ""
-
-
-class PromptRollbackRequest(BaseModel):
-    prompt_key: str
-    target_version: int | None = None
-
-
-class PromptShadowRequest(BaseModel):
-    prompt_key: str
-    shadow_version: int
-
-
-class PromptVersionInfo(BaseModel):
-    id: int | None = None
-    prompt_key: str
-    version: int
-    is_active: int
-    status: str = "active"
-    description: str = ""
-    created_at: str | None = None
-    template_text_preview: str = ""
-
-
-class PromptKeySummary(BaseModel):
-    prompt_key: str
-    latest_version: int
-    active_count: int
-    shadow_count: int
-
 
 class WorkOrderCreateRequest(BaseModel):
     service_id: str = Field("", max_length=64)

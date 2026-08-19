@@ -696,7 +696,7 @@ class TestASRQueryAPI:
             candidates=[], total_candidates=0,
         )
         set_service(mock_service)
-        result = asyncio.run(asr_query(self._make_file(), "账单问题"))
+        result = asyncio.run(asr_query(self._make_file(), "账单问题", user={"sub": "test"}))
         assert result.asr_text == "ETC扣费"
         assert result.query == "ETC扣费"
         assert result.confidence == "high"
@@ -709,7 +709,7 @@ class TestASRQueryAPI:
         mock_asr.transcribe.return_value = ASRResponse(text="   ", confidence=0.5)
         mock_get.return_value = mock_asr
         set_service(MagicMock())
-        result = asyncio.run(asr_query(self._make_file()))
+        result = asyncio.run(asr_query(self._make_file(), user={"sub": "test"}))
         assert result.asr_text == ""
         assert result.query == ""
 
@@ -719,7 +719,7 @@ class TestASRQueryAPI:
         mock_asr._enabled = False
         mock_get.return_value = mock_asr
         with pytest.raises(HTTPException) as exc:
-            asyncio.run(asr_query(self._make_file()))
+            asyncio.run(asr_query(self._make_file(), user={"sub": "test"}))
         assert exc.value.status_code == 503
 
     @patch("api.routes.get_asr_service")
@@ -729,7 +729,7 @@ class TestASRQueryAPI:
         mock_get.return_value = mock_asr
         set_service(None)
         with pytest.raises(HTTPException) as exc:
-            asyncio.run(asr_query(self._make_file()))
+            asyncio.run(asr_query(self._make_file(), user={"sub": "test"}))
         assert exc.value.status_code == 500
 
     @patch("api.routes.get_asr_service")
@@ -740,7 +740,7 @@ class TestASRQueryAPI:
         mock_get.return_value = mock_asr
         set_service(MagicMock())
         with pytest.raises(HTTPException) as exc:
-            asyncio.run(asr_query(self._make_file()))
+            asyncio.run(asr_query(self._make_file(), user={"sub": "test"}))
         assert exc.value.status_code == 404
 
     @patch("api.routes.get_asr_service")
@@ -751,7 +751,7 @@ class TestASRQueryAPI:
         mock_get.return_value = mock_asr
         set_service(MagicMock())
         with pytest.raises(HTTPException) as exc:
-            asyncio.run(asr_query(self._make_file()))
+            asyncio.run(asr_query(self._make_file(), user={"sub": "test"}))
         assert exc.value.status_code == 503
 
     @patch("api.routes.get_asr_service")
@@ -762,7 +762,7 @@ class TestASRQueryAPI:
         mock_get.return_value = mock_asr
         set_service(MagicMock())
         with pytest.raises(HTTPException) as exc:
-            asyncio.run(asr_query(self._make_file()))
+            asyncio.run(asr_query(self._make_file(), user={"sub": "test"}))
         assert exc.value.status_code == 500
 
 

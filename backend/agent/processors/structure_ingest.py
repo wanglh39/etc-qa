@@ -1,5 +1,6 @@
 import json
 import random
+import threading
 from collections import defaultdict
 
 from langchain_core.messages import HumanMessage
@@ -18,18 +19,21 @@ logger = get_logger("agent.processors.structure_ingest")
 _category_cache = {"tree": None, "tree_str": None, "default_l1": None, "default_l2": None}
 _example_cache = {"examples": None}
 _shared_mysql = None
+_cache_lock = threading.Lock()
 
 
 def _get_mysql() -> MySQLClient:
     global _shared_mysql
-    if _shared_mysql is None:
-        _shared_mysql = MySQLClient()
-    return _shared_mysql
+    with _cache_lock:
+        if _shared_mysql is None:
+            _shared_mysql = MySQLClient()
+        return _shared_mysql
 
 
 def get_category_tree() -> dict:
-    if _category_cache["tree"] is not None:
-        return _category_cache["tree"]
+    with _cache_lock:
+        if _category_cache["tree"] is not None:
+            return _category_cache["tree"]
     try:
         mysql = _get_mysql()
         all_qa = mysql.get_all_questions()
@@ -42,20 +46,22 @@ def get_category_tree() -> dict:
             elif l1:
                 tree[l1].add(l1)
         result = {l1: sorted(l2_set) for l1, l2_set in sorted(tree.items())}
-        if result:
-            _category_cache["tree"] = result
-            _category_cache["default_l1"] = next(iter(result))
-            _category_cache["default_l2"] = result[_category_cache["default_l1"]][0] if result[_category_cache["default_l1"]] else ""
-        else:
+        with _cache_lock:
+            if result:
+                _category_cache["tree"] = result
+                _category_cache["default_l1"] = next(iter(result))
+                _category_cache["default_l2"] = result[_category_cache["default_l1"]][0] if result[_category_cache["default_l1"]] else ""
+            else:
+                _category_cache["tree"] = {}
+                _category_cache["default_l1"] = ""
+                _category_cache["default_l2"] = ""
+            return _category_cache["tree"]
+    except Exception:
+        with _cache_lock:
             _category_cache["tree"] = {}
             _category_cache["default_l1"] = ""
             _category_cache["default_l2"] = ""
-        return _category_cache["tree"]
-    except Exception:
-        _category_cache["tree"] = {}
-        _category_cache["default_l1"] = ""
-        _category_cache["default_l2"] = ""
-        return {}
+            return {}
 
 
 def get_category_tree_str() -> str:
@@ -73,19 +79,22 @@ def get_category_tree_str() -> str:
 
 
 def invalidate_category_cache():
-    _category_cache["tree"] = None
-    _category_cache["tree_str"] = None
-    _category_cache["default_l1"] = None
-    _category_cache["default_l2"] = None
+    with _cache_lock:
+        _category_cache["tree"] = None
+        _category_cache["tree_str"] = None
+        _category_cache["default_l1"] = None
+        _category_cache["default_l2"] = None
 
 
 def invalidate_example_cache():
-    _example_cache["examples"] = None
+    with _cache_lock:
+        _example_cache["examples"] = None
 
 
 def get_reference_examples(count: int = 10) -> list[str]:
-    if _example_cache["examples"] is not None:
-        return _example_cache["examples"][:count]
+    with _cache_lock:
+        if _example_cache["examples"] is not None:
+            return _example_cache["examples"][:count]
     try:
         cfg = get_config().get("prompts", {}).get("standardize", {})
         min_len = cfg.get("min_length", 5)
@@ -97,10 +106,12 @@ def get_reference_examples(count: int = 10) -> list[str]:
             sampled = random.sample(questions, count * 3)
         else:
             sampled = questions
-        _example_cache["examples"] = sampled
+        with _cache_lock:
+            _example_cache["examples"] = sampled
         return sampled[:count]
     except Exception:
-        _example_cache["examples"] = []
+        with _cache_lock:
+            _example_cache["examples"] = []
         return []
 
 

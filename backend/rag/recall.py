@@ -1,4 +1,5 @@
-from concurrent.futures import ThreadPoolExecutor
+import atexit
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
 
 from db.milvus_client import MilvusQA
 from rag.bm25_index import BM25Index
@@ -18,6 +19,9 @@ except ImportError:
 
 class RecallEngine:
     _executor = ThreadPoolExecutor(max_workers=2)
+    atexit.register(_executor.shutdown, wait=False)
+
+    _RECALL_TIMEOUT = 30
 
     def __init__(self, embed_model, milvus: MilvusQA, bm25: BM25Index):
         self.embed_model = embed_model
@@ -87,8 +91,16 @@ class RecallEngine:
         bm25_future = self._executor.submit(
             self.bm25_recall, query_text, active_qa_ids=active_qa_ids
         )
-        vec_results = vec_future.result()
-        bm25_results = bm25_future.result()
+        try:
+            vec_results = vec_future.result(timeout=self._RECALL_TIMEOUT)
+        except FutureTimeout:
+            logger.warning(f"向量召回超时({self._RECALL_TIMEOUT}s)，降级返回空 query='{query_text[:30]}'")
+            vec_results = []
+        try:
+            bm25_results = bm25_future.result(timeout=self._RECALL_TIMEOUT)
+        except FutureTimeout:
+            logger.warning(f"BM25召回超时({self._RECALL_TIMEOUT}s)，降级返回空 query='{query_text[:30]}'")
+            bm25_results = []
         logger.info(f"并行召回完成: vector={len(vec_results)}条 bm25={len(bm25_results)}条 query='{query_text[:30]}'")
 
         if self.merge_method == "weighted_rrf":

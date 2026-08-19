@@ -1,4 +1,7 @@
+import threading
 import time
+
+from cachetools import TTLCache
 
 from agent.graph import preprocess_agent
 from agent.state import AgentState
@@ -24,6 +27,7 @@ logger = get_logger("rag.service")
 
 class QAService:
     _STANDARDIZE_CACHE_SIZE = 2000
+    _STANDARDIZE_TTL = 3600
 
     def __init__(self, recall: RecallEngine, threshold: ThresholdJudge,
                  reranker: Reranker, mysql: MySQLClient):
@@ -34,7 +38,9 @@ class QAService:
         self._active_ids_cache = None
         self._active_ids_ts = 0
         self._active_ids_ttl = get_config().get("cache", {}).get("active_ids_ttl", 30)
-        self._standardize_cache = {}
+        self._active_ids_lock = threading.Lock()
+        self._standardize_cache = TTLCache(maxsize=self._STANDARDIZE_CACHE_SIZE, ttl=self._STANDARDIZE_TTL)
+        self._standardize_lock = threading.Lock()
 
     def reload_config(self):
         self.recall.update_config()
@@ -44,15 +50,17 @@ class QAService:
 
     def _get_active_ids(self) -> list[int]:
         now = time.time()
-        if self._active_ids_cache is not None and (now - self._active_ids_ts) < self._active_ids_ttl:
-            return self._active_ids_cache
-        self._active_ids_cache = self.mysql.get_active_ids()
-        self._active_ids_ts = now
+        with self._active_ids_lock:
+            if self._active_ids_cache is not None and (now - self._active_ids_ts) < self._active_ids_ttl:
+                return self._active_ids_cache
+            self._active_ids_cache = self.mysql.get_active_ids()
+            self._active_ids_ts = now
         return self._active_ids_cache
 
     def invalidate_active_ids_cache(self):
-        self._active_ids_cache = None
-        self._active_ids_ts = 0
+        with self._active_ids_lock:
+            self._active_ids_cache = None
+            self._active_ids_ts = 0
 
     @traceable(name="add_knowledge", run_type="chain")
     def add_knowledge(self, req) -> int:
@@ -96,8 +104,9 @@ class QAService:
                 raise
 
     def _standardize(self, raw_question: str) -> str:
-        if raw_question in self._standardize_cache:
-            return self._standardize_cache[raw_question]
+        with self._standardize_lock:
+            if raw_question in self._standardize_cache:
+                return self._standardize_cache[raw_question]
 
         llm_standardize_enabled = get_config().get("llm", {}).get("standardize_enabled", True)
         if llm_standardize_enabled:
@@ -113,10 +122,8 @@ class QAService:
             standardized = _rule_based_standardize(raw_question)
             logger.info(f"规则标准化(跳过LLM): '{raw_question}' -> '{standardized}'")
 
-        if len(self._standardize_cache) >= self._STANDARDIZE_CACHE_SIZE:
-            oldest_key = next(iter(self._standardize_cache))
-            del self._standardize_cache[oldest_key]
-        self._standardize_cache[raw_question] = standardized
+        with self._standardize_lock:
+            self._standardize_cache[raw_question] = standardized
         return standardized
 
     @traceable(name="rag_query", run_type="chain")

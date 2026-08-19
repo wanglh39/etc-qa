@@ -1,4 +1,6 @@
 
+import threading
+
 from pymilvus import DataType, MilvusClient
 
 from utils.config import get_config
@@ -22,21 +24,24 @@ class MilvusQA:
         self.schema_cfg = cfg.get("schema", {"category_l1_max_length": 50})
         self._client = None
         self._collection_loaded = False
+        self._lock = threading.RLock()
 
     def _reconnect(self):
-        if self._client:
-            try:
-                self._client.close()
-            except Exception:
-                pass
-        self._client = MilvusClient(self.db_path, grpc_options=_GRPC_OPTIONS)
-        self._collection_loaded = False
+        with self._lock:
+            if self._client:
+                try:
+                    self._client.close()
+                except Exception:
+                    pass
+            self._client = MilvusClient(self.db_path, grpc_options=_GRPC_OPTIONS)
+            self._collection_loaded = False
 
     @property
     def client(self) -> MilvusClient:
-        if self._client is None:
-            self._client = MilvusClient(self.db_path, grpc_options=_GRPC_OPTIONS)
-        return self._client
+        with self._lock:
+            if self._client is None:
+                self._client = MilvusClient(self.db_path, grpc_options=_GRPC_OPTIONS)
+            return self._client
 
     def init_collection(self):
         try:
@@ -65,20 +70,21 @@ class MilvusQA:
         )
 
     def _ensure_loaded(self):
-        try:
-            self.init_collection()
-            if not self._collection_loaded:
-                self.client.load_collection(self.collection_name)
-                self._collection_loaded = True
-        except Exception as e:
-            if "too_many_pings" in str(e) or "UNAVAILABLE" in str(e) or "GOAWAY" in str(e):
-                from utils.logger import get_logger
-                get_logger("milvus").warning(f"_ensure_loaded gRPC错误，重连: {e}")
-                self._reconnect()
-                self.client.load_collection(self.collection_name)
-                self._collection_loaded = True
-            else:
-                raise
+        with self._lock:
+            try:
+                self.init_collection()
+                if not self._collection_loaded:
+                    self.client.load_collection(self.collection_name)
+                    self._collection_loaded = True
+            except Exception as e:
+                if "too_many_pings" in str(e) or "UNAVAILABLE" in str(e) or "GOAWAY" in str(e):
+                    from utils.logger import get_logger
+                    get_logger("milvus").warning(f"_ensure_loaded gRPC错误，重连: {e}")
+                    self._reconnect()
+                    self.client.load_collection(self.collection_name)
+                    self._collection_loaded = True
+                else:
+                    raise
 
     def _safe_search(self, **kwargs):
         import time
@@ -113,14 +119,16 @@ class MilvusQA:
                     "is_hyde": True,
                 })
         self.client.insert(collection_name=self.collection_name, data=data)
-        self.client.load_collection(self.collection_name)
-        self._collection_loaded = True
+        with self._lock:
+            self.client.load_collection(self.collection_name)
+            self._collection_loaded = True
 
     def batch_insert(self, data: list[dict]):
         self.init_collection()
         self.client.insert(collection_name=self.collection_name, data=data)
-        self.client.load_collection(self.collection_name)
-        self._collection_loaded = True
+        with self._lock:
+            self.client.load_collection(self.collection_name)
+            self._collection_loaded = True
 
     def search(self, query_vector: list[float], top_k: int = 10,
                category_filter: str | None = None,

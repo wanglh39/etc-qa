@@ -483,7 +483,9 @@ def reply_work_order(wo_id: int, req: WorkOrderReplyRequest, user: dict = Depend
 
 
 @router.post("/asr", response_model=ASRResponse)
-async def asr_transcribe(file: UploadFile = File(...)):
+async def asr_transcribe(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
+    if not limiter.check(f"asr:{user.get('sub')}", 10, 60):
+        raise HTTPException(status_code=429, detail="请求过于频繁，请稍后再试")
     asr_service = get_asr_service()
     if not asr_service._enabled:
         raise HTTPException(status_code=503, detail="ASR未启用")
@@ -515,7 +517,9 @@ def asr_health():
 
 
 @router.post("/asr/query", response_model=ASRQueryResponse)
-async def asr_query(file: UploadFile = File(...), category_l1: str | None = None):
+async def asr_query(file: UploadFile = File(...), category_l1: str | None = None, user: dict = Depends(get_current_user)):
+    if not limiter.check(f"asr_query:{user.get('sub')}", 10, 60):
+        raise HTTPException(status_code=429, detail="请求过于频繁，请稍后再试")
     asr_service = get_asr_service()
     if not asr_service._enabled:
         raise HTTPException(status_code=503, detail="ASR未启用")

@@ -52,7 +52,7 @@
       <div class="card-body-inner">
         <div class="header-bar">
           <h3>账号管理</h3>
-          <el-button type="success" @click="openAddDialog">
+          <el-button type="primary" @click="openAddDialog">
             <el-icon><Plus /></el-icon> 新增账号
           </el-button>
         </div>
@@ -93,12 +93,12 @@
           <el-table-column prop="dept" label="部门" width="140" align="center">
             <template #default="{ row }">
               <span v-if="row.dept">{{ row.dept }}</span>
-              <span v-else style="color:#c0c4cc">-</span>
+              <span v-else style="color:#94A3B8">-</span>
             </template>
           </el-table-column>
           <el-table-column label="状态" width="90" align="center">
             <template #default="{ row }">
-              <el-tag :type="row.status === 'active' ? 'success' : 'info'" effect="dark">
+              <el-tag :type="row.status === 'active' ? 'primary' : 'info'" effect="dark">
                 {{ row.status === 'active' ? '启用' : '禁用' }}
               </el-tag>
             </template>
@@ -107,10 +107,10 @@
           <el-table-column label="操作" width="280" fixed="right">
             <template #default="{ row }">
               <el-button link type="primary" @click="openEditDialog(row)">编辑</el-button>
-              <el-button link type="warning" @click="openResetDialog(row)">重置密码</el-button>
+              <el-button link type="info" @click="openResetDialog(row)">重置密码</el-button>
               <el-button v-if="row.status === 'active'" link type="info" @click="handleToggleStatus(row, 'disabled')">禁用</el-button>
-              <el-button v-else link type="success" @click="handleToggleStatus(row, 'active')">启用</el-button>
-              <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+              <el-button v-else link type="primary" @click="handleToggleStatus(row, 'active')">启用</el-button>
+              <el-button link type="info" @click="handleDelete(row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -182,6 +182,7 @@ import {
   getUserList, createUser, updateUser, resetPassword, deleteUser,
   getRoleList, type UserListItem, type RoleItem
 } from '@/api/system'
+import { roleColor } from '@/utils/roleColor'
 
 const filterRole = ref('')
 const filterStatus = ref('')
@@ -205,15 +206,6 @@ const activeCount = computed(() => tableData.value.filter(r => r.status === 'act
 const disabledCount = computed(() => tableData.value.filter(r => r.status === 'disabled').length)
 const superadminCount = computed(() => tableData.value.filter(r => r.role === 'superadmin').length)
 
-const roleColorMap: Record<string, string> = {
-  superadmin: '#f56c6c',
-  admin: '#0052FF',
-  ops: '#67c23a',
-  service: '#e6a23c',
-  dept: '#909399'
-}
-
-const roleColor = (key: string) => roleColorMap[key] || '#0052FF'
 
 const roleLabel = (key: string) => {
   const r = roleOptions.value.find((r) => r.role_key === key)
@@ -269,7 +261,7 @@ const handleToggleStatus = async (row: UserListItem, newStatus: string) => {
 }
 
 const handleDelete = async (row: UserListItem) => {
-  try { await ElMessageBox.confirm(`确认删除账号 "${row.username}"？删除后不可恢复。`, '删除确认', { type: 'warning' }) }
+  try { await ElMessageBox.confirm(`确认删除账号 "${row.username}"？删除后不可恢复。`, '删除确认', { type: 'info' }) }
   catch { return }
   try { await deleteUser(row.id); ElMessage.success('已删除'); loadData() }
   catch { ElMessage.error('删除失败') }
@@ -295,7 +287,7 @@ onMounted(() => { loadRoles(); loadData() })
   min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-  background-color: #f0f2f5;
+  background-color: #F8FAFC;
 }
 
 .kpi-row {
@@ -305,15 +297,15 @@ onMounted(() => { loadRoles(); loadData() })
   margin-bottom: 20px;
 }
 .kpi-card { transition: transform 0.2s; }
-.kpi-card:hover { transform: translateY(-3px); }
+.kpi-card:hover { border-color: #CBD5E1 !important; }
 .kpi-inner { display: flex; align-items: center; gap: 12px; }
 .kpi-icon {
   width: 48px; height: 48px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center; color: #fff;
-  background: var(--grad-primary);
+  background: #F1F5F9; color: #1677FF;
 }
-.kpi-num { font-size: 24px; font-weight: 700; color: #303133; line-height: 1.2; }
-.kpi-label { font-size: 13px; color: #909399; margin-top: 4px; }
+.kpi-num { font-size: 24px; font-weight: 700; color: #0F172A; line-height: 1.2; }
+.kpi-label { font-size: 13px; color: #bfbfbf; margin-top: 4px; }
 
 .full-card { display: flex; flex-direction: column; }
 :deep(.el-card__body) { padding: 20px; display: flex; flex-direction: column; }
@@ -329,6 +321,6 @@ onMounted(() => { loadRoles(); loadData() })
   display: flex; align-items: center; justify-content: center;
   color: #fff; font-weight: 600; font-size: 15px;
 }
-.user-name { font-weight: 500; color: #303133; }
-.user-id { font-size: 12px; color: #909399; }
+.user-name { font-weight: 500; color: #0F172A; }
+.user-id { font-size: 12px; color: #bfbfbf; }
 </style>

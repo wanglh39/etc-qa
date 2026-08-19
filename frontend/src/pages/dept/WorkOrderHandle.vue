@@ -56,7 +56,7 @@
           <span class="card-title">{{ currentDeptName }}工单处理</span>
           <div class="header-actions" v-if="selectedIds.length > 0">
             <el-tag type="info">已选 {{ selectedIds.length }} 条</el-tag>
-            <el-button type="success" size="small" :loading="batchLoading" @click="batchFinish">
+            <el-button type="primary" size="small" :loading="batchLoading" @click="batchFinish">
               批量办结
             </el-button>
           </div>
@@ -72,7 +72,7 @@
         </el-tab-pane>
         <el-tab-pane name="submitted">
           <template #label>
-            <span>待处理 <el-badge :value="stats.submitted" :max="999" type="warning" /></span>
+            <span>待处理 <el-badge :value="stats.submitted" :max="999" type="info" /></span>
           </template>
         </el-tab-pane>
         <el-tab-pane name="answered">
@@ -82,7 +82,7 @@
         </el-tab-pane>
         <el-tab-pane name="processed">
           <template #label>
-            <span>已办结 <el-badge :value="stats.processed" :max="999" type="success" /></span>
+            <span>已办结 <el-badge :value="stats.processed" :max="999" type="primary" /></span>
           </template>
         </el-tab-pane>
       </el-tabs>
@@ -135,9 +135,9 @@
           <el-table-column label="提交时间" prop="created_at" min-width="160" align="center"></el-table-column>
           <el-table-column label="工单状态" prop="status" width="100" align="center">
             <template #default="scope">
-              <el-tag v-if="scope.row.status === 'submitted'" type="warning" effect="light">待处理</el-tag>
+              <el-tag v-if="scope.row.status === 'submitted'" type="info" effect="light">待处理</el-tag>
               <el-tag v-else-if="scope.row.status === 'answered'" type="primary" effect="light">已回复</el-tag>
-              <el-tag v-else-if="scope.row.status === 'processed'" type="success" effect="light">已办结</el-tag>
+              <el-tag v-else-if="scope.row.status === 'processed'" type="primary" effect="light">已办结</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="180" align="center" fixed="right">
@@ -145,7 +145,7 @@
               <el-button link type="primary" size="small" @click="openDetail(scope.row)">查看详情</el-button>
               <el-button
                 link
-                type="success"
+                type="primary"
                 size="small"
                 :disabled="scope.row.status === 'processed'"
                 @click="handleFinish(scope.row)"
@@ -205,9 +205,9 @@ const parseRaw = (row: WorkOrderListItem): Record<string, any> => {
   try { return JSON.parse(row.raw_data || '{}') } catch { return {} }
 }
 
-const priorityType = (p: string): 'danger' | 'warning' | 'info' => {
-  if (p === '高' || p === 'urgent') return 'danger'
-  if (p === '中' || p === 'normal') return 'warning'
+const priorityType = (p: string): 'primary' | 'info' => {
+  if (p === '高' || p === 'urgent') return 'primary'
+  if (p === '中' || p === 'normal') return 'info'
   return 'info'
 }
 
@@ -276,7 +276,7 @@ const openDetail = (row: WorkOrderListItem) => {
 
 const handleFinish = async (row: WorkOrderListItem) => {
   try {
-    await ElMessageBox.confirm(`确认办结工单 ${row.external_id}？`, '提示', { type: 'warning' })
+    await ElMessageBox.confirm(`确认办结工单 ${row.external_id}？`, '提示', { type: 'info' })
     await replyWorkOrder(row.id, { handle_remark: '快速办结' })
     ElMessage.success(`工单${row.external_id}已办结`)
     getTableList()
@@ -288,7 +288,7 @@ const handleFinish = async (row: WorkOrderListItem) => {
 
 const batchFinish = async () => {
   try {
-    await ElMessageBox.confirm(`确认批量办结 ${selectedIds.value.length} 条工单？`, '批量办结', { type: 'warning' })
+    await ElMessageBox.confirm(`确认批量办结 ${selectedIds.value.length} 条工单？`, '批量办结', { type: 'info' })
     batchLoading.value = true
     let ok = 0
     for (const id of selectedIds.value) {
@@ -324,7 +324,7 @@ watch(deptCode, () => {
 .dept-page {
   width: 100%;
   min-height: 100vh;
-  background-color: #f0f2f5;
+  background-color: #F8FAFC;
   padding: 20px;
   box-sizing: border-box;
 }
@@ -341,8 +341,8 @@ watch(deptCode, () => {
   transition: transform 0.2s, box-shadow 0.2s;
 }
 .kpi-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #CBD5E1 !important;
+  border-color: #CBD5E1 !important;
 }
 
 .kpi-inner {
@@ -361,21 +361,21 @@ watch(deptCode, () => {
   font-size: 24px;
   color: #fff;
 }
-.kpi-icon.total { background: var(--grad-primary); }
-.kpi-icon.pending { background: var(--grad-warning); }
-.kpi-icon.answered { background: var(--grad-primary); }
-.kpi-icon.done { background: var(--grad-success); }
-.kpi-icon.today { background: var(--grad-neutral); }
+.kpi-icon.total { background: #F1F5F9; color: #1677FF; }
+.kpi-icon.pending { background: #F1F5F9; color: #1677FF; }
+.kpi-icon.answered { background: #F1F5F9; color: #1677FF; }
+.kpi-icon.done { background: #F1F5F9; color: #1677FF; }
+.kpi-icon.today { background: #F1F5F9; color: #64748B; }
 
 .kpi-num {
   font-size: 24px;
   font-weight: 700;
-  color: #303133;
+  color: #0F172A;
   line-height: 1.2;
 }
 .kpi-label {
   font-size: 13px;
-  color: #909399;
+  color: #bfbfbf;
   margin-top: 2px;
 }
 
@@ -393,7 +393,7 @@ watch(deptCode, () => {
 .card-title {
   font-size: 18px;
   font-weight: 600;
-  color: #303133;
+  color: #0F172A;
 }
 .header-actions {
   display: flex;
@@ -408,7 +408,7 @@ watch(deptCode, () => {
 .search-form {
   margin-bottom: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid #E2E8F0;
 }
 
 .table-wrapper {

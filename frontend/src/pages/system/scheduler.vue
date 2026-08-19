@@ -27,7 +27,7 @@
             <el-icon><Setting /></el-icon>
             {{ jobDisplayName(job.id) }}
           </div>
-          <el-tag :type="status.running ? 'success' : 'info'" size="small" effect="dark">
+          <el-tag :type="status.running ? 'primary' : 'info'" size="small" effect="dark">
             {{ status.running ? '调度中' : '已停止' }}
           </el-tag>
         </div>
@@ -41,7 +41,7 @@
             <span class="ti-label">下次执行:</span>
             <span class="ti-value" v-if="job.next_run_time">
               <el-icon><Clock /></el-icon> {{ formatTime(job.next_run_time) }}
-              <el-tag size="small" type="warning" style="margin-left:8px">{{ countdown(job.next_run_time) }}</el-tag>
+              <el-tag size="small" type="info" style="margin-left:8px">{{ countdown(job.next_run_time) }}</el-tag>
             </span>
             <span class="ti-value" v-else>-</span>
           </div>
@@ -51,7 +51,7 @@
             <span class="sr-label">成功率:</span>
             <el-progress
               :percentage="getTaskStats(job.id)?.success_rate ?? 0"
-              :color="(getTaskStats(job.id)?.success_rate ?? 0) > 90 ? '#67c23a' : (getTaskStats(job.id)?.success_rate ?? 0) > 70 ? '#e6a23c' : '#f56c6c'"
+              :color="(getTaskStats(job.id)?.success_rate ?? 0) > 90 ? '#1677FF' : (getTaskStats(job.id)?.success_rate ?? 0) > 70 ? '#475569' : '#64748B'"
               :stroke-width="8"
               style="flex:1; margin: 0 8px"
             />
@@ -60,7 +60,7 @@
         </div>
 
         <div class="task-actions">
-          <el-button type="warning" size="small" :loading="triggering === job.id" @click="handleTrigger(job.id)">
+          <el-button type="info" size="small" :loading="triggering === job.id" @click="handleTrigger(job.id)">
             <el-icon><Lightning /></el-icon> 手动触发
           </el-button>
           <el-button type="primary" size="small" @click="openEditDialog(job.id)">
@@ -88,7 +88,7 @@
         </el-table-column>
         <el-table-column label="结果" width="100" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.result === 'success' ? 'success' : 'danger'" effect="dark">{{ row.result }}</el-tag>
+            <el-tag :type="row.result === 'success' ? 'primary' : 'info'" effect="dark">{{ row.result }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="created_at" label="执行时间" width="180" />
@@ -231,7 +231,7 @@ const loadStatus = async () => {
 
 const handleTrigger = async (jobId: string) => {
   try {
-    await ElMessageBox.confirm(`确认手动触发任务 "${jobDisplayName(jobId)}"？`, '提示', { type: 'warning' })
+    await ElMessageBox.confirm(`确认手动触发任务 "${jobDisplayName(jobId)}"？`, '提示', { type: 'info' })
   } catch { return }
   triggering.value = jobId
   try {
@@ -302,7 +302,7 @@ onBeforeUnmount(() => {
   min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-  background-color: #f0f2f5;
+  background-color: #F8FAFC;
 }
 
 .status-banner {
@@ -313,10 +313,10 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   margin-bottom: 20px;
   color: #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #CBD5E1 !important;
 }
-.banner-running { background: var(--grad-success); }
-.banner-stopped { background: var(--grad-danger); }
+.banner-running { background: #F1F5F9; color: #1677FF; }
+.banner-stopped { background: #F1F5F9; color: #1677FF; }
 
 .banner-left {
   display: flex;
@@ -353,7 +353,7 @@ onBeforeUnmount(() => {
   transition: transform 0.2s;
 }
 .task-card:hover {
-  transform: translateY(-2px);
+  border-color: #CBD5E1;
 }
 
 .task-header {
@@ -365,7 +365,7 @@ onBeforeUnmount(() => {
 .task-name {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #0F172A;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -381,11 +381,11 @@ onBeforeUnmount(() => {
   font-size: 13px;
 }
 .ti-label {
-  color: #909399;
+  color: #bfbfbf;
   width: 70px;
 }
 .ti-value {
-  color: #303133;
+  color: #0F172A;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -398,11 +398,11 @@ onBeforeUnmount(() => {
 }
 .sr-label {
   font-size: 13px;
-  color: #909399;
+  color: #bfbfbf;
 }
 .sr-count {
   font-size: 12px;
-  color: #606266;
+  color: #475569;
 }
 
 .task-actions {

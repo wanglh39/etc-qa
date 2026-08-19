@@ -39,13 +39,13 @@
           </el-select>
           <el-button type="primary" style="margin-left: 12px" @click="handleSearch">搜索</el-button>
           <el-button style="margin-left: 8px" @click="handleReset">重置</el-button>
-          <el-button type="success" style="margin-left: 24px" @click="openAddDialog">新增知识</el-button>
+          <el-button type="primary" style="margin-left: 24px" @click="openAddDialog">新增知识</el-button>
         </div>
 
         <div class="btn-group">
-          <el-button type="success" @click="batchUpdateStatus('active', '上架')">批量上架</el-button>
-          <el-button type="warning" @click="batchUpdateStatus('deprecated', '下架')">批量下架</el-button>
-          <el-button type="danger" @click="batchDelete">批量删除</el-button>
+          <el-button type="primary" @click="batchUpdateStatus('active', '上架')">批量上架</el-button>
+          <el-button type="info" @click="batchUpdateStatus('deprecated', '下架')">批量下架</el-button>
+          <el-button type="info" @click="batchDelete">批量删除</el-button>
         </div>
 
         <el-table
@@ -80,16 +80,16 @@
               <el-button
                 v-if="row.status !== 'active'"
                 link
-                type="success"
+                type="primary"
                 @click="handleToggleStatus(row.id, 'active', '上架')"
               >上架</el-button>
               <el-button
                 v-else
                 link
-                type="warning"
+                type="info"
                 @click="handleToggleStatus(row.id, 'deprecated', '下架')"
               >下架</el-button>
-              <el-button link type="danger" @click="handleDelete(row.id)">删除</el-button>
+              <el-button link type="info" @click="handleDelete(row.id)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -228,7 +228,7 @@ const statusLabel = (s: string) => {
   return map[s] || s
 }
 const statusTagType = (s: string) => {
-  const map: Record<string, string> = { active: 'success', deprecated: 'warning', archived: 'info' }
+  const map: Record<string, string> = { active: 'primary', deprecated: 'info', archived: 'info' }
   return map[s] || 'info'
 }
 const truncate = (text: string, n: number) => {
@@ -298,7 +298,7 @@ const handleToggleStatus = async (qaId: number, status: string, actionName: stri
 const handleDelete = async (qaId: number) => {
   try {
     await ElMessageBox.confirm('确认删除该知识条目？删除后不可恢复。', '删除确认', {
-      type: 'warning',
+      type: 'info',
       confirmButtonText: '确认',
       cancelButtonText: '取消'
     })
@@ -322,7 +322,7 @@ const batchUpdateStatus = async (status: string, actionName: string) => {
   }
   try {
     await ElMessageBox.confirm(`确认${actionName}选中的 ${ids.length} 条知识？`, `${actionName}确认`, {
-      type: 'warning',
+      type: 'info',
       confirmButtonText: '确认',
       cancelButtonText: '取消'
     })
@@ -348,7 +348,7 @@ const batchDelete = async () => {
   }
   try {
     await ElMessageBox.confirm(`确认删除选中的 ${ids.length} 条知识？删除后不可恢复。`, '批量删除确认', {
-      type: 'warning',
+      type: 'info',
       confirmButtonText: '确认',
       cancelButtonText: '取消'
     })

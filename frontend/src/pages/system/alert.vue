@@ -4,7 +4,7 @@
     <div class="kpi-row">
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: var(--grad-danger)">
+          <div class="kpi-icon" style="background: #1677FF">
             <el-icon :size="24"><BellFilled /></el-icon>
           </div>
           <div class="kpi-info">
@@ -15,7 +15,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: var(--grad-warning)">
+          <div class="kpi-icon" style="background: #1677FF">
             <el-icon :size="24"><WarningFilled /></el-icon>
           </div>
           <div class="kpi-info">
@@ -26,7 +26,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: var(--grad-primary)">
+          <div class="kpi-icon" style="background: #1677FF">
             <el-icon :size="24"><InfoFilled /></el-icon>
           </div>
           <div class="kpi-info">
@@ -37,7 +37,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" :style="{ background: unackedCount > 0 ? 'var(--grad-danger)' : 'var(--grad-success)' }">
+          <div class="kpi-icon" :style="{ background: unackedCount > 0 ? '#1677FF' : '#1677FF' }">
             <el-icon :size="24"><CircleCheck v-if="unackedCount === 0" /><Warning v-else /></el-icon>
           </div>
           <div class="kpi-info">
@@ -53,7 +53,7 @@
         <div class="header-bar">
           <h3>异常告警</h3>
           <div class="header-actions">
-            <el-button v-if="selectedIds.length > 0" type="success" size="small" :loading="batchLoading" @click="batchAck">
+            <el-button v-if="selectedIds.length > 0" type="primary" size="small" :loading="batchLoading" @click="batchAck">
               批量确认 ({{ selectedIds.length }})
             </el-button>
             <el-button type="primary" plain @click="loadData" :loading="loading">
@@ -103,7 +103,7 @@
           </el-table-column>
           <el-table-column label="状态" width="100" align="center">
             <template #default="{ row }">
-              <el-tag :type="row.status === 'open' ? 'danger' : 'info'" effect="dark">
+              <el-tag :type="row.status === 'open' ? 'primary' : 'info'" effect="dark">
                 {{ row.status === 'open' ? '未确认' : '已确认' }}
               </el-tag>
             </template>
@@ -160,9 +160,9 @@ const severityCounts = computed(() => {
 
 const unackedCount = computed(() => tableData.value.filter(r => r.status === 'open').length)
 
-const severityTagType = (s: string): 'danger' | 'warning' | 'info' => {
-  if (s === 'P0') return 'danger'
-  if (s === 'P1') return 'warning'
+const severityTagType = (s: string): 'primary' | 'info' => {
+  if (s === 'P0') return 'primary'
+  if (s === 'P1') return 'info'
   return 'info'
 }
 
@@ -241,7 +241,7 @@ onBeforeUnmount(() => {
   min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-  background-color: #f0f2f5;
+  background-color: #F8FAFC;
 }
 
 .kpi-row {
@@ -251,7 +251,7 @@ onBeforeUnmount(() => {
   margin-bottom: 20px;
 }
 .kpi-card { transition: transform 0.2s; }
-.kpi-card:hover { transform: translateY(-3px); }
+.kpi-card:hover { border-color: #CBD5E1 !important; }
 .kpi-inner {
   display: flex;
   align-items: center;
@@ -269,12 +269,12 @@ onBeforeUnmount(() => {
 .kpi-num {
   font-size: 24px;
   font-weight: 700;
-  color: #303133;
+  color: #0F172A;
   line-height: 1.2;
 }
 .kpi-label {
   font-size: 13px;
-  color: #909399;
+  color: #bfbfbf;
   margin-top: 4px;
 }
 

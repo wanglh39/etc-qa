@@ -48,7 +48,7 @@ const logout = () => {
 .top-navbar {
   height: 56px;
   background: #ffffff;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid #E2E8F0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -72,6 +72,6 @@ const logout = () => {
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  color: #606266;
+  color: #475569;
 }
 </style>

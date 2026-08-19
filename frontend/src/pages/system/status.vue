@@ -23,7 +23,7 @@
         <el-button type="primary" plain @click="loadData" :loading="loading">
           <el-icon><Refresh /></el-icon> 刷新
         </el-button>
-        <el-button type="success" plain @click="openLangSmith">
+        <el-button type="primary" plain @click="openLangSmith">
           <el-icon><Link /></el-icon> LangSmith
         </el-button>
       </div>
@@ -124,10 +124,10 @@ const overallText = computed(() => {
   return '系统异常'
 })
 
-const statusTagType = (s: string): 'success' | 'warning' | 'danger' | 'info' => {
-  if (s === 'healthy') return 'success'
-  if (s === 'degraded' || s === 'standby') return 'warning'
-  if (s === 'unhealthy') return 'danger'
+const statusTagType = (s: string): 'primary' | 'info' => {
+  if (s === 'healthy') return 'primary'
+  if (s === 'degraded' || s === 'standby') return 'info'
+  if (s === 'unhealthy') return 'info'
   return 'info'
 }
 
@@ -192,7 +192,7 @@ onBeforeUnmount(() => {
   min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-  background-color: #f0f2f5;
+  background-color: #F8FAFC;
 }
 
 .health-banner {
@@ -203,11 +203,11 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   margin-bottom: 20px;
   color: #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #CBD5E1 !important;
 }
-.banner-healthy { background: var(--grad-success); }
-.banner-degraded { background: var(--grad-warning); }
-.banner-unhealthy { background: var(--grad-danger); }
+.banner-healthy { background: #F1F5F9; color: #1677FF; }
+.banner-degraded { background: #F1F5F9; color: #1677FF; }
+.banner-unhealthy { background: #F1F5F9; color: #1677FF; }
 
 .banner-left {
   display: flex;
@@ -260,12 +260,12 @@ onBeforeUnmount(() => {
   transition: transform 0.2s;
 }
 .comp-card:hover {
-  transform: translateY(-2px);
+  border-color: #CBD5E1;
 }
-.comp-healthy { border-left: 3px solid #67c23a; }
-.comp-unhealthy { border-left: 3px solid #f56c6c; }
-.comp-degraded { border-left: 3px solid #e6a23c; }
-.comp-unknown { border-left: 3px solid #909399; }
+.comp-healthy { border-left: 3px solid #1677FF; }
+.comp-unhealthy { border-left: 3px solid #64748B; }
+.comp-degraded { border-left: 3px solid #475569; }
+.comp-unknown { border-left: 3px solid #bfbfbf; }
 
 .comp-header {
   display: flex;
@@ -282,10 +282,10 @@ onBeforeUnmount(() => {
   justify-content: center;
   position: relative;
 }
-.comp-icon-wrap.comp-healthy { background: #f0f9eb; color: #67c23a; }
-.comp-icon-wrap.comp-unhealthy { background: #fef0f0; color: #f56c6c; }
-.comp-icon-wrap.comp-degraded { background: #fdf6ec; color: #e6a23c; }
-.comp-icon-wrap.comp-unknown { background: #f4f4f5; color: #909399; }
+.comp-icon-wrap.comp-healthy { background: #E6F4FF; color: #1677FF; }
+.comp-icon-wrap.comp-unhealthy { background: #F1F5F9; color: #64748B; }
+.comp-icon-wrap.comp-degraded { background: #F1F5F9; color: #475569; }
+.comp-icon-wrap.comp-unknown { background: #F8FAFC; color: #bfbfbf; }
 
 .pulse-ring {
   position: absolute;
@@ -294,7 +294,7 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   border-radius: 8px;
-  border: 2px solid #67c23a;
+  border: 2px solid #1677FF;
   animation: pulse 2s infinite;
 }
 @keyframes pulse {
@@ -311,16 +311,16 @@ onBeforeUnmount(() => {
 .comp-name {
   font-weight: 600;
   font-size: 15px;
-  color: #303133;
+  color: #0F172A;
 }
 .comp-detail {
-  color: #606266;
+  color: #475569;
   font-size: 13px;
   margin-bottom: 4px;
   line-height: 1.5;
 }
 .comp-latency {
-  color: #909399;
+  color: #bfbfbf;
   font-size: 12px;
   display: flex;
   align-items: center;
@@ -343,7 +343,7 @@ onBeforeUnmount(() => {
   font-weight: 600;
 }
 .log-count {
-  color: #909399;
+  color: #bfbfbf;
   font-size: 13px;
   font-weight: 400;
 }
@@ -354,28 +354,29 @@ onBeforeUnmount(() => {
 }
 
 .terminal {
-  background: #1e1e1e;
-  border-radius: 8px;
-  padding: 16px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  padding: 12px 16px;
   max-height: 350px;
   overflow-y: auto;
   font-family: 'Consolas', 'Courier New', monospace;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.8;
 }
 .terminal-line {
-  color: #4caf50;
+  color: #475569;
   word-break: break-all;
 }
 .term-prompt {
-  color: #2196f3;
+  color: #94A3B8;
   margin-right: 4px;
 }
-.term-error { color: #f44336; }
-.term-warning { color: #ff9800; }
-.term-info { color: #4caf50; }
+.term-error { color: #475569; }
+.term-warning { color: #475569; }
+.term-info { color: #475569; }
 .terminal-empty {
-  color: #666;
+  color: #94A3B8;
   text-align: center;
   padding: 20px;
 }

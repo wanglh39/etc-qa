@@ -106,8 +106,8 @@ const parseRawText = (raw: string) => {
 const statusType = (s: string) => {
   const map: Record<string, string> = {
     submitted: 'info',
-    answered: 'warning',
-    processed: 'success'
+    answered: 'info',
+    processed: 'primary'
   }
   return map[s] || ''
 }

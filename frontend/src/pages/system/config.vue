@@ -92,32 +92,32 @@ const configMeta: Record<string, { label: string; desc: string; icon: any; color
     label: '工单状态列表',
     desc: '定义系统中工单的所有可用状态，用于状态流转控制',
     icon: Document,
-    color: 'var(--grad-primary)'
+    color: '#1677FF'
   },
   brand_keywords: {
     label: '品牌关键词',
     desc: '用于识别用户提问中是否包含品牌相关词汇，影响分类和检索',
     icon: Key,
-    color: 'var(--grad-success)'
+    color: '#1677FF'
   },
   forbidden_new_kws: {
     label: '禁用关键词',
     desc: '新建知识条目时禁止使用的关键词，防止不规范内容入库',
     icon: Warning,
-    color: 'var(--grad-danger)'
+    color: '#1677FF'
   },
   enterprise_name: {
     label: '企业名称',
     desc: '系统展示的企业名称，用于界面标题和品牌标识',
     icon: Shop,
-    color: 'var(--grad-warning)'
+    color: '#1677FF'
   }
 }
 
 const getConfigLabel = (key: string) => configMeta[key]?.label || key
 const getConfigDesc = (key: string) => configMeta[key]?.desc || '暂无描述'
 const getConfigIcon = (key: string) => configMeta[key]?.icon || Setting
-const getConfigColor = (key: string) => configMeta[key]?.color || 'var(--grad-neutral)'
+const getConfigColor = (key: string) => configMeta[key]?.color || '#94A3B8'
 
 const formatValue = (val: any) => {
   if (typeof val === 'string') return val
@@ -189,24 +189,26 @@ onMounted(() => {
 }
 
 .config-banner {
-  background: var(--grad-dark);
-  border-radius: 12px;
-  padding: 24px 32px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
-  gap: 20px;
-  margin-bottom: 20px;
-  color: #fff;
+  gap: 16px;
+  margin-bottom: 16px;
+  color: #0F172A;
 }
 .banner-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.2);
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: #F1F5F9;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  color: #1677FF;
 }
 .banner-text {
   flex: 1;
@@ -228,14 +230,13 @@ onMounted(() => {
 }
 .config-card {
   background: #fff;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 16px;
+  transition: border-color 0.2s;
 }
 .config-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border-color: #CBD5E1;
 }
 .cc-header {
   display: flex;
@@ -259,21 +260,21 @@ onMounted(() => {
 .cc-title {
   font-size: 15px;
   font-weight: 600;
-  color: #303133;
+  color: #0F172A;
 }
 .cc-key {
   font-size: 12px;
-  color: #c0c4cc;
+  color: #94A3B8;
   font-family: monospace;
 }
 .cc-desc {
   font-size: 13px;
-  color: #909399;
+  color: #bfbfbf;
   margin-bottom: 12px;
   line-height: 1.5;
 }
 .cc-value {
-  background: #f5f7fa;
+  background: #F8FAFC;
   border-radius: 6px;
   padding: 12px;
   max-height: 200px;
@@ -285,6 +286,6 @@ onMounted(() => {
   font-size: 13px;
   white-space: pre-wrap;
   word-break: break-all;
-  color: #606266;
+  color: #475569;
 }
 </style>

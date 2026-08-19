@@ -41,7 +41,7 @@
       </el-form-item>
 
       <el-form-item>
-        <el-button type="success" :loading="submitting" @click="completeAndReturn">
+        <el-button type="primary" :loading="submitting" @click="completeAndReturn">
           提交处理回复
         </el-button>
         <el-button @click="$router.back()">取消，返回列表</el-button>
@@ -158,8 +158,8 @@ const getPriorityText = (val: string) => {
 const statusType = (s: string) => {
   const map: Record<string, string> = {
     submitted: 'info',
-    answered: 'warning',
-    processed: 'success'
+    answered: 'info',
+    processed: 'primary'
   }
   return map[s] || ''
 }

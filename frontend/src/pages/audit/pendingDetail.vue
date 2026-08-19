@@ -17,7 +17,7 @@
         <el-descriptions-item label="提交时间">{{ detailInfo.created_at || '-' }}</el-descriptions-item>
 
         <el-descriptions-item label="状态">
-          <el-tag type="warning" size="small">待审核</el-tag>
+          <el-tag type="info" size="small">待审核</el-tag>
         </el-descriptions-item>
 
         <el-descriptions-item label="用户问题" :span="2">
@@ -25,10 +25,10 @@
         </el-descriptions-item>
 
         <el-descriptions-item label="标准答案" :span="2">
-          <div v-if="detailInfo.answer" style="white-space: pre-wrap; color: #606266;">
+          <div v-if="detailInfo.answer" style="white-space: pre-wrap; color: #475569;">
             {{ detailInfo.answer }}
           </div>
-          <span v-else style="color: #909399;">暂无标准答案，请在下方备注填写</span>
+          <span v-else style="color: #bfbfbf;">暂无标准答案，请在下方备注填写</span>
         </el-descriptions-item>
 
         <el-descriptions-item label="内部流程" :span="2">
@@ -54,7 +54,7 @@
         <el-button type="primary" :loading="loading" @click="handleAudit('pass')">
           确认入库
         </el-button>
-        <el-button type="danger" :loading="loading" @click="handleAudit('reject')">
+        <el-button type="primary" :loading="loading" @click="handleAudit('reject')">
           驳回工单
         </el-button>
       </div>
@@ -135,13 +135,13 @@ const handleAudit = async (action: 'pass' | 'reject') => {
 .header-bar h3 {
   margin: 0;
   font-size: 18px;
-  color: #303133;
+  color: #0F172A;
 }
 
 .btn-group {
   margin-top: 30px;
   text-align: right; 
   padding-top: 20px;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid #E2E8F0;
 }
 </style>

@@ -19,7 +19,7 @@
     <div class="kpi-row">
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: var(--grad-primary)">
+          <div class="kpi-icon" style="background: #1677FF">
             <el-icon :size="24"><DataLine /></el-icon>
           </div>
           <div class="kpi-info">
@@ -30,7 +30,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" :style="{ background: totalFailures > 0 ? 'var(--grad-danger)' : 'var(--grad-success)' }">
+          <div class="kpi-icon" style="background: #1677FF">
             <el-icon :size="24"><WarningFilled /></el-icon>
           </div>
           <div class="kpi-info">
@@ -41,7 +41,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" :style="{ background: highFailureRate > 0 ? 'var(--grad-danger)' : 'var(--grad-success)' }">
+          <div class="kpi-icon" style="background: #1677FF">
             <el-icon :size="24"><TrendCharts /></el-icon>
           </div>
           <div class="kpi-info">
@@ -52,7 +52,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" :style="{ background: highLatency > 0 ? 'var(--grad-warning)' : 'var(--grad-success)' }">
+          <div class="kpi-icon" style="background: #1677FF">
             <el-icon :size="24"><Timer /></el-icon>
           </div>
           <div class="kpi-info">
@@ -94,19 +94,19 @@
             <el-table-column prop="total" label="总调用" width="80" align="center" />
             <el-table-column prop="failures" label="失败数" width="80" align="center">
               <template #default="{ row }">
-                <span :style="{ color: row.failures > 0 ? '#f56c6c' : '#909399' }">{{ row.failures }}</span>
+                <span :style="{ color: row.failures > 0 ? '#64748B' : '#bfbfbf' }">{{ row.failures }}</span>
               </template>
             </el-table-column>
             <el-table-column label="失败率" width="80" align="center">
               <template #default="{ row }">
-                <span :style="{ color: row.failure_rate > 10 ? '#f56c6c' : row.failure_rate > 0 ? '#e6a23c' : '#67c23a' }">
+                <span :style="{ color: row.failure_rate > 10 ? '#64748B' : row.failure_rate > 0 ? '#475569' : '#1677FF' }">
                   {{ row.failure_rate.toFixed(1) }}%
                 </span>
               </template>
             </el-table-column>
             <el-table-column label="P95延迟" width="90" align="center">
               <template #default="{ row }">
-                <span :style="{ color: row.p95_latency > 3000 ? '#f56c6c' : '#606266' }">
+                <span :style="{ color: row.p95_latency > 3000 ? '#64748B' : '#475569' }">
                   {{ row.p95_latency != null ? row.p95_latency.toFixed(0) + 'ms' : '-' }}
                 </span>
               </template>
@@ -216,10 +216,10 @@ const drawCharts = (rows: MetricRow[]) => {
         type: 'bar', data: failureRates,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#f56c6c' }, { offset: 1, color: '#fab6b6' }
+            { offset: 0, color: '#64748B' }, { offset: 1, color: '#91CAFF' }
           ])
         },
-        markLine: { data: [{ yAxis: 10, name: '阈值' }], lineStyle: { color: '#f56c6c', type: 'dashed' } }
+        markLine: { data: [{ yAxis: 10, name: '阈值' }], lineStyle: { color: '#64748B', type: 'dashed' } }
       }]
     })
   }
@@ -233,24 +233,22 @@ const drawCharts = (rows: MetricRow[]) => {
         type: 'bar', data: latencies,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#0052FF' }, { offset: 1, color: '#a0cfff' }
+            { offset: 0, color: '#1677FF' }, { offset: 1, color: '#91CAFF' }
           ])
         },
-        markLine: { data: [{ yAxis: 3000, name: '阈值' }], lineStyle: { color: '#e6a23c', type: 'dashed' } }
+        markLine: { data: [{ yAxis: 3000, name: '阈值' }], lineStyle: { color: '#4096FF', type: 'dashed' } }
       }]
     })
   }
 
   if (distributionChart) {
+    const distPalette = ['#1677FF', '#4096FF', '#69B1FF', '#91CAFF', '#BAE0FF', '#64748B']
     distributionChart.setOption({
       tooltip: { trigger: 'item' },
       legend: { bottom: 0 },
       series: [{
         type: 'pie', radius: ['40%', '70%'],
-        data: rows.map(r => ({ name: r.name, value: r.total })),
-        itemStyle: {
-          color: ['#0052FF', '#67c23a', '#e6a23c', '#f56c6c', '#909399']
-        }
+        data: rows.map((r, i) => ({ name: r.name, value: r.total, itemStyle: { color: distPalette[i % distPalette.length] } }))
       }]
     })
   }
@@ -291,7 +289,7 @@ onBeforeUnmount(() => {
   min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-  background-color: #f0f2f5;
+  background-color: #F8FAFC;
 }
 
 .header-bar {
@@ -313,7 +311,7 @@ onBeforeUnmount(() => {
   margin-bottom: 20px;
 }
 .kpi-card { transition: transform 0.2s; }
-.kpi-card:hover { transform: translateY(-3px); }
+.kpi-card:hover { border-color: #CBD5E1 !important; }
 .kpi-inner {
   display: flex;
   align-items: center;
@@ -331,12 +329,12 @@ onBeforeUnmount(() => {
 .kpi-num {
   font-size: 24px;
   font-weight: 700;
-  color: #303133;
+  color: #0F172A;
   line-height: 1.2;
 }
 .kpi-label {
   font-size: 13px;
-  color: #909399;
+  color: #bfbfbf;
   margin-top: 6px;
 }
 

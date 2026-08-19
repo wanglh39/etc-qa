@@ -1,10 +1,9 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 
-import './styles/design-tokens.css'
-
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import './styles/design-tokens.css'
 // 引入中文语言包
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
 

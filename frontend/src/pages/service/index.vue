@@ -61,7 +61,7 @@
               <span class="search-title">客服工作台</span>
               <el-tag
                 v-if="asrHealth"
-                :type="asrHealth.loaded ? 'success' : 'warning'"
+                :type="asrHealth.loaded ? 'primary' : 'info'"
                 size="small"
                 effect="plain"
                 round
@@ -85,7 +85,7 @@
                 :icon="VideoPause"
                 circle
                 size="large"
-                type="warning"
+                type="info"
                 @click="pauseRecording"
                 title="暂停录音"
               />
@@ -104,7 +104,7 @@
               :icon="VideoPlay"
               circle
               size="large"
-              type="success"
+              type="primary"
               @click="resumeRecording"
               title="继续录音"
             />
@@ -113,11 +113,11 @@
               :icon="VideoPause"
               circle
               size="large"
-              type="danger"
+              type="primary"
               @click="stopRecordingSession"
               title="停止录音"
             />
-            <el-button type="danger" size="large" @click="openCreateDialog">创建工单</el-button>
+            <el-button type="primary" size="large" @click="openCreateDialog">创建工单</el-button>
             <el-button type="primary" size="large" :loading="searching" @click="handleSearch">搜索</el-button>
             <el-button size="large" @click="clearAll" :disabled="recordingState !== 'idle'">清空</el-button>
           </div>
@@ -134,7 +134,7 @@
             </el-tag>
           </div>
           <div v-if="selectedCategory" class="category-hint">
-            <el-tag type="warning" closable @close="clearCategoryFilter">
+            <el-tag type="info" closable @close="clearCategoryFilter">
               分类筛选: {{ selectedCategory }}
             </el-tag>
           </div>
@@ -144,8 +144,8 @@
         <div v-if="recordingState !== 'idle' || asr.fullText.value" class="asr-section">
           <div class="asr-header">
             <span class="asr-title">
-              <el-tag v-if="recordingState === 'recording'" type="danger" size="small" effect="dark">录音中</el-tag>
-              <el-tag v-else-if="recordingState === 'paused'" type="warning" size="small" effect="dark">已暂停</el-tag>
+              <el-tag v-if="recordingState === 'recording'" type="primary" size="small" effect="dark">录音中</el-tag>
+              <el-tag v-else-if="recordingState === 'paused'" type="info" size="small" effect="dark">已暂停</el-tag>
               实时语音识别
             </span>
             <el-tag size="small" type="info">{{ asr.asrState.value }}</el-tag>
@@ -161,7 +161,6 @@
         <div v-if="!searched && !finalReply" class="empty-state">
           <el-empty description="输入客户问题搜索匹配话术，也可直接点击左侧快捷话术" />
         </div>
-
 
         <!-- 结果区 -->
         <div v-if="searched || finalReply" class="result-section">
@@ -470,21 +469,20 @@ const queryResult = ref<QueryResponse>({
 })
 const hasCandidates = computed(() => queryResult.value.candidates.length > 0)
 
-
 // ===== 置信度 =====
-const confidenceType = ref<'success' | 'warning' | 'danger' | 'info'>('info')
+const confidenceType = ref<'primary' | 'info'>('info')
 const confidenceText = ref('')
-const confidenceMap: Record<string, { type: 'success' | 'warning' | 'danger' | 'info'; text: string }> = {
-  high: { type: 'success', text: '高' },
-  mid: { type: 'warning', text: '中' },
-  low: { type: 'danger', text: '低' },
+const confidenceMap: Record<string, { type: 'primary' | 'info'; text: string }> = {
+  high: { type: 'primary', text: '高' },
+  mid: { type: 'info', text: '中' },
+  low: { type: 'info', text: '低' },
   none: { type: 'info', text: '无匹配' }
 }
 
 const scoreColor = (score: number) => {
-  if (score >= 0.8) return '#67C23A'
-  if (score >= 0.6) return '#E6A23C'
-  return '#F56C6C'
+  if (score >= 0.8) return '#1677FF'
+  if (score >= 0.6) return '#475569'
+  return '#64748B'
 }
 
 // ===== 候选多选 & 最终答复 =====
@@ -509,7 +507,6 @@ const rebuildFinalReply = () => {
     .map((c) => c.answer)
   finalReply.value = parts.join('\n\n')
 }
-
 
 // ===== 流式语音识别 =====
 const asr = useStreamingASR()
@@ -588,7 +585,6 @@ const stopRecordingSession = () => {
   consumedTextLength.value = 0
   recordingState.value = 'idle'
 }
-
 
 // ===== 搜索 =====
 const handleSearch = async () => {
@@ -727,12 +723,12 @@ onMounted(() => {
   background: #fff;
   border-radius: 8px;
   padding: 12px;
-  border: 1px solid #ebeef5;
+  border: 1px solid #E2E8F0;
 }
 .panel-title {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: #0F172A;
   margin-bottom: 8px;
   display: flex;
   align-items: center;
@@ -741,15 +737,15 @@ onMounted(() => {
 .reply-item {
   padding: 6px 8px;
   font-size: 13px;
-  color: #606266;
+  color: #475569;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
   line-height: 1.5;
 }
 .reply-item:hover {
-  background: #ecf5ff;
-  color: #0052FF;
+  background: #E6F4FF;
+  color: #1677FF;
 }
 
 /* 主区 */
@@ -776,7 +772,7 @@ onMounted(() => {
 .search-title {
   font-size: 18px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #0F172A;
 }
 .button-row {
   display: flex;
@@ -795,7 +791,7 @@ onMounted(() => {
   position: absolute;
   width: 48px;
   height: 48px;
-  border: 3px solid #e6a23c;
+  border: 3px solid #475569;
   border-radius: 50%;
   animation: pulse-ring 1.5s ease-out infinite;
   pointer-events: none;
@@ -813,15 +809,15 @@ onMounted(() => {
 }
 .history-label {
   font-size: 13px;
-  color: #909399;
+  color: #bfbfbf;
 }
 .history-tag {
   cursor: pointer;
   transition: all 0.2s;
 }
 .history-tag:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(64, 158, 255, 0.15);
+  border-color: #CBD5E1;
+  
 }
 .category-hint {
   margin-top: 8px;
@@ -831,10 +827,10 @@ onMounted(() => {
 .asr-section {
   max-width: 900px;
   margin: 16px auto 0;
-  border: 1px solid #e4e7ed;
+  border: 1px solid #E2E8F0;
   border-radius: 8px;
   padding: 16px;
-  background: #f8f9fa;
+  background: #F8FAFC;
 }
 .asr-header {
   display: flex;
@@ -844,7 +840,7 @@ onMounted(() => {
 }
 .asr-title {
   font-weight: 600;
-  color: #303133;
+  color: #0F172A;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -855,14 +851,14 @@ onMounted(() => {
   min-height: 28px;
 }
 .asr-full {
-  color: #303133;
+  color: #0F172A;
 }
 .asr-partial {
-  color: #909399;
+  color: #bfbfbf;
   font-style: italic;
 }
 .asr-error {
-  color: #f56c6c;
+  color: #64748B;
   font-size: 13px;
   margin-top: 8px;
 }
@@ -870,7 +866,6 @@ onMounted(() => {
 .empty-state {
   margin-top: 60px;
 }
-
 
 .result-section {
   max-width: 900px;
@@ -882,10 +877,10 @@ onMounted(() => {
 
 /* 最终回复区 */
 .reply-area {
-  border: 1px solid #e4e7ed;
+  border: 1px solid #E2E8F0;
   border-radius: 8px;
   padding: 16px;
-  background: #fafafa;
+  background: #F8FAFC;
 }
 .reply-header {
   display: flex;
@@ -895,7 +890,7 @@ onMounted(() => {
 }
 .reply-title {
   font-weight: 600;
-  color: #303133;
+  color: #0F172A;
 }
 
 /* 检索信息 */
@@ -908,7 +903,7 @@ onMounted(() => {
   font-size: 15px;
 }
 .std-query .label {
-  color: #909399;
+  color: #bfbfbf;
 }
 .confidence-tag {
   font-size: 14px;
@@ -922,19 +917,19 @@ onMounted(() => {
 }
 
 .candidate-card {
-  border: 1px solid #e4e7ed;
+  border: 1px solid #E2E8F0;
   border-radius: 10px;
   padding: 16px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .candidate-card:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
+  
+  border-color: #CBD5E1;
 }
 .candidate-card.selected {
-  border-color: #0052FF;
-  background: #f5f9ff;
-  box-shadow: 0 2px 12px rgba(64, 158, 255, 0.15);
+  border-color: #1677FF;
+  background: #F8FAFC;
+  
 }
 
 .card-header {
@@ -945,12 +940,12 @@ onMounted(() => {
 }
 .card-rank {
   font-weight: 600;
-  color: #0052FF;
+  color: #1677FF;
 }
 .card-category {
   font-size: 12px;
-  color: #909399;
-  background: #f4f4f5;
+  color: #bfbfbf;
+  background: #F8FAFC;
   padding: 2px 8px;
   border-radius: 4px;
 }
@@ -964,7 +959,7 @@ onMounted(() => {
 .score-track {
   flex: 1;
   height: 6px;
-  background: #ebeef5;
+  background: #E2E8F0;
   border-radius: 3px;
   overflow: hidden;
 }
@@ -981,16 +976,16 @@ onMounted(() => {
 }
 .card-question {
   font-weight: 500;
-  color: #303133;
+  color: #0F172A;
   margin-bottom: 8px;
 }
 .card-answer {
-  color: #606266;
+  color: #475569;
   line-height: 1.7;
   background: #fff;
   padding: 12px;
   border-radius: 6px;
   white-space: pre-wrap;
-  border: 1px solid #f0f0f0;
+  border: 1px solid #F1F5F9;
 }
 </style>

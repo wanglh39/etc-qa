@@ -160,8 +160,8 @@ const actionLabel = (a: string) => {
   const map: Record<string, string> = { create: '创建', update: '修改', delete: '删除', reset_password: '重置密码' }
   return map[a] || a
 }
-const actionTagType = (a: string): 'success' | 'warning' | 'danger' | 'info' => {
-  const map: Record<string, 'success' | 'warning' | 'danger' | 'info'> = { create: 'success', update: 'warning', delete: 'danger', reset_password: 'info' }
+const actionTagType = (a: string): 'primary' | 'info' => {
+  const map: Record<string, 'primary' | 'info'> = { create: 'primary', update: 'info', delete: 'info', reset_password: 'info' }
   return map[a] || 'info'
 }
 const actionIcon = (a: string) => {
@@ -192,7 +192,7 @@ onMounted(() => { loadData() })
   min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-  background-color: #f0f2f5;
+  background-color: #F8FAFC;
 }
 
 .kpi-row {
@@ -202,15 +202,15 @@ onMounted(() => { loadData() })
   margin-bottom: 20px;
 }
 .kpi-card { transition: transform 0.2s; }
-.kpi-card:hover { transform: translateY(-3px); }
+.kpi-card:hover { border-color: #CBD5E1 !important; }
 .kpi-inner { display: flex; align-items: center; gap: 12px; }
 .kpi-icon {
   width: 48px; height: 48px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center; color: #fff;
-  background: var(--grad-primary);
+  background: #F1F5F9; color: #1677FF;
 }
-.kpi-num { font-size: 24px; font-weight: 700; color: #303133; line-height: 1.2; }
-.kpi-label { font-size: 13px; color: #909399; margin-top: 4px; }
+.kpi-num { font-size: 24px; font-weight: 700; color: #0F172A; line-height: 1.2; }
+.kpi-label { font-size: 13px; color: #bfbfbf; margin-top: 4px; }
 
 .full-card { display: flex; flex-direction: column; }
 :deep(.el-card__body) { padding: 20px; display: flex; flex-direction: column; }
@@ -223,7 +223,7 @@ onMounted(() => { loadData() })
 .op-cell { display: flex; align-items: center; gap: 8px; }
 .op-avatar {
   width: 28px; height: 28px; border-radius: 50%;
-  background: #0052FF; color: #fff;
+  background: #F1F5F9; color: #1677FF; color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-size: 13px; font-weight: 600;
 }
@@ -239,9 +239,9 @@ onMounted(() => { loadData() })
 .tl-header {
   display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
 }
-.tl-operator { font-weight: 500; color: #303133; }
-.tl-detail { font-size: 13px; color: #606266; line-height: 1.5; margin-bottom: 4px; }
+.tl-operator { font-weight: 500; color: #0F172A; }
+.tl-detail { font-size: 13px; color: #475569; line-height: 1.5; margin-bottom: 4px; }
 .tl-meta {
-  font-size: 12px; color: #909399; display: flex; gap: 12px;
+  font-size: 12px; color: #bfbfbf; display: flex; gap: 12px;
 }
 </style>

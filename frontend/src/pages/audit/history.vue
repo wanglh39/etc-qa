@@ -53,13 +53,13 @@
 
         <el-table-column prop="answer" label="标准化答案" min-width="200">
           <template #default="{ row }">
-            <span style="color: #909399;">{{ row.answer || '暂无' }}</span>
+            <span style="color: #bfbfbf;">{{ row.answer || '暂无' }}</span>
           </template>
         </el-table-column>
 
         <el-table-column prop="result" label="审核结果" width="120">
           <template #default="{ row }">
-            <el-tag :type="row.result === 'pass' ? 'success' : 'danger'" effect="dark">
+            <el-tag :type="row.result === 'pass' ? 'primary' : 'info'" effect="dark">
               <el-icon style="margin-right: 2px">
                 <CircleCheck v-if="row.result === 'pass'" />
                 <CircleClose v-else />
@@ -71,14 +71,14 @@
         <el-table-column prop="operator" label="操作管理员" width="120">
           <template #default="{ row }">
             <div style="display: flex; align-items: center; gap: 6px">
-              <el-avatar :size="24" style="background: #0052FF; font-size: 12px">{{ (row.operator || '?').charAt(0).toUpperCase() }}</el-avatar>
+              <el-avatar :size="24" style="background: #F1F5F9; color: #1677FF; font-size: 12px">{{ (row.operator || '?').charAt(0).toUpperCase() }}</el-avatar>
               <span>{{ row.operator || '-' }}</span>
             </div>
           </template>
         </el-table-column>
         <el-table-column prop="created_at" label="审核时间" width="180">
           <template #default="{ row }">
-            <span style="color: #909399">{{ row.created_at || '-' }}</span>
+            <span style="color: #bfbfbf">{{ row.created_at || '-' }}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -149,11 +149,11 @@ onMounted(loadData)
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  
   transition: transform 0.2s;
 }
 .kpi-card:hover {
-  transform: translateY(-2px);
+  border-color: #CBD5E1;
 }
 .kpi-icon {
   width: 48px;
@@ -164,16 +164,16 @@ onMounted(loadData)
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
-  background: var(--grad-primary);
+  background: #F1F5F9; color: #1677FF;
 }
 .kpi-value {
   font-size: 24px;
   font-weight: 700;
-  color: #303133;
+  color: #0F172A;
 }
 .kpi-label {
   font-size: 13px;
-  color: #909399;
+  color: #bfbfbf;
   margin-top: 2px;
 }
 .card-header {

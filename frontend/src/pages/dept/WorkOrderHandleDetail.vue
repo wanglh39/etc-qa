@@ -7,9 +7,9 @@
         </el-button>
         <span class="page-title">{{ deptName }}工单详情</span>
         <div class="header-right">
-          <el-tag v-if="orderInfo.status === 'submitted'" type="warning" effect="dark">待处理</el-tag>
+          <el-tag v-if="orderInfo.status === 'submitted'" type="info" effect="dark">待处理</el-tag>
           <el-tag v-else-if="orderInfo.status === 'answered'" type="primary" effect="dark">已回复</el-tag>
-          <el-tag v-else-if="orderInfo.status === 'processed'" type="success" effect="dark">已办结</el-tag>
+          <el-tag v-else-if="orderInfo.status === 'processed'" type="primary" effect="dark">已办结</el-tag>
           <el-tag v-if="priorityText" :type="priorityType" effect="dark" style="margin-left:8px">{{ priorityText }}</el-tag>
         </div>
       </div>
@@ -62,7 +62,7 @@
               v-if="orderInfo.status === 'processed'"
               timestamp="已办结"
               placement="top"
-              type="success"
+              type="primary"
             >
               <div class="timeline-content">
                 <div class="tl-time">{{ orderInfo.updated_at || '-' }}</div>
@@ -73,7 +73,7 @@
               v-if="orderInfo.status === 'submitted'"
               timestamp="待处理"
               placement="top"
-              type="warning"
+              type="info"
               hollow
             >
               <div class="timeline-content">
@@ -108,7 +108,7 @@
           />
 
           <div class="btn-box">
-            <el-button type="success" :loading="submitting" @click="handleFinish">办结工单</el-button>
+            <el-button type="primary" :loading="submitting" @click="handleFinish">办结工单</el-button>
           </div>
         </el-card>
       </div>
@@ -157,7 +157,7 @@
                 <el-button text type="primary" size="small" @click="copyAnswer(item.answer)">
                   <el-icon><CopyDocument /></el-icon> 复制答案
                 </el-button>
-                <el-button text type="success" size="small" @click="useAsRemark(item.answer)">
+                <el-button text type="primary" size="small" @click="useAsRemark(item.answer)">
                   填入备注
                 </el-button>
               </div>
@@ -201,10 +201,10 @@ const remarkText = ref('')
 const submitting = ref(false)
 
 const priorityText = computed(() => orderInfo.value.priority || '')
-const priorityType = computed<'danger' | 'warning' | 'info'>(() => {
+const priorityType = computed<'primary' | 'info'>(() => {
   const p = orderInfo.value.priority
-  if (p === '高' || p === 'urgent') return 'danger'
-  if (p === '中' || p === 'normal') return 'warning'
+  if (p === '高' || p === 'urgent') return 'primary'
+  if (p === '中' || p === 'normal') return 'info'
   return 'info'
 })
 
@@ -294,7 +294,7 @@ onMounted(() => {
 .dept-detail-page {
   width: 100%;
   min-height: 100vh;
-  background-color: #f0f2f5;
+  background-color: #F8FAFC;
   padding: 20px;
   box-sizing: border-box;
 }
@@ -336,7 +336,7 @@ onMounted(() => {
 .section-title {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #0F172A;
 }
 
 .question-text {
@@ -349,11 +349,11 @@ onMounted(() => {
   font-size: 13px;
 }
 .tl-time {
-  color: #909399;
+  color: #bfbfbf;
   margin-bottom: 4px;
 }
 .tl-desc {
-  color: #303133;
+  color: #0F172A;
 }
 
 .quick-templates {
@@ -364,7 +364,7 @@ onMounted(() => {
 }
 .qt-label {
   font-size: 13px;
-  color: #909399;
+  color: #bfbfbf;
 }
 
 .btn-box {
@@ -381,7 +381,7 @@ onMounted(() => {
 .kb-empty {
   text-align: center;
   padding: 40px 0;
-  color: #c0c4cc;
+  color: #94A3B8;
 }
 .kb-hint {
   font-size: 12px;
@@ -395,13 +395,13 @@ onMounted(() => {
 
 .kb-item {
   padding: 12px;
-  border: 1px solid #ebeef5;
+  border: 1px solid #E2E8F0;
   border-radius: 8px;
   margin-bottom: 12px;
   transition: box-shadow 0.2s;
 }
 .kb-item:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  
 }
 
 .kb-item-header {
@@ -412,20 +412,20 @@ onMounted(() => {
 }
 .kb-score {
   font-size: 12px;
-  color: #67c23a;
+  color: #1677FF;
   font-weight: 600;
 }
 
 .kb-question {
   font-size: 13px;
-  color: #303133;
+  color: #0F172A;
   font-weight: 500;
   margin-bottom: 4px;
   line-height: 1.5;
 }
 .kb-answer {
   font-size: 13px;
-  color: #606266;
+  color: #475569;
   line-height: 1.5;
   margin-bottom: 8px;
   display: -webkit-box;

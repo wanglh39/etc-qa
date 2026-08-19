@@ -4,9 +4,9 @@
       <!-- 顶部操作按钮 -->
       <div class="top-actions">
         <el-button type="primary">刷新数据</el-button>
-        <el-button type="success">一键采用回复</el-button>
-        <el-button type="warning">标记无效</el-button>
-        <el-button type="danger">创建CRM工单</el-button>
+        <el-button type="primary">一键采用回复</el-button>
+        <el-button type="info">标记无效</el-button>
+        <el-button type="primary">创建CRM工单</el-button>
       </div>
 
       <div class="main-content">
@@ -113,8 +113,8 @@
   border-bottom: 1px solid #eee;
 }
 .user-item.active {
-  background: #ecf5ff;
-  color: #0052FF;
+  background: #E6F4FF;
+  color: #1677FF;
 }
 
 /* 右侧面板 */

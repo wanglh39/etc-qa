@@ -7,7 +7,7 @@
       :default-active="$route.path"
       background-color="#ffffff"
       text-color="#333"
-      active-text-color="#0052FF"
+      active-text-color="#1677FF"
       class="menu-wrap"
     >
       <!-- 循环渲染菜单 -->
@@ -136,7 +136,7 @@ const menuList = computed<MenuItem[]>(() => {
   width: 220px;
   height: 100vh;
   background: #fff;
-  border-right: 1px solid #ebeef5;
+  border-right: 1px solid #E2E8F0;
   position: relative;
   z-index: 9999;
   box-sizing: border-box;
@@ -149,7 +149,7 @@ const menuList = computed<MenuItem[]>(() => {
   font-size: 16px;
   font-weight: bold;
   color: #333;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid #E2E8F0;
 }
 
 .menu-wrap {

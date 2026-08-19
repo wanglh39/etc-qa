@@ -12,7 +12,7 @@
       </span>
     </div>
     <div v-if="progress" class="progress-bar">
-      <div class="progress-fill" :style="{ width: progressPercent + '%', background: alert ? '#f56c6c' : iconColor }" />
+      <div class="progress-fill" :style="{ width: progressPercent + '%', background: alert ? '#64748B' : iconColor }" />
     </div>
     <div v-if="sparkline && sparkline.length > 1" class="sparkline-wrap">
       <svg :viewBox="`0 0 ${sparkline.length * 8} 20`" class="sparkline" preserveAspectRatio="none">
@@ -96,24 +96,21 @@ const handleClick = () => {
 
 <style scoped>
 .stat-card {
-  height: 160px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 8px;
   cursor: default;
-  transition: all 0.3s ease;
+  transition: border-color 0.2s;
   position: relative;
-  overflow: hidden;
 }
 .stat-card.clickable {
   cursor: pointer;
 }
 .stat-card.clickable:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: #CBD5E1 !important;
 }
 .stat-card.alert {
-  border-left: 3px solid #f56c6c;
+  border-color: #64748B !important;
 }
 .stat-top {
   display: flex;
@@ -121,13 +118,16 @@ const handleClick = () => {
   align-items: center;
 }
 .stat-title {
-  font-size: 14px;
-  color: #666;
+  font-size: 13px;
+  color: #64748B;
+  font-weight: 500;
 }
 .stat-num {
-  font-size: 28px;
-  font-weight: bold;
-  color: #303133;
+  font-size: 26px;
+  font-weight: 700;
+  color: #0F172A;
+  letter-spacing: -0.02em;
+  line-height: 1;
 }
 .stat-bottom {
   display: flex;
@@ -136,24 +136,23 @@ const handleClick = () => {
 }
 .stat-desc {
   font-size: 12px;
-  color: #999;
+  color: #94A3B8;
 }
 .stat-growth {
   font-size: 12px;
   font-weight: 600;
 }
 .stat-growth.up {
-  color: #f56c6c;
+  color: #1677FF;
 }
 .stat-growth.down {
-  color: #67c23a;
+  color: #64748B;
 }
 .progress-bar {
-  height: 4px;
-  background: #f0f0f0;
+  height: 3px;
+  background: #F1F5F9;
   border-radius: 2px;
   overflow: hidden;
-  margin-top: 4px;
 }
 .progress-fill {
   height: 100%;
@@ -161,33 +160,26 @@ const handleClick = () => {
   transition: width 0.6s ease;
 }
 .sparkline-wrap {
-  margin-top: 4px;
 }
 .sparkline {
   width: 100%;
   height: 20px;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 .click-hint {
-  position: absolute;
-  bottom: 8px;
-  right: 12px;
   font-size: 11px;
-  color: #c0c4cc;
+  color: #94A3B8;
   display: flex;
   align-items: center;
   gap: 2px;
-  opacity: 0;
-  transition: all 0.3s ease;
 }
 .stat-card.clickable:hover .click-hint {
-  opacity: 1;
-  color: #0052FF;
-}
-.stat-card.clickable:hover .arrow {
-  transform: translateX(3px);
+  color: #1677FF;
 }
 .arrow {
-  transition: transform 0.3s ease;
+  transition: transform 0.2s;
+}
+.stat-card.clickable:hover .arrow {
+  transform: translateX(2px);
 }
 </style>

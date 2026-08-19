@@ -2,7 +2,7 @@
   <div class="role-wrap">
     <div class="header-bar">
       <h3>角色管理</h3>
-      <el-button type="success" @click="openAddDialog">
+      <el-button type="primary" @click="openAddDialog">
         <el-icon><Plus /></el-icon> 新增角色
       </el-button>
     </div>
@@ -37,7 +37,7 @@
           <div class="perm-title">可访问页面</div>
           <div class="perm-tags">
             <el-tag
-              v-for="perm in getPermissions(role.role_key)"
+              v-for="perm in getPermissions(role)"
               :key="perm"
               size="small"
               effect="plain"
@@ -48,12 +48,12 @@
 
         <div class="role-actions">
           <el-button link type="primary" @click="openEditDialog(role)">编辑</el-button>
-          <el-button link type="danger" @click="handleDelete(role)">删除</el-button>
+          <el-button link type="info" @click="handleDelete(role)">删除</el-button>
         </div>
       </el-card>
     </div>
 
-    <el-dialog v-model="formVisible" :title="formMode === 'add' ? '新增角色' : '编辑角色'" width="480px" @closed="resetForm">
+    <el-dialog v-model="formVisible" :title="formMode === 'add' ? '新增角色' : '编辑角色'" width="600px" @closed="resetForm">
       <el-form :model="formData" label-width="90px">
         <el-form-item label="角色标识" required>
           <el-input v-model="formData.role_key" placeholder="如：admin / service / dept" :disabled="formMode === 'edit'" />
@@ -63,6 +63,13 @@
         </el-form-item>
         <el-form-item label="描述">
           <el-input v-model="formData.description" type="textarea" :rows="3" placeholder="可选" />
+        </el-form-item>
+        <el-form-item label="可访问页面">
+          <el-checkbox-group v-model="formData.permissions">
+            <div v-for="page in ALL_PAGES" :key="page.path" style="margin-bottom: 4px">
+              <el-checkbox :value="page.path">{{ page.label }}</el-checkbox>
+            </div>
+          </el-checkbox-group>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -78,6 +85,8 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { UserFilled, Setting, Monitor, Service, Ticket, User, Plus } from '@element-plus/icons-vue'
 import { getRoleList, createRole, updateRole, deleteRole, getUserList, type RoleItem, type UserListItem } from '@/api/system'
+import { roleColor, roleSortKey } from '@/utils/roleColor'
+import { ALL_PAGES, getPageLabel } from '@/config/pages'
 
 const tableData = ref<RoleItem[]>([])
 const allUsers = ref<UserListItem[]>([])
@@ -86,41 +95,26 @@ const formVisible = ref(false)
 const formMode = ref<'add' | 'edit'>('add')
 const submitting = ref(false)
 const editingId = ref<number | null>(null)
-const formData = ref({ role_key: '', role_name: '', description: '' })
+const formData = ref({ role_key: '', role_name: '', description: '', permissions: [] as string[] })
 
-const roleColorMap: Record<string, string> = {
-  superadmin: 'var(--grad-danger)',
-  admin: 'var(--grad-primary)',
-  ops: 'var(--grad-success)',
-  service: 'var(--grad-warning)',
-  dept: 'var(--grad-neutral)'
-}
-const roleColor = (key: string) => roleColorMap[key] || 'var(--grad-primary)'
-
-const permissionMap: Record<string, string[]> = {
-  superadmin: ['账号管理', '角色管理', '操作日志', '模拟登录', '全部页面'],
-  admin: ['数据看板', '待审核列表', '审核历史', '知识库管理', '分类管理', '配置管理'],
-  ops: ['数据看板', '系统状态', '性能监控', '定时任务', '异常告警'],
-  service: ['客服工作台', '工单创建', '工单列表'],
-  dept: ['工单处理']
-}
-const getPermissions = (key: string) => permissionMap[key] || ['未配置']
+const getPermissions = (role: RoleItem) => (role.permissions || []).map(p => getPageLabel(p))
 
 const userCountByRole = (roleKey: string) => allUsers.value.filter(u => u.role === roleKey).length
 
 const loadData = async () => {
   try {
-    tableData.value = await getRoleList()
+    const roles = await getRoleList()
+    tableData.value = roles.sort((a, b) => roleSortKey(a.role_key) - roleSortKey(b.role_key))
     const res = await getUserList({ page: 1, page_size: 999 })
     allUsers.value = res.items
   } catch { ElMessage.error('加载角色列表失败') }
 }
 
-const resetForm = () => { formData.value = { role_key: '', role_name: '', description: '' }; editingId.value = null }
+const resetForm = () => { formData.value = { role_key: '', role_name: '', description: '', permissions: [] }; editingId.value = null }
 const openAddDialog = () => { formMode.value = 'add'; resetForm(); formVisible.value = true }
 const openEditDialog = (row: RoleItem) => {
   formMode.value = 'edit'; editingId.value = row.id
-  formData.value = { role_key: row.role_key, role_name: row.role_name, description: row.description || '' }
+  formData.value = { role_key: row.role_key, role_name: row.role_name, description: row.description || '', permissions: row.permissions || [] }
   formVisible.value = true
 }
 
@@ -129,10 +123,10 @@ const handleSubmit = async () => {
   submitting.value = true
   try {
     if (formMode.value === 'add') {
-      await createRole({ role_key: formData.value.role_key.trim(), role_name: formData.value.role_name.trim(), description: formData.value.description || undefined })
+      await createRole({ role_key: formData.value.role_key.trim(), role_name: formData.value.role_name.trim(), description: formData.value.description || undefined, permissions: formData.value.permissions })
       ElMessage.success('角色创建成功')
     } else {
-      await updateRole(editingId.value!, { role_name: formData.value.role_name.trim(), description: formData.value.description })
+      await updateRole(editingId.value!, { role_name: formData.value.role_name.trim(), description: formData.value.description, permissions: formData.value.permissions })
       ElMessage.success('角色已更新')
     }
     formVisible.value = false; loadData()
@@ -141,7 +135,7 @@ const handleSubmit = async () => {
 }
 
 const handleDelete = async (row: RoleItem) => {
-  try { await ElMessageBox.confirm(`确认删除角色 "${row.role_name}"？删除后不可恢复。`, '删除确认', { type: 'warning' }) }
+  try { await ElMessageBox.confirm(`确认删除角色 "${row.role_name}"？删除后不可恢复。`, '删除确认', { type: 'info' }) }
   catch { return }
   try { await deleteRole(row.id); ElMessage.success('已删除'); loadData() }
   catch { ElMessage.error('删除失败，该角色可能仍有用户关联') }
@@ -156,7 +150,7 @@ onMounted(() => { loadData() })
   min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-  background-color: #f0f2f5;
+  background-color: #F8FAFC;
 }
 
 .header-bar {
@@ -173,10 +167,10 @@ onMounted(() => { loadData() })
 }
 
 .role-card {
-  transition: transform 0.2s;
+  transition: border-color 0.2s;
 }
 .role-card:hover {
-  transform: translateY(-3px);
+  border-color: #CBD5E1 !important;
 }
 
 .role-card-header {
@@ -188,7 +182,7 @@ onMounted(() => { loadData() })
 .role-icon-box {
   width: 48px;
   height: 48px;
-  border-radius: 10px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -200,31 +194,31 @@ onMounted(() => { loadData() })
 .role-name {
   font-size: 17px;
   font-weight: 700;
-  color: #303133;
+  color: #0F172A;
 }
 .role-key {
   font-size: 12px;
-  color: #909399;
+  color: #bfbfbf;
   margin-top: 2px;
 }
 
 .role-desc {
   font-size: 13px;
-  color: #606266;
+  color: #475569;
   line-height: 1.5;
   margin-bottom: 16px;
   min-height: 40px;
 }
 
 .perm-section {
-  background: #f5f7fa;
+  background: #F8FAFC;
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 12px;
 }
 .perm-title {
   font-size: 12px;
-  color: #909399;
+  color: #bfbfbf;
   margin-bottom: 8px;
 }
 .perm-tags {

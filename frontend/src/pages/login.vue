@@ -1,21 +1,24 @@
 <template>
-  <div class="login-cover">
-    <div class="dot-grid"></div>
-    <div class="glow glow-1"></div>
-    <div class="glow glow-2"></div>
-
-    <div class="login-content">
-      <div class="brand-area">
-        <div class="brand-icon">
-          <el-icon :size="36"><Headset /></el-icon>
-        </div>
-        <h1 class="brand-title">智能客服话术系统</h1>
-        <p class="brand-sub">AI 驱动的企业级客服辅助平台</p>
+  <div class="login-wrap">
+    <div class="login-left">
+      <div class="brand-logo">
+        <el-icon :size="32"><Headset /></el-icon>
       </div>
+      <h1 class="brand-title">智能客服话术系统</h1>
+      <p class="brand-desc">AI 驱动的企业级客服辅助平台</p>
+      <div class="brand-features">
+        <div class="feature-item" v-for="f in features" :key="f.name">
+          <el-icon :size="16"><component :is="f.icon" /></el-icon>
+          <span>{{ f.name }}</span>
+        </div>
+      </div>
+      <div class="brand-footer">ETC 客服系统 v2.0 · 2026 挑战杯参赛作品</div>
+    </div>
 
-      <div class="glass-card">
-        <h2 class="card-title">欢迎登录</h2>
-        <p class="card-sub">请输入您的账号信息</p>
+    <div class="login-right">
+      <div class="login-form-box">
+        <h2 class="form-title">欢迎登录</h2>
+        <p class="form-sub">请输入您的账号信息</p>
 
         <el-form
           ref="loginFormRef"
@@ -31,7 +34,6 @@
               placeholder="账号"
               :prefix-icon="User"
               clearable
-              class="dark-input"
             />
           </el-form-item>
 
@@ -43,7 +45,6 @@
               :prefix-icon="Lock"
               show-password
               clearable
-              class="dark-input"
               @keyup.enter="handleLogin"
             />
           </el-form-item>
@@ -69,15 +70,6 @@
           </div>
         </div>
       </div>
-
-      <div class="feature-row">
-        <div class="feature-chip" v-for="f in features" :key="f.name">
-          <el-icon :size="16"><component :is="f.icon" /></el-icon>
-          <span>{{ f.name }}</span>
-        </div>
-      </div>
-
-      <div class="footer-text">ETC 客服系统 v2.0 · 2026 挑战杯参赛作品</div>
     </div>
   </div>
 </template>
@@ -89,6 +81,7 @@ import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { User, Lock, Microphone, Search, DataLine, UserFilled, Headset } from '@element-plus/icons-vue'
 import { login as loginApi } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
+import { getDefaultPath } from '@/router'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -147,17 +140,7 @@ const handleLogin = async () => {
     ElMessage.success('登录成功')
 
     setTimeout(() => {
-      if (res.role === 'superadmin') {
-        router.push('/workbench/admin/account')
-      } else if (res.role === 'ops') {
-        router.push('/workbench/admin/status')
-      } else if (res.role === 'admin') {
-        router.push('/workbench/admin/dashboard')
-      } else if (res.role === 'service') {
-        router.push('/service')
-      } else {
-        router.push(`/dept/handle/${res.dept}`)
-      }
+      router.push(getDefaultPath(res.role))
       loading.value = false
     }, 300)
   } catch (err: any) {
@@ -167,195 +150,138 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-.login-cover {
+.login-wrap {
   width: 100vw;
   height: 100vh;
-  background: #0F172A;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
+  background: #F8FAFC;
 }
 
-.dot-grid {
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-
-.glow {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(120px);
-}
-.glow-1 {
-  width: 500px;
-  height: 500px;
-  background: rgba(0, 82, 255, 0.15);
-  top: -15%;
-  right: -10%;
-}
-.glow-2 {
-  width: 400px;
-  height: 400px;
-  background: rgba(77, 124, 255, 0.1);
-  bottom: -15%;
-  left: -10%;
-}
-
-.login-content {
-  position: relative;
-  z-index: 1;
+.login-left {
+  width: 45%;
+  background: #0F172A;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28px;
-  max-width: 440px;
-  width: 90%;
+  justify-content: center;
+  padding: 40px;
+  position: relative;
 }
-
-.brand-area {
-  text-align: center;
-}
-.brand-icon {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 16px;
-  background: rgba(0, 82, 255, 0.15);
-  border: 1px solid rgba(0, 82, 255, 0.3);
-  border-radius: 16px;
+.brand-logo {
+  width: 56px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #4D7CFF;
+  color: #fff;
+  margin-bottom: 20px;
 }
 .brand-title {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   color: #fff;
   margin: 0 0 6px;
-  letter-spacing: 0.5px;
+  letter-spacing: -0.02em;
 }
-.brand-sub {
+.brand-desc {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.5);
-  margin: 0;
+  margin: 0 0 40px;
 }
-
-.glass-card {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 32px 36px;
+.brand-features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 40px;
 }
-.card-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #fff;
-  margin: 0 0 4px;
-}
-.card-sub {
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.7);
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
-  margin: 0 0 24px;
+}
+.brand-footer {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 12px;
+  position: absolute;
+  bottom: 24px;
 }
 
-:deep(.dark-input .el-input__wrapper) {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: none;
-  border-radius: 8px;
+.login-right {
+  width: 55%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
 }
-:deep(.dark-input .el-input__wrapper:hover) {
-  border-color: rgba(0, 82, 255, 0.5);
+.login-form-box {
+  width: 100%;
+  max-width: 340px;
 }
-:deep(.dark-input .el-input__wrapper.is-focus) {
-  border-color: #0052FF;
-  box-shadow: 0 0 0 3px rgba(0, 82, 255, 0.15);
+.form-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 4px;
+  letter-spacing: -0.02em;
 }
-:deep(.dark-input .el-input__inner) {
-  color: #fff;
-}
-:deep(.dark-input .el-input__inner::placeholder) {
-  color: rgba(255, 255, 255, 0.35);
-}
-:deep(.dark-input .el-input__prefix) {
-  color: rgba(255, 255, 255, 0.4);
-}
-:deep(.dark-input .el-input__suffix) {
-  color: rgba(255, 255, 255, 0.4);
+.form-sub {
+  font-size: 14px;
+  color: #64748B;
+  margin: 0 0 28px;
 }
 
 .login-btn {
   width: 100%;
-  height: 46px;
-  font-size: 15px;
+  height: 42px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 4px;
-  border-radius: 8px;
-  border: none;
-  background: #0052FF;
-}
-.login-btn:hover {
-  background: #0040CC;
+  border-radius: 6px;
 }
 
 .quick-login {
   margin-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 20px;
+  border-top: 1px solid #E2E8F0;
+  padding-top: 16px;
 }
 .quick-label {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.35);
+  color: #94A3B8;
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .quick-btns {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 .quick-btn {
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 13px;
+  border: 1px solid #E2E8F0;
+  background: #fff;
+  color: #475569;
+  font-size: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 .quick-btn:hover {
-  background: rgba(0, 82, 255, 0.15);
-  border-color: rgba(0, 82, 255, 0.4);
-  color: #fff;
+  border-color: #CBD5E1;
+  background: #F8FAFC;
+  color: #0F172A;
 }
 
-.feature-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-}
-.feature-chip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
-}
-
-.footer-text {
-  color: rgba(255, 255, 255, 0.2);
-  font-size: 12px;
+@media (max-width: 768px) {
+  .login-left {
+    display: none;
+  }
+  .login-right {
+    width: 100%;
+  }
 }
 </style>

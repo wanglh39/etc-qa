@@ -30,9 +30,9 @@
           :value="stats.qa_total"
           :desc="`本期新增 ${trendSummary.qaNew} 条`"
           :icon="Message"
-          icon-color="#0052FF"
+          icon-color="#1677FF"
           :sparkline="trendData.qa_new_counts"
-          :to="currentRole === 'admin' ? '/workbench/admin/knowledge' : undefined"
+          :to="myPermissions.includes('/workbench/admin/knowledge') ? '/workbench/admin/knowledge' : undefined"
         />
       </el-col>
       <el-col :span="6">
@@ -41,10 +41,10 @@
           :value="stats.qa_active"
           desc="可用知识条目"
           :icon="Tickets"
-          icon-color="#10B981"
+          icon-color="#1677FF"
           :growth="growthRate(stats.qa_active, stats.qa_active - trendSummary.qaNew)"
           :progress="{ current: stats.qa_active, total: stats.qa_total }"
-          :to="currentRole === 'admin' ? '/workbench/admin/knowledge' : undefined"
+          :to="myPermissions.includes('/workbench/admin/knowledge') ? '/workbench/admin/knowledge' : undefined"
         />
       </el-col>
       <el-col :span="6">
@@ -53,9 +53,9 @@
           :value="stats.qa_deprecated"
           :desc="stats.qa_deprecated > 10 ? '积压较多，请尽快处理' : '需及时处理'"
           :icon="User"
-          icon-color="#F59E0B"
+          icon-color="#1677FF"
           :alert="stats.qa_deprecated > 10"
-          :to="currentRole === 'admin' ? '/workbench/admin/auditList' : undefined"
+          :to="myPermissions.includes('/workbench/admin/auditList') ? '/workbench/admin/auditList' : undefined"
         />
       </el-col>
       <el-col :span="6">
@@ -64,7 +64,7 @@
           :value="stats.work_order_total"
           :desc="`待处理 ${stats.work_order_submitted} 个`"
           :icon="Document"
-          icon-color="#EF4444"
+          icon-color="#1677FF"
           :growth="growthRate(stats.work_order_total, stats.work_order_total - trendSummary.woNew)"
           :sparkline="trendData.work_order_counts"
           :progress="{ current: stats.work_order_processed, total: stats.work_order_total }"
@@ -113,9 +113,12 @@ import { Message, Tickets, User, Document } from '@element-plus/icons-vue'
 import StatisticCard from '@/components/StatisticCard.vue'
 import { getStats, getStatsTrend, type StatsResponse, type TrendResponse } from '@/api/dashboard'
 import { useAuthStore } from '@/stores/auth'
+import { getMyPermissions } from '@/api/system'
 
 const authStore = useAuthStore()
 const currentRole = authStore.role
+const myPermissions = ref<string[]>([])
+
 const roleText = authStore.roleText
 const days = ref(7)
 
@@ -185,24 +188,28 @@ const renderLine = () => {
         data: trendData.value.work_order_counts,
         smooth: true,
         areaStyle: { opacity: 0.1 },
-        itemStyle: { color: '#0052FF' }
+        itemStyle: { color: '#1677FF' }
       },
       {
         type: 'line',
         name: 'QA新增',
         data: trendData.value.qa_new_counts,
         smooth: true,
-        itemStyle: { color: '#67C23A' }
+        itemStyle: { color: '#94A3B8' }
       }
     ],
     noDataLoadingOption: { text: empty ? '暂无数据' : '' }
   })
 }
 
+const BLUE_PALETTE = ['#1677FF', '#4096FF', '#69B1FF', '#91CAFF', '#BAE0FF', '#64748B', '#94A3B8', '#CBD5E1']
+
 const renderPie = () => {
   if (!pieRef.value) return
   if (!pieChart) pieChart = echarts.init(pieRef.value)
-  const pieData = Object.entries(stats.value.category_stats).map(([name, value]) => ({ name, value }))
+  const pieData = Object.entries(stats.value.category_stats).map(([name, value], i) => ({
+    name, value, itemStyle: { color: BLUE_PALETTE[i % BLUE_PALETTE.length] }
+  }))
   pieChart.setOption({
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
     legend: { bottom: 0, type: 'scroll' },
@@ -221,9 +228,9 @@ const renderWoStatus = () => {
   if (!woStatusChart) woStatusChart = echarts.init(woStatusRef.value)
   const s = stats.value
   const data = [
-    { name: '待处理', value: s.work_order_submitted, itemStyle: { color: '#E6A23C' } },
-    { name: '已处理', value: s.work_order_processed, itemStyle: { color: '#0052FF' } },
-    { name: '其他', value: Math.max(0, s.work_order_total - s.work_order_submitted - s.work_order_processed), itemStyle: { color: '#909399' } }
+    { name: '待处理', value: s.work_order_submitted, itemStyle: { color: '#4096FF' } },
+    { name: '已处理', value: s.work_order_processed, itemStyle: { color: '#1677FF' } },
+    { name: '其他', value: Math.max(0, s.work_order_total - s.work_order_submitted - s.work_order_processed), itemStyle: { color: '#bfbfbf' } }
   ].filter(d => d.value > 0)
   woStatusChart.setOption({
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
@@ -243,9 +250,9 @@ const renderQaStatus = () => {
   if (!qaStatusChart) qaStatusChart = echarts.init(qaStatusRef.value)
   const s = stats.value
   const data = [
-    { name: '已激活', value: s.qa_active, itemStyle: { color: '#67C23A' } },
-    { name: '待审核', value: s.qa_deprecated, itemStyle: { color: '#E6A23C' } },
-    { name: '已归档', value: s.qa_archived, itemStyle: { color: '#909399' } }
+    { name: '已激活', value: s.qa_active, itemStyle: { color: '#1677FF' } },
+    { name: '待审核', value: s.qa_deprecated, itemStyle: { color: '#4096FF' } },
+    { name: '已归档', value: s.qa_archived, itemStyle: { color: '#bfbfbf' } }
   ].filter(d => d.value > 0)
   qaStatusChart.setOption({
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
@@ -292,7 +299,8 @@ const loadAll = () => {
   loadTrend()
 }
 
-onMounted(() => {
+onMounted(async () => {
+  try { myPermissions.value = await getMyPermissions() } catch {}
   loadAll()
   updateClock()
   clockTimer = setInterval(updateClock, 1000)
@@ -309,60 +317,46 @@ onUnmounted(() => {
 
 <style scoped>
 .welcome-banner {
-  background: #0F172A;
-  border-radius: 12px;
-  padding: 28px 36px;
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
-  color: #fff;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid #1E293B;
-}
-.welcome-banner::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -10%;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(0, 82, 255, 0.2) 0%, transparent 70%);
-  border-radius: 50%;
+  border: 1px solid #E2E8F0;
 }
 .welcome-left {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  position: relative;
-  z-index: 1;
+  gap: 2px;
 }
 .welcome-title {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
   margin: 0;
+  color: #0F172A;
+  letter-spacing: -0.02em;
 }
 .welcome-desc {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  color: #64748B;
   margin: 0;
 }
 .welcome-right {
   text-align: right;
-  position: relative;
-  z-index: 1;
 }
 .clock-display {
-  font-size: 28px;
+  font-size: 20px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 2px;
+  letter-spacing: -0.02em;
+  color: #0F172A;
 }
 .date-display {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
-  margin-top: 4px;
+  font-size: 12px;
+  color: #94A3B8;
+  margin-top: 2px;
 }
 .dashboard-header {
   display: flex;

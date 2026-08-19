@@ -3,99 +3,32 @@
     <!-- 左侧侧边栏 -->
     <el-aside :width="sidebarWidth" class="sidebar">
       <div class="logo-box">
-        <el-icon :size="24" color="#0052FF"><Headset /></el-icon>
+        <el-icon :size="20" color="#1677FF"><Headset /></el-icon>
         <span v-if="!collapsed" class="logo-text">智能客服系统</span>
       </div>
       <el-menu
         router
-        background-color="#F8FAFC"
-        text-color="#64748B"
-        active-text-color="#0052FF"
+        background-color="transparent"
+        text-color="#475569"
+        active-text-color="#0F172A"
         :default-active="route.path"
         :collapse="collapsed"
         :collapse-transition="true"
         class="side-menu"
       >
-        <!-- 超级管理员菜单 -->
-        <template v-if="currentRole === 'superadmin'">
-          <el-sub-menu index="system">
+        <template v-for="group in menuGroups" :key="group.label || group.items[0].path">
+          <el-sub-menu v-if="group.label" :index="group.label">
             <template #title>
-              <el-icon><UserFilled /></el-icon>
-              <span>系统管理</span>
+              <el-icon><component :is="group.icon" /></el-icon>
+              <span>{{ group.label }}</span>
             </template>
-            <el-menu-item index="/workbench/admin/account">账号管理</el-menu-item>
-            <el-menu-item index="/workbench/admin/role">角色管理</el-menu-item>
-            <el-menu-item index="/workbench/admin/operationLog">操作日志</el-menu-item>
-            <el-menu-item index="/workbench/admin/impersonate">模拟登录</el-menu-item>
+            <el-menu-item v-for="item in group.items" :key="item.path" :index="item.path">
+              {{ item.label }}
+            </el-menu-item>
           </el-sub-menu>
-        </template>
-
-        <!-- 运维工程师菜单 -->
-        <template v-else-if="currentRole === 'ops'">
-          <el-menu-item index="/workbench/admin/dashboard">
-            <el-icon><DataLine /></el-icon>
-            <span>数据看板</span>
-          </el-menu-item>
-          <el-sub-menu index="ops-mgmt">
-            <template #title>
-              <el-icon><Monitor /></el-icon>
-              <span>运维管理</span>
-            </template>
-            <el-menu-item index="/workbench/admin/status">系统状态总览</el-menu-item>
-            <el-menu-item index="/workbench/admin/monitor">性能监控看板</el-menu-item>
-            <el-menu-item index="/workbench/admin/scheduler">定时任务调度</el-menu-item>
-            <el-menu-item index="/workbench/admin/alert">异常告警</el-menu-item>
-          </el-sub-menu>
-        </template>
-
-        <!-- 业务管理员菜单 -->
-        <template v-else-if="currentRole === 'admin'">
-          <el-menu-item index="/workbench/admin/dashboard">
-            <el-icon><DataLine /></el-icon>
-            <span>数据看板</span>
-          </el-menu-item>
-          <el-sub-menu index="business">
-            <template #title>
-              <el-icon><Setting /></el-icon>
-              <span>业务管理</span>
-            </template>
-            <el-menu-item index="/workbench/admin/auditList">待审核列表</el-menu-item>
-            <el-menu-item index="/workbench/admin/auditHistory">审核历史</el-menu-item>
-          </el-sub-menu>
-          <el-sub-menu index="content">
-            <template #title>
-              <el-icon><Document /></el-icon>
-              <span>内容管理</span>
-            </template>
-            <el-menu-item index="/workbench/admin/knowledge">知识库管理</el-menu-item>
-            <el-menu-item index="/workbench/admin/category">分类管理</el-menu-item>
-
-            <el-menu-item index="/workbench/admin/config">配置管理</el-menu-item>
-
-          </el-sub-menu>
-        </template>
-
-        <!-- 客服菜单 -->
-        <template v-else-if="currentRole === 'service'">
-          <el-menu-item index="/service">
-            <el-icon><Service /></el-icon>
-            <span>客服工作台</span>
-          </el-menu-item>
-        </template>
-
-        <!-- 部门处理员菜单 -->
-        <template v-else-if="currentRole === 'dept'">
-          <el-menu-item index="/dept/handle/aftersale">
-            <el-icon><Ticket /></el-icon>
-            <span>售后工单处理</span>
-          </el-menu-item>
-          <el-menu-item index="/dept/handle/ops">
-            <el-icon><Monitor /></el-icon>
-            <span>技术运维工单处理</span>
-          </el-menu-item>
-          <el-menu-item index="/dept/handle/finance">
-            <el-icon><Money /></el-icon>
-            <span>财务工单处理</span>
+          <el-menu-item v-else :index="group.items[0].path">
+            <el-icon><component :is="group.items[0].icon" /></el-icon>
+            <span>{{ group.items[0].label }}</span>
           </el-menu-item>
         </template>
       </el-menu>
@@ -125,9 +58,7 @@
           <el-badge :value="unreadAlerts" :hidden="unreadAlerts === 0" :max="99">
             <el-icon class="header-icon" @click="goToAlerts"><Bell /></el-icon>
           </el-badge>
-          <el-tooltip content="快捷搜索 (Ctrl+K)" placement="bottom">
-            <el-icon class="header-icon" @click="commandPaletteVisible = true"><Search /></el-icon>
-          </el-tooltip>
+
           <el-dropdown @command="handleCommand">
             <span class="user-info">
               <el-avatar :size="32">{{ roleText.charAt(0) }}</el-avatar>
@@ -148,7 +79,7 @@
         <div v-if="authStore.isImpersonating" class="impersonate-banner">
           <el-icon><WarningFilled /></el-icon>
           <span>您正在以【{{ roleText }}】身份查看，操作会记录到日志</span>
-          <el-button type="danger" size="small" @click="exitImpersonate">退出模拟</el-button>
+          <el-button type="primary" size="small" @click="exitImpersonate">退出模拟</el-button>
         </div>
 
         <!-- 页面顶部操作栏：放置返回按钮 -->
@@ -166,56 +97,25 @@
       </el-main>
     </el-container>
 
-    <!-- 命令面板 -->
-    <el-dialog
-      v-model="commandPaletteVisible"
-      title="快捷导航"
-      width="480px"
-      :show-close="false"
-      append-to-body
-      @opened="focusPaletteInput"
-    >
-      <el-input
-        ref="paletteInputRef"
-        v-model="paletteQuery"
-        placeholder="输入页面名称搜索..."
-        :prefix-icon="Search"
-        clearable
-        @keydown.down.prevent="paletteDown"
-        @keydown.up.prevent="paletteUp"
-        @keydown.enter.prevent="paletteSelect"
-      />
-      <div class="palette-list">
-        <div
-          v-for="(item, idx) in paletteResults"
-          :key="item.path"
-          class="palette-item"
-          :class="{ active: idx === paletteIndex }"
-          @click="paletteNavigate(item.path)"
-          @mouseenter="paletteIndex = idx"
-        >
-          <el-icon><component :is="item.icon" /></el-icon>
-          <span>{{ item.label }}</span>
-          <span class="palette-path">{{ item.path }}</span>
-        </div>
-        <el-empty v-if="paletteResults.length === 0" description="无匹配页面" :image-size="60" />
-      </div>
-    </el-dialog>
   </el-container>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Setting, DataLine, Ticket, Monitor, Money, ArrowLeft, Service, Document, UserFilled, WarningFilled, Fold, Expand, Headset, Bell, Search } from '@element-plus/icons-vue'
-import { ElMessage, type InputInstance } from 'element-plus'
+import { ArrowLeft, WarningFilled, Fold, Expand, Headset, Bell } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
-import { getAlertList } from '@/api/system'
+import { getAlertList, getMyPermissions } from '@/api/system'
+import { buildMenu, type MenuGroup } from '@/config/pages'
+import { getDefaultPath } from '@/router'
 import BreadCrumb from '@/components/BreadCrumb.vue'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+
+const menuGroups = ref<MenuGroup[]>([])
 
 const collapsed = ref(false)
 const sidebarWidth = computed(() => collapsed.value ? '64px' : '230px')
@@ -237,11 +137,7 @@ const goBack = () => {
   if (window.history.length > 1) {
     router.back()
   } else {
-    if (currentRole.value === 'admin') router.push('/workbench/admin/dashboard')
-    else if (currentRole.value === 'ops') router.push('/workbench/admin/status')
-    else if (currentRole.value === 'superadmin') router.push('/workbench/admin/account')
-    else if (currentRole.value === 'service') router.push('/service')
-    else router.push('/dept/handle/aftersale')
+    router.push(getDefaultPath(currentRole.value))
   }
 }
 
@@ -259,7 +155,8 @@ const goToAlerts = () => {
   router.push('/workbench/admin/alert')
 }
 const loadUnreadAlerts = async () => {
-  if (!['ops', 'admin', 'superadmin'].includes(currentRole.value)) return
+  const hasAlertPage = menuGroups.value.some(g => g.items.some(i => i.path === '/workbench/admin/alert'))
+  if (!hasAlertPage) return
   try {
     const res = await getAlertList({ status: 'active', page: 1, page_size: 1 })
     unreadAlerts.value = (res as any).total || 0
@@ -268,81 +165,25 @@ const loadUnreadAlerts = async () => {
   }
 }
 
-// ===== 命令面板 =====
-const commandPaletteVisible = ref(false)
-const paletteQuery = ref('')
-const paletteIndex = ref(0)
-const paletteInputRef = ref<InputInstance>()
-
-interface PaletteItem {
-  label: string
-  path: string
-  icon: any
-}
-
-const allPages: PaletteItem[] = [
-  { label: '数据看板', path: '/workbench/admin/dashboard', icon: DataLine },
-  { label: '知识库管理', path: '/workbench/admin/knowledge', icon: Document },
-  { label: '分类管理', path: '/workbench/admin/category', icon: Setting },
-  { label: '待审核列表', path: '/workbench/admin/auditList', icon: Document },
-  { label: '审核历史', path: '/workbench/admin/auditHistory', icon: Document },
-  { label: '配置管理', path: '/workbench/admin/config', icon: Setting },
-
-
-  { label: '账号管理', path: '/workbench/admin/account', icon: UserFilled },
-  { label: '角色管理', path: '/workbench/admin/role', icon: UserFilled },
-  { label: '操作日志', path: '/workbench/admin/operationLog', icon: Document },
-  { label: '模拟登录', path: '/workbench/admin/impersonate', icon: UserFilled },
-  { label: '系统状态', path: '/workbench/admin/status', icon: Monitor },
-  { label: '性能监控', path: '/workbench/admin/monitor', icon: Monitor },
-  { label: '定时任务', path: '/workbench/admin/scheduler', icon: Setting },
-  { label: '异常告警', path: '/workbench/admin/alert', icon: Bell },
-  { label: '客服工作台', path: '/service', icon: Service },
-  { label: '售后工单', path: '/dept/handle/aftersale', icon: Ticket },
-  { label: '运维工单', path: '/dept/handle/ops', icon: Monitor },
-  { label: '财务工单', path: '/dept/handle/finance', icon: Money },
-]
-
-const paletteResults = computed(() => {
-  const q = paletteQuery.value.toLowerCase()
-  if (!q) return allPages.slice(0, 8)
-  return allPages.filter((p) => p.label.toLowerCase().includes(q) || p.path.toLowerCase().includes(q))
+onMounted(async () => {
+  await loadMenu()
+  loadUnreadAlerts()
 })
 
-const focusPaletteInput = () => {
-  paletteInputRef.value?.focus()
-}
-const paletteDown = () => {
-  if (paletteIndex.value < paletteResults.value.length - 1) paletteIndex.value++
-}
-const paletteUp = () => {
-  if (paletteIndex.value > 0) paletteIndex.value--
-}
-const paletteSelect = () => {
-  const item = paletteResults.value[paletteIndex.value]
-  if (item) paletteNavigate(item.path)
-}
-const paletteNavigate = (path: string) => {
-  commandPaletteVisible.value = false
-  paletteQuery.value = ''
-  paletteIndex.value = 0
-  router.push(path)
-}
+watch(currentRole, async () => {
+  await loadMenu()
+  loadUnreadAlerts()
+})
 
-const onKeydown = (e: KeyboardEvent) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-    e.preventDefault()
-    commandPaletteVisible.value = true
+const loadMenu = async () => {
+  try {
+    const perms = await getMyPermissions()
+    menuGroups.value = buildMenu(perms)
+  } catch {
+    menuGroups.value = []
   }
 }
 
-onMounted(() => {
-  loadUnreadAlerts()
-  window.addEventListener('keydown', onKeydown)
-})
-onUnmounted(() => {
-  window.removeEventListener('keydown', onKeydown)
-})
 </script>
 
 <style scoped>
@@ -353,7 +194,7 @@ onUnmounted(() => {
 }
 .sidebar {
   height: 100vh;
-  background-color: #F8FAFC;
+  background-color: #FFFFFF;
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
@@ -361,59 +202,79 @@ onUnmounted(() => {
   border-right: 1px solid #E2E8F0;
 }
 .logo-box {
-  height: 60px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   color: #0F172A;
-  border-bottom: 1px solid #E2E8F0;
   flex-shrink: 0;
 }
 .logo-text {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
+  letter-spacing: -0.01em;
 }
 .side-menu {
   flex: 1;
   border-right: none;
   overflow-y: auto;
   overflow-x: hidden;
+  padding: 4px 8px;
+}
+:deep(.side-menu .el-menu-item) {
+  border-radius: 6px;
+  margin: 2px 0;
+  height: 36px;
+  line-height: 36px;
 }
 :deep(.side-menu .el-menu-item.is-active) {
-  background-color: #EFF6FF;
+  background-color: #F1F5F9 !important;
+  color: #0F172A !important;
   font-weight: 600;
 }
 :deep(.side-menu .el-menu-item:hover) {
-  background-color: #F1F5F9;
+  background-color: #F1F5F9 !important;
+}
+:deep(.side-menu .el-sub-menu__title) {
+  border-radius: 6px;
+  margin: 2px 0;
+  height: 36px;
+  line-height: 36px;
 }
 :deep(.side-menu .el-sub-menu__title:hover) {
-  background-color: #F1F5F9;
+  background-color: #F1F5F9 !important;
+}
+:deep(.side-menu .el-sub-menu .el-menu-item.is-active) {
+  background-color: #F1F5F9 !important;
+  color: #0F172A !important;
+  font-weight: 600;
 }
 .sidebar-footer {
-  height: 64px;
+  height: 56px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding: 0 16px;
   border-top: 1px solid #E2E8F0;
   flex-shrink: 0;
 }
 .user-avatar {
-  background: #0052FF;
+  background: #F1F5F9;
+  color: #475569;
   font-weight: 600;
   flex-shrink: 0;
 }
 .user-detail {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   overflow: hidden;
 }
 .user-name {
   color: #0F172A;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -430,14 +291,14 @@ onUnmounted(() => {
   overflow: hidden;
 }
 .header-bar {
-  height: 60px;
-  background-color: #fff;
-  border-bottom: 1px solid #eee;
+  height: 52px;
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  padding: 0 16px;
+  flex-shrink: 0;
 }
 .header-left {
   display: flex;
@@ -447,11 +308,11 @@ onUnmounted(() => {
 .collapse-btn {
   font-size: 20px;
   cursor: pointer;
-  color: #606266;
+  color: #475569;
   transition: color 0.2s;
 }
 .collapse-btn:hover {
-  color: #0052FF;
+  color: #1677FF;
 }
 .user-info {
   display: flex;
@@ -471,14 +332,14 @@ onUnmounted(() => {
   height: 50px;
   padding: 0 20px;
   background-color: #fff;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid #E2E8F0;
   display: flex;
   align-items: center;
   flex-shrink: 0;
 }
 .content-box {
   flex: 1;
-  padding: 20px;
+  padding: 16px;
   overflow-y: auto;
 }
 .impersonate-banner {
@@ -486,9 +347,9 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 20px;
-  background-color: #fdf6ec;
-  border-bottom: 1px solid #f5dab1;
-  color: #e6a23c;
+  background-color: #E6F4FF;
+  border-bottom: 1px solid #91CAFF;
+  color: #475569;
   font-size: 13px;
   flex-shrink: 0;
 }
@@ -503,35 +364,11 @@ onUnmounted(() => {
 .header-icon {
   font-size: 18px;
   cursor: pointer;
-  color: #606266;
+  color: #475569;
   transition: color 0.2s;
 }
 .header-icon:hover {
-  color: #0052FF;
+  color: #1677FF;
 }
-.palette-list {
-  margin-top: 12px;
-  max-height: 320px;
-  overflow-y: auto;
-}
-.palette-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.palette-item.active {
-  background: #ecf5ff;
-}
-.palette-item:hover {
-  background: var(--color-bg-canvas);
-}
-.palette-path {
-  margin-left: auto;
-  font-size: 12px;
-  color: #c0c4cc;
-}
+
 </style>

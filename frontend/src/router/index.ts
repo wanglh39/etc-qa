@@ -204,7 +204,7 @@ const router = createRouter({
 })
 
 // 角色 → 默认首页
-function getDefaultPath(role: string): string {
+export function getDefaultPath(role: string): string {
   const authStore = useAuthStore()
   switch (role) {
     case 'superadmin':

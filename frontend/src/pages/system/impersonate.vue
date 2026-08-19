@@ -7,7 +7,7 @@
       show-icon
       style="margin-bottom: 20px"
     >
-      选择目标角色后，系统将以该角色身份登录。顶部会显示橙色提示栏，可随时退出模拟返回超管身份。所有模拟操作会记录到操作日志。
+      选择目标角色后，系统将以该角色身份登录。顶部会显示提示栏，可随时退出模拟返回超管身份。所有模拟操作会记录到操作日志。
     </el-alert>
 
     <div class="role-cards">
@@ -54,64 +54,84 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Setting, Monitor, Service, Ticket, Location } from '@element-plus/icons-vue'
 import { impersonate } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
+import { roleColor } from '@/utils/roleColor'
+import { getRoleList, type RoleItem } from '@/api/system'
+import { getPageLabel } from '@/config/pages'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const loading = ref('')
 
-const targets = [
-  {
-    role: 'admin', label: '业务管理员', desc: '审核+知识库+分类+配置',
-    home: '/workbench/admin/dashboard', icon: Setting,
-    gradient: 'var(--grad-primary)',
-    permissions: ['数据看板', '待审核', '审核历史', '知识库', '分类管理', '配置']
-  },
-  {
-    role: 'ops', label: '运维工程师', desc: '看板+状态+监控+告警',
-    home: '/workbench/admin/status', icon: Monitor,
-    gradient: 'var(--grad-success)',
-    permissions: ['数据看板', '系统状态', '性能监控', '定时任务', '异常告警']
-  },
-  {
-    role: 'service', label: '客服', desc: '客服工作台',
-    home: '/service', icon: Service,
-    gradient: 'var(--grad-warning)',
-    permissions: ['客服工作台', '工单创建', '工单列表']
-  },
-  {
-    role: 'dept', label: '部门处理员', desc: '工单处理',
-    home: '/dept/handle/aftersale', icon: Ticket,
-    gradient: 'var(--grad-neutral)',
-    permissions: ['工单处理', '工单详情']
-  },
-]
+const roleIcons: Record<string, any> = {
+  admin: Setting, ops: Monitor, service: Service, dept: Ticket
+}
+const roleDescs: Record<string, string> = {
+  admin: '审核+知识库+分类+配置',
+  ops: '状态+监控+告警+定时任务',
+  service: '客服工作台',
+  dept: '工单处理'
+}
+const roleHomes: Record<string, string> = {
+  admin: '/workbench/admin/dashboard',
+  ops: '/workbench/admin/status',
+  service: '/service',
+  dept: '/dept/handle/aftersale'
+}
+
+const targets = ref<{
+  role: string; label: string; desc: string;
+  home: string; icon: any; gradient: string;
+  permissions: string[]
+}[]>([])
+
+const loadRoles = async () => {
+  try {
+    const roles = await getRoleList()
+    targets.value = roles
+      .filter(r => r.role_key !== 'superadmin')
+      .map(r => ({
+        role: r.role_key,
+        label: r.role_name,
+        desc: r.description || roleDescs[r.role_key] || '',
+        home: roleHomes[r.role_key] || '/',
+        icon: roleIcons[r.role_key] || Setting,
+        gradient: roleColor(r.role_key),
+        permissions: (r.permissions || []).map(p => getPageLabel(p))
+      }))
+  } catch {
+    ElMessage.error('加载角色列表失败')
+  }
+}
 
 const doImpersonate = async (targetRole: string) => {
   loading.value = targetRole
   try {
     const res = await impersonate(targetRole)
     authStore.startImpersonation(res.access_token, res.role, res.dept, res.username)
-    ElMessage.success(`已切换为${targets.find(t => t.role === targetRole)?.label}身份`)
-    router.replace(targets.find(t => t.role === targetRole)?.home ?? '/')
+    const target = targets.value.find(t => t.role === targetRole)
+    ElMessage.success(`已切换为${target?.label}身份`)
+    router.replace(target?.home ?? '/')
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.detail ?? '模拟登录失败')
   } finally {
     loading.value = ''
   }
 }
+
+onMounted(() => { loadRoles() })
 </script>
 
 <style scoped>
 .impersonate-page {
   padding: 20px;
   min-height: 100vh;
-  background-color: #f0f2f5;
+  background-color: #F8FAFC;
   box-sizing: border-box;
 }
 
@@ -123,10 +143,10 @@ const doImpersonate = async (targetRole: string) => {
 
 .role-card {
   overflow: hidden;
-  transition: transform 0.2s;
+  transition: border-color 0.2s;
 }
 .role-card:hover {
-  transform: translateY(-4px);
+  border-color: #CBD5E1 !important;
 }
 
 .card-top {
@@ -140,7 +160,7 @@ const doImpersonate = async (targetRole: string) => {
 .card-icon {
   width: 56px;
   height: 56px;
-  border-radius: 12px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
@@ -165,7 +185,7 @@ const doImpersonate = async (targetRole: string) => {
 }
 .perm-label {
   font-size: 13px;
-  color: #909399;
+  color: #bfbfbf;
   margin-bottom: 8px;
 }
 .perm-list {
@@ -178,11 +198,11 @@ const doImpersonate = async (targetRole: string) => {
   align-items: center;
   justify-content: space-between;
   padding-top: 12px;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid #E2E8F0;
 }
 .home-info {
   font-size: 12px;
-  color: #909399;
+  color: #bfbfbf;
   display: flex;
   align-items: center;
   gap: 4px;

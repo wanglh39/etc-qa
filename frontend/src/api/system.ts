@@ -75,6 +75,7 @@ export interface RoleItem {
   role_key: string
   role_name: string
   description: string
+  permissions: string[]
   created_at?: string
 }
 
@@ -82,15 +83,21 @@ export interface RoleCreateRequest {
   role_key: string
   role_name: string
   description?: string
+  permissions?: string[]
 }
 
 export interface RoleUpdateRequest {
   role_name?: string
   description?: string
+  permissions?: string[]
 }
 
 export function getRoleList() {
   return request.get<RoleItem[]>('/roles').then((r) => r.data)
+}
+
+export function getMyPermissions() {
+  return request.get<{ permissions: string[] }>('/roles/permissions').then((r) => r.data.permissions)
 }
 
 export function createRole(data: RoleCreateRequest) {

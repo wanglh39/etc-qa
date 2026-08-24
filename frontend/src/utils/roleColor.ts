@@ -3,7 +3,7 @@ const roleColorMap: Record<string, string> = {
   admin: '#1677FF',
   ops: '#4096FF',
   service: '#69B1FF',
-  dept: '#91CAFF'
+  dept: '#91CAFF',
 }
 
 const roleOrder: Record<string, number> = {
@@ -11,12 +11,10 @@ const roleOrder: Record<string, number> = {
   admin: 1,
   ops: 2,
   service: 3,
-  dept: 4
+  dept: 4,
 }
 
-const extraShades = [
-  '#2E8FFF', '#5AA8FF', '#78BAFF', '#A5D4FF', '#CCE8FF', '#D6E4FF'
-]
+const extraShades = ['#2E8FFF', '#5AA8FF', '#78BAFF', '#A5D4FF', '#CCE8FF', '#D6E4FF']
 
 function hashString(s: string): number {
   let h = 0

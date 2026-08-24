@@ -28,7 +28,7 @@ const goHome = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #F8FAFC;
+  background: #f8fafc;
 }
 .content {
   text-align: center;
@@ -36,13 +36,13 @@ const goHome = () => {
 .code {
   font-size: 72px;
   font-weight: 700;
-  color: #1677FF;
+  color: #1677ff;
   letter-spacing: -0.04em;
   line-height: 1;
 }
 .desc {
   font-size: 15px;
-  color: #64748B;
+  color: #64748b;
   margin: 12px 0 28px;
 }
 </style>

@@ -59,8 +59,20 @@
         </div>
 
         <div class="filter-bar">
-          <el-input v-model="filterOperator" placeholder="操作人筛选" clearable style="width: 180px" @keyup.enter="handleSearch" />
-          <el-select v-model="filterAction" placeholder="动作筛选" clearable style="width: 160px; margin-left: 12px" @change="handleSearch">
+          <el-input
+            v-model="filterOperator"
+            placeholder="操作人筛选"
+            clearable
+            style="width: 180px"
+            @keyup.enter="handleSearch"
+          />
+          <el-select
+            v-model="filterAction"
+            placeholder="动作筛选"
+            clearable
+            style="width: 160px; margin-left: 12px"
+            @change="handleSearch"
+          >
             <el-option label="创建" value="create" />
             <el-option label="修改" value="update" />
             <el-option label="删除" value="delete" />
@@ -71,7 +83,12 @@
         </div>
 
         <!-- 表格视图 -->
-        <el-table v-if="viewMode === 'table'" border :max-height="'calc(100vh - 380px)'" :data="tableData">
+        <el-table
+          v-if="viewMode === 'table'"
+          border
+          :max-height="'calc(100vh - 380px)'"
+          :data="tableData"
+        >
           <el-table-column prop="id" label="ID" width="70" />
           <el-table-column label="操作人" width="130">
             <template #default="{ row }">
@@ -84,7 +101,9 @@
           <el-table-column label="动作" width="110" align="center">
             <template #default="{ row }">
               <el-tag :type="actionTagType(row.action)" effect="dark">
-                <el-icon style="margin-right:2px"><component :is="actionIcon(row.action)" /></el-icon>
+                <el-icon style="margin-right: 2px"
+                  ><component :is="actionIcon(row.action)"
+                /></el-icon>
                 {{ actionLabel(row.action) }}
               </el-tag>
             </template>
@@ -154,36 +173,65 @@ const tableData = ref<OperationLogItem[]>([])
 const total = ref(0)
 const viewMode = ref('table')
 
-const actionCount = (action: string) => tableData.value.filter(r => r.action === action).length
+const actionCount = (action: string) => tableData.value.filter((r) => r.action === action).length
 
 const actionLabel = (a: string) => {
-  const map: Record<string, string> = { create: '创建', update: '修改', delete: '删除', reset_password: '重置密码' }
+  const map: Record<string, string> = {
+    create: '创建',
+    update: '修改',
+    delete: '删除',
+    reset_password: '重置密码',
+  }
   return map[a] || a
 }
 const actionTagType = (a: string): 'primary' | 'info' => {
-  const map: Record<string, 'primary' | 'info'> = { create: 'primary', update: 'info', delete: 'info', reset_password: 'info' }
+  const map: Record<string, 'primary' | 'info'> = {
+    create: 'primary',
+    update: 'info',
+    delete: 'info',
+    reset_password: 'info',
+  }
   return map[a] || 'info'
 }
 const actionIcon = (a: string) => {
-  const map: Record<string, any> = { create: CirclePlus, update: Edit, delete: Delete, reset_password: Refresh }
+  const map: Record<string, any> = {
+    create: CirclePlus,
+    update: Edit,
+    delete: Delete,
+    reset_password: Refresh,
+  }
   return map[a] || Warning
 }
 
 const loadData = async () => {
   try {
     const res = await getOperationList({
-      page: page.value, page_size: pageSize.value,
-      operator: filterOperator.value || undefined, action: filterAction.value || undefined
+      page: page.value,
+      page_size: pageSize.value,
+      operator: filterOperator.value || undefined,
+      action: filterAction.value || undefined,
     })
     tableData.value = res.items
     total.value = res.total
-  } catch { ElMessage.error('加载操作日志失败') }
+  } catch {
+    ElMessage.error('加载操作日志失败')
+  }
 }
 
-const handleSearch = () => { page.value = 1; loadData() }
-const handleReset = () => { filterOperator.value = ''; filterAction.value = ''; page.value = 1; loadData() }
+const handleSearch = () => {
+  page.value = 1
+  loadData()
+}
+const handleReset = () => {
+  filterOperator.value = ''
+  filterAction.value = ''
+  page.value = 1
+  loadData()
+}
 
-onMounted(() => { loadData() })
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style scoped>
@@ -192,7 +240,7 @@ onMounted(() => { loadData() })
   min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-  background-color: #F8FAFC;
+  background-color: #f8fafc;
 }
 
 .kpi-row {
@@ -201,31 +249,83 @@ onMounted(() => { loadData() })
   gap: 16px;
   margin-bottom: 20px;
 }
-.kpi-card { transition: transform 0.2s; height: 100%; }
-.kpi-card:hover { border-color: #CBD5E1 !important; }
-.kpi-inner { display: flex; align-items: center; gap: 12px; }
+.kpi-card {
+  transition: transform 0.2s;
+  height: 100%;
+}
+.kpi-card:hover {
+  border-color: #cbd5e1 !important;
+}
+.kpi-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .kpi-icon {
-  width: 48px; height: 48px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center; color: #fff;
-  background: #F1F5F9; color: #1677FF;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: #f1f5f9;
+  color: #1677ff;
 }
-.kpi-num { font-size: 24px; font-weight: 700; color: #0F172A; line-height: 1.2; }
-.kpi-label { font-size: 13px; color: #bfbfbf; margin-top: 4px; }
+.kpi-num {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+.kpi-label {
+  font-size: 13px;
+  color: #bfbfbf;
+  margin-top: 4px;
+}
 
-.full-card { display: flex; flex-direction: column; }
-:deep(.el-card__body) { padding: 20px; display: flex; flex-direction: column; }
-.card-body-inner { display: flex; flex-direction: column; }
+.full-card {
+  display: flex;
+  flex-direction: column;
+}
+:deep(.el-card__body) {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+.card-body-inner {
+  display: flex;
+  flex-direction: column;
+}
 .header-bar {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
-.filter-bar { margin: 12px 0; display: flex; align-items: center; }
+.filter-bar {
+  margin: 12px 0;
+  display: flex;
+  align-items: center;
+}
 
-.op-cell { display: flex; align-items: center; gap: 8px; }
+.op-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .op-avatar {
-  width: 28px; height: 28px; border-radius: 50%;
-  background: #F1F5F9; color: #1677FF; color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 600;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #1677ff;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .timeline-view {
@@ -237,11 +337,25 @@ onMounted(() => { loadData() })
   margin-bottom: 0;
 }
 .tl-header {
-  display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
-.tl-operator { font-weight: 500; color: #0F172A; }
-.tl-detail { font-size: 13px; color: #475569; line-height: 1.5; margin-bottom: 4px; }
+.tl-operator {
+  font-weight: 500;
+  color: #0f172a;
+}
+.tl-detail {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
 .tl-meta {
-  font-size: 12px; color: #bfbfbf; display: flex; gap: 12px;
+  font-size: 12px;
+  color: #bfbfbf;
+  display: flex;
+  gap: 12px;
 }
 </style>

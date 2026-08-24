@@ -8,9 +8,15 @@
         <span class="page-title">{{ deptName }}工单详情</span>
         <div class="header-right">
           <el-tag v-if="orderInfo.status === 'submitted'" type="info" effect="dark">待处理</el-tag>
-          <el-tag v-else-if="orderInfo.status === 'answered'" type="primary" effect="dark">已回复</el-tag>
-          <el-tag v-else-if="orderInfo.status === 'processed'" type="primary" effect="dark">已办结</el-tag>
-          <el-tag v-if="priorityText" :type="priorityType" effect="dark" style="margin-left:8px">{{ priorityText }}</el-tag>
+          <el-tag v-else-if="orderInfo.status === 'answered'" type="primary" effect="dark"
+            >已回复</el-tag
+          >
+          <el-tag v-else-if="orderInfo.status === 'processed'" type="primary" effect="dark"
+            >已办结</el-tag
+          >
+          <el-tag v-if="priorityText" :type="priorityType" effect="dark" style="margin-left: 8px">{{
+            priorityText
+          }}</el-tag>
         </div>
       </div>
     </el-card>
@@ -22,11 +28,19 @@
           <template #header><span class="section-title">工单基础信息</span></template>
           <el-descriptions border :column="2">
             <el-descriptions-item label="工单ID">{{ orderInfo.id }}</el-descriptions-item>
-            <el-descriptions-item label="工单编号">{{ orderInfo.external_id }}</el-descriptions-item>
+            <el-descriptions-item label="工单编号">{{
+              orderInfo.external_id
+            }}</el-descriptions-item>
             <el-descriptions-item label="提交时间">{{ orderInfo.created_at }}</el-descriptions-item>
-            <el-descriptions-item label="问题类型">{{ orderInfo.problem_type || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="客户名称">{{ orderInfo.customer_name || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="客户手机号">{{ orderInfo.phone || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="问题类型">{{
+              orderInfo.problem_type || '-'
+            }}</el-descriptions-item>
+            <el-descriptions-item label="客户名称">{{
+              orderInfo.customer_name || '-'
+            }}</el-descriptions-item>
+            <el-descriptions-item label="客户手机号">{{
+              orderInfo.phone || '-'
+            }}</el-descriptions-item>
             <el-descriptions-item label="问题描述" :span="2">
               <div class="question-text">{{ orderInfo.detail_desc || '-' }}</div>
             </el-descriptions-item>
@@ -96,7 +110,8 @@
               size="small"
               plain
               @click="applyTemplate(tpl.text)"
-            >{{ tpl.label }}</el-button>
+              >{{ tpl.label }}</el-button
+            >
           </div>
 
           <el-input
@@ -104,11 +119,13 @@
             type="textarea"
             :rows="5"
             placeholder="请填写工单处理过程、解决方案"
-            style="margin-top:12px"
+            style="margin-top: 12px"
           />
 
           <div class="btn-box">
-            <el-button type="primary" :loading="submitting" @click="handleFinish">办结工单</el-button>
+            <el-button type="primary" :loading="submitting" @click="handleFinish"
+              >办结工单</el-button
+            >
           </div>
         </el-card>
       </div>
@@ -119,7 +136,9 @@
           <template #header>
             <div class="kb-header">
               <span class="section-title">知识库检索</span>
-              <el-button text type="primary" size="small" @click="searchKB" :loading="kbLoading">重新搜索</el-button>
+              <el-button text type="primary" size="small" @click="searchKB" :loading="kbLoading"
+                >重新搜索</el-button
+              >
             </div>
           </template>
 
@@ -128,7 +147,7 @@
             placeholder="输入问题搜索知识库"
             clearable
             @keyup.enter="searchKB"
-            style="margin-bottom:12px"
+            style="margin-bottom: 12px"
           >
             <template #append>
               <el-button @click="searchKB" :loading="kbLoading">搜索</el-button>
@@ -142,11 +161,7 @@
           </div>
 
           <div v-loading="kbLoading" class="kb-list">
-            <div
-              v-for="item in kbResults"
-              :key="item.qa_id"
-              class="kb-item"
-            >
+            <div v-for="item in kbResults" :key="item.qa_id" class="kb-item">
               <div class="kb-item-header">
                 <el-tag size="small" effect="plain">{{ item.category_l1 || '未分类' }}</el-tag>
                 <span class="kb-score">匹配度 {{ (item.score * 100).toFixed(0) }}%</span>
@@ -185,7 +200,7 @@ const deptNameMap: Record<string, string> = {
   ops: '技术运维部',
   finance: '财务部',
   market: '市场部',
-  human: '人事部'
+  human: '人事部',
 }
 
 const deptCode = computed(() => route.params.deptCode as string)
@@ -193,9 +208,18 @@ const orderId = computed(() => route.params.orderId as string)
 const deptName = computed(() => deptNameMap[deptCode.value] || '通用部门')
 
 const orderInfo = ref<WorkOrderDetail>({
-  id: 0, external_id: '', status: '', dept: '', service_id: '',
-  customer_name: '', phone: '', problem_type: '', next_dept: '',
-  priority: '', detail_desc: '', handle_remark: ''
+  id: 0,
+  external_id: '',
+  status: '',
+  dept: '',
+  service_id: '',
+  customer_name: '',
+  phone: '',
+  problem_type: '',
+  next_dept: '',
+  priority: '',
+  detail_desc: '',
+  handle_remark: '',
 })
 const remarkText = ref('')
 const submitting = ref(false)
@@ -237,11 +261,14 @@ const searchKB = async () => {
 }
 
 const copyAnswer = (answer: string) => {
-  navigator.clipboard.writeText(answer).then(() => {
-    ElMessage.success('已复制到剪贴板')
-  }).catch(() => {
-    ElMessage.error('复制失败')
-  })
+  navigator.clipboard
+    .writeText(answer)
+    .then(() => {
+      ElMessage.success('已复制到剪贴板')
+    })
+    .catch(() => {
+      ElMessage.error('复制失败')
+    })
 }
 
 const useAsRemark = (answer: string) => {
@@ -294,7 +321,7 @@ onMounted(() => {
 .dept-detail-page {
   width: 100%;
   min-height: 100vh;
-  background-color: #F8FAFC;
+  background-color: #f8fafc;
   padding: 20px;
   box-sizing: border-box;
 }
@@ -336,7 +363,7 @@ onMounted(() => {
 .section-title {
   font-size: 16px;
   font-weight: 600;
-  color: #0F172A;
+  color: #0f172a;
 }
 
 .question-text {
@@ -353,7 +380,7 @@ onMounted(() => {
   margin-bottom: 4px;
 }
 .tl-desc {
-  color: #0F172A;
+  color: #0f172a;
 }
 
 .quick-templates {
@@ -381,7 +408,7 @@ onMounted(() => {
 .kb-empty {
   text-align: center;
   padding: 40px 0;
-  color: #94A3B8;
+  color: #94a3b8;
 }
 .kb-hint {
   font-size: 12px;
@@ -395,13 +422,12 @@ onMounted(() => {
 
 .kb-item {
   padding: 12px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   margin-bottom: 12px;
   transition: box-shadow 0.2s;
 }
 .kb-item:hover {
-  
 }
 
 .kb-item-header {
@@ -412,13 +438,13 @@ onMounted(() => {
 }
 .kb-score {
   font-size: 12px;
-  color: #1677FF;
+  color: #1677ff;
   font-weight: 600;
 }
 
 .kb-question {
   font-size: 13px;
-  color: #0F172A;
+  color: #0f172a;
   font-weight: 500;
   margin-bottom: 4px;
   line-height: 1.5;

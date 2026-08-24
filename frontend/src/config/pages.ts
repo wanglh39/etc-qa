@@ -1,7 +1,14 @@
 import type { Component } from 'vue'
 import {
-  DataLine, Document, Setting, UserFilled, Monitor, Bell,
-  Service, Ticket, Money
+  DataLine,
+  Document,
+  Setting,
+  UserFilled,
+  Monitor,
+  Bell,
+  Service,
+  Ticket,
+  Money,
 } from '@element-plus/icons-vue'
 
 export interface PageConfig {
@@ -33,7 +40,7 @@ export const ALL_PAGES: PageConfig[] = [
 ]
 
 export function getPageLabel(path: string): string {
-  return ALL_PAGES.find(p => p.path === path)?.label || path
+  return ALL_PAGES.find((p) => p.path === path)?.label || path
 }
 
 export interface MenuGroup {
@@ -43,7 +50,7 @@ export interface MenuGroup {
 }
 
 export function buildMenu(permissions: string[]): MenuGroup[] {
-  const allowed = ALL_PAGES.filter(p => permissions.includes(p.path))
+  const allowed = ALL_PAGES.filter((p) => permissions.includes(p.path))
   const groups: MenuGroup[] = []
   const groupMap = new Map<string, PageConfig[]>()
 

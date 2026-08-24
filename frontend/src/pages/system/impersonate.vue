@@ -28,7 +28,13 @@
           <div class="perm-preview">
             <div class="perm-label">可访问页面：</div>
             <div class="perm-list">
-              <el-tag v-for="perm in target.permissions" :key="perm" size="small" effect="plain" style="margin: 2px">
+              <el-tag
+                v-for="perm in target.permissions"
+                :key="perm"
+                size="small"
+                effect="plain"
+                style="margin: 2px"
+              >
                 {{ perm }}
               </el-tag>
             </div>
@@ -69,40 +75,49 @@ const authStore = useAuthStore()
 const loading = ref('')
 
 const roleIcons: Record<string, any> = {
-  admin: Setting, ops: Monitor, service: Service, dept: Ticket
+  admin: Setting,
+  ops: Monitor,
+  service: Service,
+  dept: Ticket,
 }
 const roleDescs: Record<string, string> = {
   admin: '审核+知识库+分类+配置',
   ops: '状态+监控+告警+定时任务',
   service: '客服工作台',
-  dept: '工单处理'
+  dept: '工单处理',
 }
 const roleHomes: Record<string, string> = {
   admin: '/workbench/admin/dashboard',
   ops: '/workbench/admin/status',
   service: '/service',
-  dept: '/dept/handle/aftersale'
+  dept: '/dept/handle/aftersale',
 }
 
-const targets = ref<{
-  role: string; label: string; desc: string;
-  home: string; icon: any; gradient: string;
-  permissions: string[]
-}[]>([])
+const targets = ref<
+  {
+    role: string
+    label: string
+    desc: string
+    home: string
+    icon: any
+    gradient: string
+    permissions: string[]
+  }[]
+>([])
 
 const loadRoles = async () => {
   try {
     const roles = await getRoleList()
     targets.value = roles
-      .filter(r => r.role_key !== 'superadmin')
-      .map(r => ({
+      .filter((r) => r.role_key !== 'superadmin')
+      .map((r) => ({
         role: r.role_key,
         label: r.role_name,
         desc: r.description || roleDescs[r.role_key] || '',
         home: roleHomes[r.role_key] || '/',
         icon: roleIcons[r.role_key] || Setting,
         gradient: roleColor(r.role_key),
-        permissions: (r.permissions || []).map(p => getPageLabel(p))
+        permissions: (r.permissions || []).map((p) => getPageLabel(p)),
       }))
   } catch {
     ElMessage.error('加载角色列表失败')
@@ -114,7 +129,7 @@ const doImpersonate = async (targetRole: string) => {
   try {
     const res = await impersonate(targetRole)
     authStore.startImpersonation(res.access_token, res.role, res.dept, res.username)
-    const target = targets.value.find(t => t.role === targetRole)
+    const target = targets.value.find((t) => t.role === targetRole)
     ElMessage.success(`已切换为${target?.label}身份`)
     router.replace(target?.home ?? '/')
   } catch (e: any) {
@@ -124,14 +139,16 @@ const doImpersonate = async (targetRole: string) => {
   }
 }
 
-onMounted(() => { loadRoles() })
+onMounted(() => {
+  loadRoles()
+})
 </script>
 
 <style scoped>
 .impersonate-page {
   padding: 20px;
   min-height: 100vh;
-  background-color: #F8FAFC;
+  background-color: #f8fafc;
   box-sizing: border-box;
 }
 
@@ -146,7 +163,7 @@ onMounted(() => { loadRoles() })
   transition: border-color 0.2s;
 }
 .role-card:hover {
-  border-color: #CBD5E1 !important;
+  border-color: #cbd5e1 !important;
 }
 
 .card-top {
@@ -198,7 +215,7 @@ onMounted(() => { loadRoles() })
   align-items: center;
   justify-content: space-between;
   padding-top: 12px;
-  border-top: 1px solid #E2E8F0;
+  border-top: 1px solid #e2e8f0;
 }
 .home-info {
   font-size: 12px;

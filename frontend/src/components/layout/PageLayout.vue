@@ -22,8 +22,8 @@
 defineProps({
   pageTitle: {
     type: String,
-    required: true
-  }
+    required: true,
+  },
 })
 </script>
 

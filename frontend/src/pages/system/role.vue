@@ -25,7 +25,7 @@
             <div class="role-name">{{ role.role_name }}</div>
             <div class="role-key">{{ role.role_key }}</div>
           </div>
-          <el-tag :color="roleColor(role.role_key)" effect="dark" style="border:none">
+          <el-tag :color="roleColor(role.role_key)" effect="dark" style="border: none">
             {{ userCountByRole(role.role_key) }}人
           </el-tag>
         </div>
@@ -42,7 +42,8 @@
               size="small"
               effect="plain"
               style="margin: 2px"
-            >{{ perm }}</el-tag>
+              >{{ perm }}</el-tag
+            >
           </div>
         </div>
 
@@ -53,10 +54,19 @@
       </el-card>
     </div>
 
-    <el-dialog v-model="formVisible" :title="formMode === 'add' ? '新增角色' : '编辑角色'" width="600px" @closed="resetForm">
+    <el-dialog
+      v-model="formVisible"
+      :title="formMode === 'add' ? '新增角色' : '编辑角色'"
+      width="600px"
+      @closed="resetForm"
+    >
       <el-form :model="formData" label-width="90px">
         <el-form-item label="角色标识" required>
-          <el-input v-model="formData.role_key" placeholder="如：admin / service / dept" :disabled="formMode === 'edit'" />
+          <el-input
+            v-model="formData.role_key"
+            placeholder="如：admin / service / dept"
+            :disabled="formMode === 'edit'"
+          />
         </el-form-item>
         <el-form-item label="角色名称" required>
           <el-input v-model="formData.role_name" placeholder="如：管理员" />
@@ -84,7 +94,15 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { UserFilled, Setting, Monitor, Service, Ticket, User, Plus } from '@element-plus/icons-vue'
-import { getRoleList, createRole, updateRole, deleteRole, getUserList, type RoleItem, type UserListItem } from '@/api/system'
+import {
+  getRoleList,
+  createRole,
+  updateRole,
+  deleteRole,
+  getUserList,
+  type RoleItem,
+  type UserListItem,
+} from '@/api/system'
 import { roleColor, roleSortKey } from '@/utils/roleColor'
 import { ALL_PAGES, getPageLabel } from '@/config/pages'
 
@@ -97,9 +115,9 @@ const submitting = ref(false)
 const editingId = ref<number | null>(null)
 const formData = ref({ role_key: '', role_name: '', description: '', permissions: [] as string[] })
 
-const getPermissions = (role: RoleItem) => (role.permissions || []).map(p => getPageLabel(p))
+const getPermissions = (role: RoleItem) => (role.permissions || []).map((p) => getPageLabel(p))
 
-const userCountByRole = (roleKey: string) => allUsers.value.filter(u => u.role === roleKey).length
+const userCountByRole = (roleKey: string) => allUsers.value.filter((u) => u.role === roleKey).length
 
 const loadData = async () => {
   try {
@@ -107,41 +125,84 @@ const loadData = async () => {
     tableData.value = roles.sort((a, b) => roleSortKey(a.role_key) - roleSortKey(b.role_key))
     const res = await getUserList({ page: 1, page_size: 999 })
     allUsers.value = res.items
-  } catch { ElMessage.error('加载角色列表失败') }
+  } catch {
+    ElMessage.error('加载角色列表失败')
+  }
 }
 
-const resetForm = () => { formData.value = { role_key: '', role_name: '', description: '', permissions: [] }; editingId.value = null }
-const openAddDialog = () => { formMode.value = 'add'; resetForm(); formVisible.value = true }
+const resetForm = () => {
+  formData.value = { role_key: '', role_name: '', description: '', permissions: [] }
+  editingId.value = null
+}
+const openAddDialog = () => {
+  formMode.value = 'add'
+  resetForm()
+  formVisible.value = true
+}
 const openEditDialog = (row: RoleItem) => {
-  formMode.value = 'edit'; editingId.value = row.id
-  formData.value = { role_key: row.role_key, role_name: row.role_name, description: row.description || '', permissions: row.permissions || [] }
+  formMode.value = 'edit'
+  editingId.value = row.id
+  formData.value = {
+    role_key: row.role_key,
+    role_name: row.role_name,
+    description: row.description || '',
+    permissions: row.permissions || [],
+  }
   formVisible.value = true
 }
 
 const handleSubmit = async () => {
-  if (!formData.value.role_key.trim() || !formData.value.role_name.trim()) { ElMessage.warning('角色标识和名称不能为空'); return }
+  if (!formData.value.role_key.trim() || !formData.value.role_name.trim()) {
+    ElMessage.warning('角色标识和名称不能为空')
+    return
+  }
   submitting.value = true
   try {
     if (formMode.value === 'add') {
-      await createRole({ role_key: formData.value.role_key.trim(), role_name: formData.value.role_name.trim(), description: formData.value.description || undefined, permissions: formData.value.permissions })
+      await createRole({
+        role_key: formData.value.role_key.trim(),
+        role_name: formData.value.role_name.trim(),
+        description: formData.value.description || undefined,
+        permissions: formData.value.permissions,
+      })
       ElMessage.success('角色创建成功')
     } else {
-      await updateRole(editingId.value!, { role_name: formData.value.role_name.trim(), description: formData.value.description, permissions: formData.value.permissions })
+      await updateRole(editingId.value!, {
+        role_name: formData.value.role_name.trim(),
+        description: formData.value.description,
+        permissions: formData.value.permissions,
+      })
       ElMessage.success('角色已更新')
     }
-    formVisible.value = false; loadData()
-  } catch { ElMessage.error(formMode.value === 'add' ? '创建失败，标识可能已存在' : '更新失败') }
-  finally { submitting.value = false }
+    formVisible.value = false
+    loadData()
+  } catch {
+    ElMessage.error(formMode.value === 'add' ? '创建失败，标识可能已存在' : '更新失败')
+  } finally {
+    submitting.value = false
+  }
 }
 
 const handleDelete = async (row: RoleItem) => {
-  try { await ElMessageBox.confirm(`确认删除角色 "${row.role_name}"？删除后不可恢复。`, '删除确认', { type: 'info' }) }
-  catch { return }
-  try { await deleteRole(row.id); ElMessage.success('已删除'); loadData() }
-  catch { ElMessage.error('删除失败，该角色可能仍有用户关联') }
+  try {
+    await ElMessageBox.confirm(`确认删除角色 "${row.role_name}"？删除后不可恢复。`, '删除确认', {
+      type: 'info',
+    })
+  } catch {
+    return
+  }
+  try {
+    await deleteRole(row.id)
+    ElMessage.success('已删除')
+    loadData()
+  } catch {
+    ElMessage.error('删除失败，该角色可能仍有用户关联')
+  }
 }
 
-onMounted(() => { loadData() })
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style scoped>
@@ -150,7 +211,7 @@ onMounted(() => { loadData() })
   min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-  background-color: #F8FAFC;
+  background-color: #f8fafc;
 }
 
 .header-bar {
@@ -170,7 +231,7 @@ onMounted(() => { loadData() })
   transition: border-color 0.2s;
 }
 .role-card:hover {
-  border-color: #CBD5E1 !important;
+  border-color: #cbd5e1 !important;
 }
 
 .role-card-header {
@@ -194,7 +255,7 @@ onMounted(() => { loadData() })
 .role-name {
   font-size: 17px;
   font-weight: 700;
-  color: #0F172A;
+  color: #0f172a;
 }
 .role-key {
   font-size: 12px;
@@ -211,7 +272,7 @@ onMounted(() => { loadData() })
 }
 
 .perm-section {
-  background: #F8FAFC;
+  background: #f8fafc;
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 12px;

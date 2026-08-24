@@ -4,7 +4,7 @@
     <div class="kpi-row">
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: #1677FF">
+          <div class="kpi-icon" style="background: #1677ff">
             <el-icon :size="24"><BellFilled /></el-icon>
           </div>
           <div class="kpi-info">
@@ -15,7 +15,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: #1677FF">
+          <div class="kpi-icon" style="background: #1677ff">
             <el-icon :size="24"><WarningFilled /></el-icon>
           </div>
           <div class="kpi-info">
@@ -26,7 +26,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: #1677FF">
+          <div class="kpi-icon" style="background: #1677ff">
             <el-icon :size="24"><InfoFilled /></el-icon>
           </div>
           <div class="kpi-info">
@@ -38,7 +38,9 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon" :style="{ background: unackedCount > 0 ? '#1677FF' : '#1677FF' }">
-            <el-icon :size="24"><CircleCheck v-if="unackedCount === 0" /><Warning v-else /></el-icon>
+            <el-icon :size="24"
+              ><CircleCheck v-if="unackedCount === 0" /><Warning v-else
+            /></el-icon>
           </div>
           <div class="kpi-info">
             <div class="kpi-num">{{ unackedCount }}</div>
@@ -53,7 +55,13 @@
         <div class="header-bar">
           <h3>异常告警</h3>
           <div class="header-actions">
-            <el-button v-if="selectedIds.length > 0" type="primary" size="small" :loading="batchLoading" @click="batchAck">
+            <el-button
+              v-if="selectedIds.length > 0"
+              type="primary"
+              size="small"
+              :loading="batchLoading"
+              @click="batchAck"
+            >
               批量确认 ({{ selectedIds.length }})
             </el-button>
             <el-button type="primary" plain @click="loadData" :loading="loading">
@@ -63,11 +71,23 @@
         </div>
 
         <div class="filter-bar">
-          <el-select v-model="filterStatus" placeholder="状态筛选" clearable style="width: 140px" @change="handleSearch">
+          <el-select
+            v-model="filterStatus"
+            placeholder="状态筛选"
+            clearable
+            style="width: 140px"
+            @change="handleSearch"
+          >
             <el-option label="未确认" value="open" />
             <el-option label="已确认" value="acked" />
           </el-select>
-          <el-select v-model="filterSeverity" placeholder="级别筛选" clearable style="width: 140px; margin-left: 12px" @change="handleSearch">
+          <el-select
+            v-model="filterSeverity"
+            placeholder="级别筛选"
+            clearable
+            style="width: 140px; margin-left: 12px"
+            @change="handleSearch"
+          >
             <el-option label="P0 紧急" value="P0" />
             <el-option label="P1 严重" value="P1" />
             <el-option label="P2 提醒" value="P2" />
@@ -82,11 +102,18 @@
           :data="tableData"
           @selection-change="onSelectionChange"
         >
-          <el-table-column type="selection" width="45" align="center" :selectable="(row: AlertEventItem) => row.status === 'open'" />
+          <el-table-column
+            type="selection"
+            width="45"
+            align="center"
+            :selectable="(row: AlertEventItem) => row.status === 'open'"
+          />
           <el-table-column prop="id" label="ID" width="70" />
           <el-table-column label="级别" width="80" align="center">
             <template #default="{ row }">
-              <el-tag :type="severityTagType(row.severity)" effect="dark">{{ row.severity }}</el-tag>
+              <el-tag :type="severityTagType(row.severity)" effect="dark">{{
+                row.severity
+              }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column prop="rule_id" label="规则" width="180" show-overflow-tooltip />
@@ -112,7 +139,13 @@
           <el-table-column prop="created_at" label="触发时间" width="170" />
           <el-table-column label="操作" width="100" fixed="right" align="center">
             <template #default="{ row }">
-              <el-button v-if="row.status === 'open'" type="primary" size="small" @click="handleAck(row.id)">确认</el-button>
+              <el-button
+                v-if="row.status === 'open'"
+                type="primary"
+                size="small"
+                @click="handleAck(row.id)"
+                >确认</el-button
+              >
             </template>
           </el-table-column>
         </el-table>
@@ -135,7 +168,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
-import { BellFilled, WarningFilled, InfoFilled, CircleCheck, Warning, Refresh } from '@element-plus/icons-vue'
+import {
+  BellFilled,
+  WarningFilled,
+  InfoFilled,
+  CircleCheck,
+  Warning,
+  Refresh,
+} from '@element-plus/icons-vue'
 import { getAlertList, ackAlert, type AlertEventItem } from '@/api/system'
 
 const filterStatus = ref('')
@@ -158,7 +198,7 @@ const severityCounts = computed(() => {
   return counts
 })
 
-const unackedCount = computed(() => tableData.value.filter(r => r.status === 'open').length)
+const unackedCount = computed(() => tableData.value.filter((r) => r.status === 'open').length)
 
 const severityTagType = (s: string): 'primary' | 'info' => {
   if (s === 'P0') return 'primary'
@@ -173,7 +213,7 @@ const loadData = async () => {
       page: page.value,
       page_size: pageSize.value,
       status: filterStatus.value || undefined,
-      severity: filterSeverity.value || undefined
+      severity: filterSeverity.value || undefined,
     })
     tableData.value = res.items
     total.value = res.total
@@ -197,7 +237,7 @@ const handleReset = () => {
 }
 
 const onSelectionChange = (rows: AlertEventItem[]) => {
-  selectedIds.value = rows.map(r => r.id)
+  selectedIds.value = rows.map((r) => r.id)
 }
 
 const handleAck = async (alertId: number) => {
@@ -217,7 +257,9 @@ const batchAck = async () => {
     try {
       await ackAlert(id)
       ok++
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   }
   batchLoading.value = false
   ElMessage.success(`成功确认 ${ok}/${selectedIds.value.length} 条`)
@@ -241,7 +283,7 @@ onBeforeUnmount(() => {
   min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-  background-color: #F8FAFC;
+  background-color: #f8fafc;
 }
 
 .kpi-row {
@@ -250,8 +292,13 @@ onBeforeUnmount(() => {
   gap: 16px;
   margin-bottom: 20px;
 }
-.kpi-card { transition: transform 0.2s; height: 100%; }
-.kpi-card:hover { border-color: #CBD5E1 !important; }
+.kpi-card {
+  transition: transform 0.2s;
+  height: 100%;
+}
+.kpi-card:hover {
+  border-color: #cbd5e1 !important;
+}
 .kpi-inner {
   display: flex;
   align-items: center;
@@ -269,7 +316,7 @@ onBeforeUnmount(() => {
 .kpi-num {
   font-size: 24px;
   font-weight: 700;
-  color: #0F172A;
+  color: #0f172a;
   line-height: 1.2;
 }
 .kpi-label {

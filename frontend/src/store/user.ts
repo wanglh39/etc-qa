@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 export const useUserStore = defineStore('user', {
   state: () => ({
     role: 'admin', // admin / operator
-    permission: ['workbench', 'knowledge', 'audit', 'dashboard', 'system']
+    permission: ['workbench', 'knowledge', 'audit', 'dashboard', 'system'],
   }),
   actions: {
     hasPerm(key: string): boolean {
@@ -15,6 +15,6 @@ export const useUserStore = defineStore('user', {
       } else {
         this.permission = ['workbench', 'knowledge', 'audit', 'dashboard', 'system']
       }
-    }
-  }
+    },
+  },
 })

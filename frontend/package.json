@@ -6,7 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.{ts,vue,json}\" \"tests/**/*.{ts,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,vue,json}\" \"tests/**/*.{ts,json}\"",
+    "prepare": "husky"
   },
   "dependencies": {
     "@wangeditor/editor": "^5.1.23",
@@ -23,12 +31,20 @@
     "@typescript-eslint/eslint-plugin": "^8.63.0",
     "@typescript-eslint/parser": "^8.63.0",
     "@vitejs/plugin-vue": "^6.0.7",
+    "@vitest/coverage-istanbul": "^3.2.7",
+    "@vitest/coverage-v8": "^3.2.7",
+    "@vue/test-utils": "^2.4.11",
     "@vue/tsconfig": "^0.9.1",
     "eslint": "^10.7.0",
     "eslint-plugin-vue": "^10.9.2",
+    "happy-dom": "^20.11.6",
+    "husky": "^9.1.7",
+    "jsdom": "^25.0.1",
+    "lint-staged": "^15.5.2",
     "prettier": "^3.9.5",
     "typescript": "~6.0.2",
     "vite": "^8.1.1",
+    "vitest": "^3.2.7",
     "vue-tsc": "^3.3.5"
   }
 }

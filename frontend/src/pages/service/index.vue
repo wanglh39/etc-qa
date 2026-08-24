@@ -9,7 +9,12 @@
           快捷话术
         </div>
         <el-collapse v-model="activeReplyGroups">
-          <el-collapse-item v-for="group in quickReplyGroups" :key="group.title" :title="group.title" :name="group.title">
+          <el-collapse-item
+            v-for="group in quickReplyGroups"
+            :key="group.title"
+            :title="group.title"
+            :name="group.title"
+          >
             <div
               v-for="(msg, i) in group.items"
               :key="i"
@@ -45,7 +50,14 @@
           @node-click="onCategoryClick"
           style="background: transparent"
         />
-        <el-button v-if="selectedCategory" size="small" text type="primary" @click="clearCategoryFilter" style="margin-top: 8px">
+        <el-button
+          v-if="selectedCategory"
+          size="small"
+          text
+          type="primary"
+          @click="clearCategoryFilter"
+          style="margin-top: 8px"
+        >
           清除分类筛选
         </el-button>
       </div>
@@ -118,8 +130,12 @@
               title="停止录音"
             />
             <el-button type="primary" size="large" @click="openCreateDialog">创建工单</el-button>
-            <el-button type="primary" size="large" :loading="searching" @click="handleSearch">搜索</el-button>
-            <el-button size="large" @click="clearAll" :disabled="recordingState !== 'idle'">清空</el-button>
+            <el-button type="primary" size="large" :loading="searching" @click="handleSearch"
+              >搜索</el-button
+            >
+            <el-button size="large" @click="clearAll" :disabled="recordingState !== 'idle'"
+              >清空</el-button
+            >
           </div>
           <div v-if="searchHistory.length" class="search-history">
             <span class="history-label">最近搜索：</span>
@@ -144,8 +160,16 @@
         <div v-if="recordingState !== 'idle' || asr.fullText.value" class="asr-section">
           <div class="asr-header">
             <span class="asr-title">
-              <el-tag v-if="recordingState === 'recording'" type="primary" size="small" effect="dark">录音中</el-tag>
-              <el-tag v-else-if="recordingState === 'paused'" type="info" size="small" effect="dark">已暂停</el-tag>
+              <el-tag
+                v-if="recordingState === 'recording'"
+                type="primary"
+                size="small"
+                effect="dark"
+                >录音中</el-tag
+              >
+              <el-tag v-else-if="recordingState === 'paused'" type="info" size="small" effect="dark"
+                >已暂停</el-tag
+              >
               实时语音识别
             </span>
             <el-tag size="small" type="info">{{ asr.asrState.value }}</el-tag>
@@ -168,7 +192,13 @@
           <div class="reply-area">
             <div class="reply-header">
               <span class="reply-title">最终答复</span>
-              <el-button v-if="finalReply" size="small" type="primary" plain @click="copyToClipboard(finalReply)">
+              <el-button
+                v-if="finalReply"
+                size="small"
+                type="primary"
+                plain
+                @click="copyToClipboard(finalReply)"
+              >
                 <el-icon style="margin-right: 4px"><CopyDocument /></el-icon>
                 复制答复
               </el-button>
@@ -226,7 +256,10 @@
                 </span>
                 <div class="card-score-bar">
                   <div class="score-track">
-                    <div class="score-fill" :style="{ width: (item.score * 100) + '%', background: scoreColor(item.score) }" />
+                    <div
+                      class="score-fill"
+                      :style="{ width: item.score * 100 + '%', background: scoreColor(item.score) }"
+                    />
                   </div>
                   <span class="score-value" :style="{ color: scoreColor(item.score) }">
                     {{ (item.score * 100).toFixed(1) }}%
@@ -263,7 +296,11 @@
         </el-select>
       </el-form-item>
       <el-form-item label="转交处理部门" prop="next_dept">
-        <el-select v-model="workForm.next_dept" placeholder="选择需要处理的部门" style="width: 100%">
+        <el-select
+          v-model="workForm.next_dept"
+          placeholder="选择需要处理的部门"
+          style="width: 100%"
+        >
           <el-option label="售后处理部" value="aftersale" />
           <el-option label="技术运维部" value="ops" />
           <el-option label="财务部" value="finance" />
@@ -290,7 +327,9 @@
     </el-form>
     <template #footer>
       <el-button @click="dialogVisible = false">取消</el-button>
-      <el-button type="primary" :loading="submitting" @click="submitWorkOrder">提交工单 (Ctrl+Enter)</el-button>
+      <el-button type="primary" :loading="submitting" @click="submitWorkOrder"
+        >提交工单 (Ctrl+Enter)</el-button
+      >
     </template>
   </el-dialog>
 </template>
@@ -298,7 +337,15 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { Microphone, CopyDocument, ChatDotRound, Files, VideoPause, VideoPlay, CircleCheck } from '@element-plus/icons-vue'
+import {
+  Microphone,
+  CopyDocument,
+  ChatDotRound,
+  Files,
+  VideoPause,
+  VideoPlay,
+  CircleCheck,
+} from '@element-plus/icons-vue'
 import { queryQA, getAsrHealth, type QueryResponse, type CandidateResult } from '@/api/workbench'
 import { createWorkOrder } from '@/api/workorder'
 import { getCategories } from '@/api/knowledge'
@@ -312,7 +359,7 @@ const quickReplyGroups = [
       '感谢您的来电，请问还有其他可以帮到您的吗？',
       '感谢您的耐心等待，给您带来不便敬请谅解',
       '感谢您的配合，祝您生活愉快',
-    ]
+    ],
   },
   {
     title: '安抚语',
@@ -320,7 +367,7 @@ const quickReplyGroups = [
       '非常抱歉给您带来不便，我马上为您处理',
       '请您不要着急，我帮您核实一下具体情况',
       '理解您的心情，我们会尽快为您解决此问题',
-    ]
+    ],
   },
   {
     title: '引导语',
@@ -328,7 +375,7 @@ const quickReplyGroups = [
       '请问您方便提供一下订单号吗？',
       '请您详细描述一下遇到的问题，我好为您查询',
       '建议您先尝试重新登录，看问题是否解决',
-    ]
+    ],
   },
   {
     title: '结束语',
@@ -336,7 +383,7 @@ const quickReplyGroups = [
       '如有其他问题随时欢迎致电，感谢您的来电',
       '已为您记录问题，后续有进展会第一时间通知您',
       '请您保持手机畅通，工作人员会尽快联系您',
-    ]
+    ],
   },
 ]
 const activeReplyGroups = ref(['感谢语'])
@@ -385,7 +432,8 @@ const loadCategories = async () => {
         }
       }
     }
-    categoryTree.value = tree.length > 0 ? tree : cats.map((c: any) => ({ label: c.label || c.name || String(c) }))
+    categoryTree.value =
+      tree.length > 0 ? tree : cats.map((c: any) => ({ label: c.label || c.name || String(c) }))
   } catch {
     categoryTree.value = []
   }
@@ -426,9 +474,27 @@ const copyToClipboard = async (text: string) => {
 
 // ===== ASR文本清洗 =====
 const FILLER_WORDS = [
-  '嗯', '啊', '哦', '噢', '唉', '诶', '呃', '额', '哈', '嘿',
-  '那个', '这个', '然后', '就是', '就是说', '那么', '对吧',
-  '你知道吗', '怎么说呢', '事实上', '其实'
+  '嗯',
+  '啊',
+  '哦',
+  '噢',
+  '唉',
+  '诶',
+  '呃',
+  '额',
+  '哈',
+  '嘿',
+  '那个',
+  '这个',
+  '然后',
+  '就是',
+  '就是说',
+  '那么',
+  '对吧',
+  '你知道吗',
+  '怎么说呢',
+  '事实上',
+  '其实',
 ]
 
 const cleanAsrText = (text: string): string => {
@@ -465,7 +531,7 @@ const queryResult = ref<QueryResponse>({
   standardized_query: '',
   confidence: '',
   candidates: [],
-  total_candidates: 0
+  total_candidates: 0,
 })
 const hasCandidates = computed(() => queryResult.value.candidates.length > 0)
 
@@ -476,7 +542,7 @@ const confidenceMap: Record<string, { type: 'primary' | 'info'; text: string }> 
   high: { type: 'primary', text: '高' },
   mid: { type: 'info', text: '中' },
   low: { type: 'info', text: '低' },
-  none: { type: 'info', text: '无匹配' }
+  none: { type: 'info', text: '无匹配' },
 }
 
 const scoreColor = (score: number) => {
@@ -518,7 +584,13 @@ const clearAll = () => {
   searched.value = false
   selectedIds.value = []
   finalReply.value = ''
-  queryResult.value = { query: '', standardized_query: '', confidence: '', candidates: [], total_candidates: 0 }
+  queryResult.value = {
+    query: '',
+    standardized_query: '',
+    confidence: '',
+    candidates: [],
+    total_candidates: 0,
+  }
   confidenceType.value = 'info'
   confidenceText.value = ''
   asr.fullText.value = ''
@@ -602,7 +674,7 @@ const handleSearch = async () => {
   try {
     const res = await queryQA({
       question: q,
-      category_l1: selectedCategory.value || undefined
+      category_l1: selectedCategory.value || undefined,
     } as any)
     queryResult.value = res
     selectedIds.value = []
@@ -631,7 +703,7 @@ const workForm = ref({
   problem_type: '',
   next_dept: '',
   priority: 'mid',
-  detail_desc: ''
+  detail_desc: '',
 })
 
 const workRules: FormRules = {
@@ -639,11 +711,11 @@ const workRules: FormRules = {
   customer_name: [{ required: true, message: '客户名称不能为空', trigger: 'blur' }],
   phone: [
     { required: true, message: '手机号必填', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式有误', trigger: 'blur' }
+    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式有误', trigger: 'blur' },
   ],
   problem_type: [{ required: true, message: '需要选择问题分类', trigger: 'change' }],
   next_dept: [{ required: true, message: '请选择转交处理部门', trigger: 'change' }],
-  detail_desc: [{ required: true, message: '填写客户问题详情', trigger: 'blur' }]
+  detail_desc: [{ required: true, message: '填写客户问题详情', trigger: 'blur' }],
 }
 
 const openCreateDialog = () => {
@@ -669,7 +741,7 @@ const submitWorkOrder = async () => {
       problem_type: workForm.value.problem_type,
       next_dept: workForm.value.next_dept,
       priority: workForm.value.priority,
-      detail_desc: workForm.value.detail_desc
+      detail_desc: workForm.value.detail_desc,
     })
     ElMessage.success('工单已提交，转交对应业务部门处理')
     dialogVisible.value = false
@@ -723,12 +795,12 @@ onMounted(() => {
   background: #fff;
   border-radius: 8px;
   padding: 12px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
 }
 .panel-title {
   font-size: 14px;
   font-weight: 600;
-  color: #0F172A;
+  color: #0f172a;
   margin-bottom: 8px;
   display: flex;
   align-items: center;
@@ -744,8 +816,8 @@ onMounted(() => {
   line-height: 1.5;
 }
 .reply-item:hover {
-  background: #E6F4FF;
-  color: #1677FF;
+  background: #e6f4ff;
+  color: #1677ff;
 }
 
 /* 主区 */
@@ -772,7 +844,7 @@ onMounted(() => {
 .search-title {
   font-size: 18px;
   font-weight: 700;
-  color: #0F172A;
+  color: #0f172a;
 }
 .button-row {
   display: flex;
@@ -797,8 +869,14 @@ onMounted(() => {
   pointer-events: none;
 }
 @keyframes pulse-ring {
-  0% { transform: scale(1); opacity: 0.8; }
-  100% { transform: scale(1.8); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
 }
 .search-history {
   display: flex;
@@ -816,8 +894,7 @@ onMounted(() => {
   transition: all 0.2s;
 }
 .history-tag:hover {
-  border-color: #CBD5E1;
-  
+  border-color: #cbd5e1;
 }
 .category-hint {
   margin-top: 8px;
@@ -827,10 +904,10 @@ onMounted(() => {
 .asr-section {
   max-width: 900px;
   margin: 16px auto 0;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 16px;
-  background: #F8FAFC;
+  background: #f8fafc;
 }
 .asr-header {
   display: flex;
@@ -840,7 +917,7 @@ onMounted(() => {
 }
 .asr-title {
   font-weight: 600;
-  color: #0F172A;
+  color: #0f172a;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -851,14 +928,14 @@ onMounted(() => {
   min-height: 28px;
 }
 .asr-full {
-  color: #0F172A;
+  color: #0f172a;
 }
 .asr-partial {
   color: #bfbfbf;
   font-style: italic;
 }
 .asr-error {
-  color: #64748B;
+  color: #64748b;
   font-size: 13px;
   margin-top: 8px;
 }
@@ -877,10 +954,10 @@ onMounted(() => {
 
 /* 最终回复区 */
 .reply-area {
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 16px;
-  background: #F8FAFC;
+  background: #f8fafc;
 }
 .reply-header {
   display: flex;
@@ -890,7 +967,7 @@ onMounted(() => {
 }
 .reply-title {
   font-weight: 600;
-  color: #0F172A;
+  color: #0f172a;
 }
 
 /* 检索信息 */
@@ -917,19 +994,17 @@ onMounted(() => {
 }
 
 .candidate-card {
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
   padding: 16px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .candidate-card:hover {
-  
-  border-color: #CBD5E1;
+  border-color: #cbd5e1;
 }
 .candidate-card.selected {
-  border-color: #1677FF;
-  background: #F8FAFC;
-  
+  border-color: #1677ff;
+  background: #f8fafc;
 }
 
 .card-header {
@@ -940,12 +1015,12 @@ onMounted(() => {
 }
 .card-rank {
   font-weight: 600;
-  color: #1677FF;
+  color: #1677ff;
 }
 .card-category {
   font-size: 12px;
   color: #bfbfbf;
-  background: #F8FAFC;
+  background: #f8fafc;
   padding: 2px 8px;
   border-radius: 4px;
 }
@@ -959,7 +1034,7 @@ onMounted(() => {
 .score-track {
   flex: 1;
   height: 6px;
-  background: #E2E8F0;
+  background: #e2e8f0;
   border-radius: 3px;
   overflow: hidden;
 }
@@ -976,7 +1051,7 @@ onMounted(() => {
 }
 .card-question {
   font-weight: 500;
-  color: #0F172A;
+  color: #0f172a;
   margin-bottom: 8px;
 }
 .card-answer {
@@ -986,6 +1061,6 @@ onMounted(() => {
   padding: 12px;
   border-radius: 6px;
   white-space: pre-wrap;
-  border: 1px solid #F1F5F9;
+  border: 1px solid #f1f5f9;
 }
 </style>

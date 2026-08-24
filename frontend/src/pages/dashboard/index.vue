@@ -1,5 +1,5 @@
 <template>
-  <div style="padding:16px">
+  <div style="padding: 16px">
     <!-- 欢迎横幅 -->
     <div class="welcome-banner">
       <div class="welcome-left">
@@ -32,7 +32,11 @@
           :icon="Message"
           icon-color="#1677FF"
           :sparkline="trendData.qa_new_counts"
-          :to="myPermissions.includes('/workbench/admin/knowledge') ? '/workbench/admin/knowledge' : undefined"
+          :to="
+            myPermissions.includes('/workbench/admin/knowledge')
+              ? '/workbench/admin/knowledge'
+              : undefined
+          "
         />
       </el-col>
       <el-col :span="6">
@@ -44,7 +48,11 @@
           icon-color="#1677FF"
           :growth="growthRate(stats.qa_active, stats.qa_active - trendSummary.qaNew)"
           :progress="{ current: stats.qa_active, total: stats.qa_total }"
-          :to="myPermissions.includes('/workbench/admin/knowledge') ? '/workbench/admin/knowledge' : undefined"
+          :to="
+            myPermissions.includes('/workbench/admin/knowledge')
+              ? '/workbench/admin/knowledge'
+              : undefined
+          "
         />
       </el-col>
       <el-col :span="6">
@@ -55,7 +63,11 @@
           :icon="User"
           icon-color="#1677FF"
           :alert="stats.qa_deprecated > 10"
-          :to="myPermissions.includes('/workbench/admin/auditList') ? '/workbench/admin/auditList' : undefined"
+          :to="
+            myPermissions.includes('/workbench/admin/auditList')
+              ? '/workbench/admin/auditList'
+              : undefined
+          "
         />
       </el-col>
       <el-col :span="6">
@@ -76,13 +88,13 @@
       <el-col :span="12">
         <el-card class="chart-card">
           <template #header>每日咨询趋势</template>
-          <div ref="lineRef" style="height:300px"></div>
+          <div ref="lineRef" style="height: 300px"></div>
         </el-card>
       </el-col>
       <el-col :span="12">
         <el-card class="chart-card">
           <template #header>问题分类占比</template>
-          <div ref="pieRef" style="height:300px"></div>
+          <div ref="pieRef" style="height: 300px"></div>
         </el-card>
       </el-col>
     </el-row>
@@ -91,17 +103,16 @@
       <el-col :span="12">
         <el-card class="chart-card">
           <template #header>工单状态分布</template>
-          <div ref="woStatusRef" style="height:280px"></div>
+          <div ref="woStatusRef" style="height: 280px"></div>
         </el-card>
       </el-col>
       <el-col :span="12">
         <el-card class="chart-card">
           <template #header>知识库状态分布</template>
-          <div ref="qaStatusRef" style="height:280px"></div>
+          <div ref="qaStatusRef" style="height: 280px"></div>
         </el-card>
       </el-col>
     </el-row>
-
   </div>
 </template>
 
@@ -151,7 +162,7 @@ const stats = ref<StatsResponse>({
   work_order_total: 0,
   work_order_submitted: 0,
   work_order_processed: 0,
-  category_stats: {}
+  category_stats: {},
 })
 
 const trendData = ref<TrendResponse>({ dates: [], work_order_counts: [], qa_new_counts: [] })
@@ -187,38 +198,54 @@ const renderLine = () => {
         data: trendData.value.work_order_counts,
         smooth: true,
         areaStyle: { opacity: 0.1 },
-        itemStyle: { color: '#1677FF' }
+        itemStyle: { color: '#1677FF' },
       },
       {
         type: 'line',
         name: 'QA新增',
         data: trendData.value.qa_new_counts,
         smooth: true,
-        itemStyle: { color: '#94A3B8' }
-      }
+        itemStyle: { color: '#94A3B8' },
+      },
     ],
-    noDataLoadingOption: { text: empty ? '暂无数据' : '' }
+    noDataLoadingOption: { text: empty ? '暂无数据' : '' },
   })
 }
 
-const BLUE_PALETTE = ['#1677FF', '#4096FF', '#69B1FF', '#91CAFF', '#BAE0FF', '#64748B', '#94A3B8', '#CBD5E1']
+const BLUE_PALETTE = [
+  '#1677FF',
+  '#4096FF',
+  '#69B1FF',
+  '#91CAFF',
+  '#BAE0FF',
+  '#64748B',
+  '#94A3B8',
+  '#CBD5E1',
+]
 
 const renderPie = () => {
   if (!pieRef.value) return
   if (!pieChart) pieChart = echarts.init(pieRef.value)
   const pieData = Object.entries(stats.value.category_stats).map(([name, value], i) => ({
-    name, value, itemStyle: { color: BLUE_PALETTE[i % BLUE_PALETTE.length] }
+    name,
+    value,
+    itemStyle: { color: BLUE_PALETTE[i % BLUE_PALETTE.length] },
   }))
   pieChart.setOption({
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
     legend: { bottom: 0, type: 'scroll' },
-    series: [{
-      type: 'pie',
-      radius: ['35%', '60%'],
-      center: ['50%', '45%'],
-      data: pieData.length > 0 ? pieData : [{ name: '暂无数据', value: 1, itemStyle: { color: '#ccc' } }],
-      label: { formatter: '{b}\n{d}%' }
-    }]
+    series: [
+      {
+        type: 'pie',
+        radius: ['35%', '60%'],
+        center: ['50%', '45%'],
+        data:
+          pieData.length > 0
+            ? pieData
+            : [{ name: '暂无数据', value: 1, itemStyle: { color: '#ccc' } }],
+        label: { formatter: '{b}\n{d}%' },
+      },
+    ],
   })
 }
 
@@ -229,18 +256,25 @@ const renderWoStatus = () => {
   const data = [
     { name: '待处理', value: s.work_order_submitted, itemStyle: { color: '#4096FF' } },
     { name: '已处理', value: s.work_order_processed, itemStyle: { color: '#1677FF' } },
-    { name: '其他', value: Math.max(0, s.work_order_total - s.work_order_submitted - s.work_order_processed), itemStyle: { color: '#bfbfbf' } }
-  ].filter(d => d.value > 0)
+    {
+      name: '其他',
+      value: Math.max(0, s.work_order_total - s.work_order_submitted - s.work_order_processed),
+      itemStyle: { color: '#bfbfbf' },
+    },
+  ].filter((d) => d.value > 0)
   woStatusChart.setOption({
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
     legend: { bottom: 0 },
-    series: [{
-      type: 'pie',
-      radius: ['35%', '60%'],
-      center: ['50%', '45%'],
-      data: data.length > 0 ? data : [{ name: '暂无数据', value: 1, itemStyle: { color: '#ccc' } }],
-      label: { formatter: '{b}\n{d}%' }
-    }]
+    series: [
+      {
+        type: 'pie',
+        radius: ['35%', '60%'],
+        center: ['50%', '45%'],
+        data:
+          data.length > 0 ? data : [{ name: '暂无数据', value: 1, itemStyle: { color: '#ccc' } }],
+        label: { formatter: '{b}\n{d}%' },
+      },
+    ],
   })
 }
 
@@ -251,18 +285,21 @@ const renderQaStatus = () => {
   const data = [
     { name: '已激活', value: s.qa_active, itemStyle: { color: '#1677FF' } },
     { name: '待审核', value: s.qa_deprecated, itemStyle: { color: '#4096FF' } },
-    { name: '已归档', value: s.qa_archived, itemStyle: { color: '#bfbfbf' } }
-  ].filter(d => d.value > 0)
+    { name: '已归档', value: s.qa_archived, itemStyle: { color: '#bfbfbf' } },
+  ].filter((d) => d.value > 0)
   qaStatusChart.setOption({
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
     legend: { bottom: 0 },
-    series: [{
-      type: 'pie',
-      radius: ['35%', '60%'],
-      center: ['50%', '45%'],
-      data: data.length > 0 ? data : [{ name: '暂无数据', value: 1, itemStyle: { color: '#ccc' } }],
-      label: { formatter: '{b}\n{d}%' }
-    }]
+    series: [
+      {
+        type: 'pie',
+        radius: ['35%', '60%'],
+        center: ['50%', '45%'],
+        data:
+          data.length > 0 ? data : [{ name: '暂无数据', value: 1, itemStyle: { color: '#ccc' } }],
+        label: { formatter: '{b}\n{d}%' },
+      },
+    ],
   })
 }
 
@@ -284,7 +321,7 @@ const loadTrend = async () => {
     trendData.value = res
     trendSummary.value = {
       qaNew: res.qa_new_counts.reduce((a, b) => a + b, 0),
-      woNew: res.work_order_counts.reduce((a, b) => a + b, 0)
+      woNew: res.work_order_counts.reduce((a, b) => a + b, 0),
     }
   } catch {
     trendData.value = { dates: [], work_order_counts: [], qa_new_counts: [] }
@@ -299,7 +336,9 @@ const loadAll = () => {
 }
 
 onMounted(async () => {
-  try { myPermissions.value = await getMyPermissions() } catch {}
+  try {
+    myPermissions.value = await getMyPermissions()
+  } catch {}
   loadAll()
   updateClock()
   clockTimer = setInterval(updateClock, 1000)
@@ -316,14 +355,14 @@ onUnmounted(() => {
 
 <style scoped>
 .welcome-banner {
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 8px;
   padding: 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
 }
 .welcome-left {
   display: flex;
@@ -334,12 +373,12 @@ onUnmounted(() => {
   font-size: 18px;
   font-weight: 700;
   margin: 0;
-  color: #0F172A;
+  color: #0f172a;
   letter-spacing: -0.02em;
 }
 .welcome-desc {
   font-size: 13px;
-  color: #64748B;
+  color: #64748b;
   margin: 0;
 }
 .welcome-right {
@@ -350,11 +389,11 @@ onUnmounted(() => {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
-  color: #0F172A;
+  color: #0f172a;
 }
 .date-display {
   font-size: 12px;
-  color: #94A3B8;
+  color: #94a3b8;
   margin-top: 2px;
 }
 .dashboard-header {

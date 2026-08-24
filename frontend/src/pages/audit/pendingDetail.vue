@@ -7,28 +7,31 @@
       </div>
 
       <!-- 详情展示区域 -->
-      <el-descriptions border :column="2" style="margin: 20px 0;">
+      <el-descriptions border :column="2" style="margin: 20px 0">
         <el-descriptions-item label="知识ID">{{ detailInfo.id }}</el-descriptions-item>
 
         <el-descriptions-item label="分类">
-          {{ detailInfo.category_l1 }}{{ detailInfo.category_l2 ? ' / ' + detailInfo.category_l2 : '' }}
+          {{ detailInfo.category_l1
+          }}{{ detailInfo.category_l2 ? ' / ' + detailInfo.category_l2 : '' }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="提交时间">{{ detailInfo.created_at || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="提交时间">{{
+          detailInfo.created_at || '-'
+        }}</el-descriptions-item>
 
         <el-descriptions-item label="状态">
           <el-tag type="info" size="small">待审核</el-tag>
         </el-descriptions-item>
 
         <el-descriptions-item label="用户问题" :span="2">
-          <div style="white-space: pre-wrap;">{{ detailInfo.question }}</div>
+          <div style="white-space: pre-wrap">{{ detailInfo.question }}</div>
         </el-descriptions-item>
 
         <el-descriptions-item label="标准答案" :span="2">
-          <div v-if="detailInfo.answer" style="white-space: pre-wrap; color: #475569;">
+          <div v-if="detailInfo.answer" style="white-space: pre-wrap; color: #475569">
             {{ detailInfo.answer }}
           </div>
-          <span v-else style="color: #bfbfbf;">暂无标准答案，请在下方备注填写</span>
+          <span v-else style="color: #bfbfbf">暂无标准答案，请在下方备注填写</span>
         </el-descriptions-item>
 
         <el-descriptions-item label="内部流程" :span="2">
@@ -38,12 +41,12 @@
         <el-descriptions-item label="反馈部门" :span="2">
           {{ detailInfo.feedback_dept || '-' }}
         </el-descriptions-item>
-        
+
         <el-descriptions-item label="处理备注" :span="2">
-          <el-input 
-            v-model="remark" 
-            type="textarea" 
-            :rows="4" 
+          <el-input
+            v-model="remark"
+            type="textarea"
+            :rows="4"
             placeholder="请填写入库或驳回的详细备注..."
           />
         </el-descriptions-item>
@@ -82,7 +85,7 @@ const detailInfo = ref<QADetailResponse>({
   internal_process: '',
   feedback_dept: '',
   status: '',
-  created_at: ''
+  created_at: '',
 })
 
 onMounted(async () => {
@@ -135,13 +138,13 @@ const handleAudit = async (action: 'pass' | 'reject') => {
 .header-bar h3 {
   margin: 0;
   font-size: 18px;
-  color: #0F172A;
+  color: #0f172a;
 }
 
 .btn-group {
   margin-top: 30px;
-  text-align: right; 
+  text-align: right;
   padding-top: 20px;
-  border-top: 1px solid #E2E8F0;
+  border-top: 1px solid #e2e8f0;
 }
 </style>

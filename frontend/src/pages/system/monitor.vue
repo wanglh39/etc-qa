@@ -19,7 +19,7 @@
     <div class="kpi-row">
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: #1677FF">
+          <div class="kpi-icon" style="background: #1677ff">
             <el-icon :size="24"><DataLine /></el-icon>
           </div>
           <div class="kpi-info">
@@ -30,7 +30,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: #1677FF">
+          <div class="kpi-icon" style="background: #1677ff">
             <el-icon :size="24"><WarningFilled /></el-icon>
           </div>
           <div class="kpi-info">
@@ -41,7 +41,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: #1677FF">
+          <div class="kpi-icon" style="background: #1677ff">
             <el-icon :size="24"><TrendCharts /></el-icon>
           </div>
           <div class="kpi-info">
@@ -52,7 +52,7 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon" style="background: #1677FF">
+          <div class="kpi-icon" style="background: #1677ff">
             <el-icon :size="24"><Timer /></el-icon>
           </div>
           <div class="kpi-info">
@@ -94,12 +94,23 @@
             <el-table-column prop="total" label="总调用" width="80" align="center" />
             <el-table-column prop="failures" label="失败数" width="80" align="center">
               <template #default="{ row }">
-                <span :style="{ color: row.failures > 0 ? '#64748B' : '#bfbfbf' }">{{ row.failures }}</span>
+                <span :style="{ color: row.failures > 0 ? '#64748B' : '#bfbfbf' }">{{
+                  row.failures
+                }}</span>
               </template>
             </el-table-column>
             <el-table-column label="失败率" width="80" align="center">
               <template #default="{ row }">
-                <span :style="{ color: row.failure_rate > 10 ? '#64748B' : row.failure_rate > 0 ? '#475569' : '#1677FF' }">
+                <span
+                  :style="{
+                    color:
+                      row.failure_rate > 10
+                        ? '#64748B'
+                        : row.failure_rate > 0
+                          ? '#475569'
+                          : '#1677FF',
+                  }"
+                >
                   {{ row.failure_rate.toFixed(1) }}%
                 </span>
               </template>
@@ -160,7 +171,7 @@ const metricNameMap: Record<string, string> = {
   milvus_search: 'Milvus搜索',
   llm_call: 'LLM调用',
   mysql_query: 'MySQL查询',
-  scheduler_task: '定时任务'
+  scheduler_task: '定时任务',
 }
 
 const loadData = async () => {
@@ -168,7 +179,10 @@ const loadData = async () => {
   try {
     const res = await getAlertMetrics()
     const rows: MetricRow[] = []
-    let tc = 0, tf = 0, hf = 0, hl = 0
+    let tc = 0,
+      tf = 0,
+      hf = 0,
+      hl = 0
 
     for (const [key, stats] of Object.entries(res)) {
       const s = stats as any
@@ -177,8 +191,12 @@ const loadData = async () => {
       const failures = s.failures || 0
       const failureRate = total > 0 ? (failures / total) * 100 : 0
       rows.push({
-        name, total, failures, failure_rate: failureRate,
-        p95_latency: s.p95_latency ?? null, avg_latency: s.avg_latency ?? null
+        name,
+        total,
+        failures,
+        failure_rate: failureRate,
+        p95_latency: s.p95_latency ?? null,
+        avg_latency: s.avg_latency ?? null,
       })
       tc += total
       tf += failures
@@ -202,25 +220,32 @@ const loadData = async () => {
 }
 
 const drawCharts = (rows: MetricRow[]) => {
-  const names = rows.map(r => r.name)
-  const failureRates = rows.map(r => Number(r.failure_rate.toFixed(1)))
-  const latencies = rows.map(r => r.p95_latency != null ? Math.round(r.p95_latency) : 0)
-  const totals = rows.map(r => r.total)
+  const names = rows.map((r) => r.name)
+  const failureRates = rows.map((r) => Number(r.failure_rate.toFixed(1)))
+  const latencies = rows.map((r) => (r.p95_latency != null ? Math.round(r.p95_latency) : 0))
+  const totals = rows.map((r) => r.total)
 
   if (failureChart) {
     failureChart.setOption({
       tooltip: { trigger: 'axis' },
       xAxis: { type: 'category', data: names },
       yAxis: { type: 'value', name: '%' },
-      series: [{
-        type: 'bar', data: failureRates,
-        itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#64748B' }, { offset: 1, color: '#91CAFF' }
-          ])
+      series: [
+        {
+          type: 'bar',
+          data: failureRates,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#64748B' },
+              { offset: 1, color: '#91CAFF' },
+            ]),
+          },
+          markLine: {
+            data: [{ yAxis: 10, name: '阈值' }],
+            lineStyle: { color: '#64748B', type: 'dashed' },
+          },
         },
-        markLine: { data: [{ yAxis: 10, name: '阈值' }], lineStyle: { color: '#64748B', type: 'dashed' } }
-      }]
+      ],
     })
   }
 
@@ -229,15 +254,22 @@ const drawCharts = (rows: MetricRow[]) => {
       tooltip: { trigger: 'axis' },
       xAxis: { type: 'category', data: names },
       yAxis: { type: 'value', name: 'ms' },
-      series: [{
-        type: 'bar', data: latencies,
-        itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#1677FF' }, { offset: 1, color: '#91CAFF' }
-          ])
+      series: [
+        {
+          type: 'bar',
+          data: latencies,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#1677FF' },
+              { offset: 1, color: '#91CAFF' },
+            ]),
+          },
+          markLine: {
+            data: [{ yAxis: 3000, name: '阈值' }],
+            lineStyle: { color: '#4096FF', type: 'dashed' },
+          },
         },
-        markLine: { data: [{ yAxis: 3000, name: '阈值' }], lineStyle: { color: '#4096FF', type: 'dashed' } }
-      }]
+      ],
     })
   }
 
@@ -246,10 +278,17 @@ const drawCharts = (rows: MetricRow[]) => {
     distributionChart.setOption({
       tooltip: { trigger: 'item' },
       legend: { bottom: 0 },
-      series: [{
-        type: 'pie', radius: ['40%', '70%'],
-        data: rows.map((r, i) => ({ name: r.name, value: r.total, itemStyle: { color: distPalette[i % distPalette.length] } }))
-      }]
+      series: [
+        {
+          type: 'pie',
+          radius: ['40%', '70%'],
+          data: rows.map((r, i) => ({
+            name: r.name,
+            value: r.total,
+            itemStyle: { color: distPalette[i % distPalette.length] },
+          })),
+        },
+      ],
     })
   }
 }
@@ -289,7 +328,7 @@ onBeforeUnmount(() => {
   min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-  background-color: #F8FAFC;
+  background-color: #f8fafc;
 }
 
 .header-bar {
@@ -310,8 +349,13 @@ onBeforeUnmount(() => {
   gap: 16px;
   margin-bottom: 20px;
 }
-.kpi-card { transition: transform 0.2s; height: 100%; }
-.kpi-card:hover { border-color: #CBD5E1 !important; }
+.kpi-card {
+  transition: transform 0.2s;
+  height: 100%;
+}
+.kpi-card:hover {
+  border-color: #cbd5e1 !important;
+}
 .kpi-inner {
   display: flex;
   align-items: center;
@@ -329,7 +373,7 @@ onBeforeUnmount(() => {
 .kpi-num {
   font-size: 24px;
   font-weight: 700;
-  color: #0F172A;
+  color: #0f172a;
   line-height: 1.2;
 }
 .kpi-label {

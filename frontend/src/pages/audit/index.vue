@@ -16,12 +16,7 @@
             <div class="card-header">用户列表</div>
           </template>
           <el-scrollbar height="100%">
-            <div
-              v-for="i in 20"
-              :key="i"
-              class="user-item"
-              :class="{ active: i === 2 }"
-            >
+            <div v-for="i in 20" :key="i" class="user-item" :class="{ active: i === 2 }">
               U000{{ i }}
             </div>
           </el-scrollbar>
@@ -54,8 +49,7 @@
   </PageLayout>
 </template>
 
-<script setup lang="ts">
-</script>
+<script setup lang="ts"></script>
 
 <style scoped>
 /* 1.最外层页面强制高度，禁止父容器滚动 */
@@ -113,8 +107,8 @@
   border-bottom: 1px solid #eee;
 }
 .user-item.active {
-  background: #E6F4FF;
-  color: #1677FF;
+  background: #e6f4ff;
+  color: #1677ff;
 }
 
 /* 右侧面板 */

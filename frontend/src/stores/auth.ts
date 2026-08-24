@@ -13,12 +13,18 @@ export const useAuthStore = defineStore('auth', () => {
 
   const roleText = computed(() => {
     switch (role.value) {
-      case 'admin': return '业务管理员'
-      case 'superadmin': return '超级管理员'
-      case 'ops': return '运维工程师'
-      case 'service': return '客服'
-      case 'dept': return '部门处理员'
-      default: return role.value || '未知账号'
+      case 'admin':
+        return '业务管理员'
+      case 'superadmin':
+        return '超级管理员'
+      case 'ops':
+        return '运维工程师'
+      case 'service':
+        return '客服'
+      case 'dept':
+        return '部门处理员'
+      default:
+        return role.value || '未知账号'
     }
   })
 
@@ -33,7 +39,12 @@ export const useAuthStore = defineStore('auth', () => {
     if (u) sessionStorage.setItem('userName', u)
   }
 
-  function startImpersonation(newToken: string, newRole: string, newDept: string, newUsername: string) {
+  function startImpersonation(
+    newToken: string,
+    newRole: string,
+    newDept: string,
+    newUsername: string
+  ) {
     impersonatorToken.value = token.value
     sessionStorage.setItem('impersonator_token', token.value)
     sessionStorage.setItem('impersonator_role', role.value)

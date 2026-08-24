@@ -41,7 +41,9 @@
             <span class="ti-label">下次执行:</span>
             <span class="ti-value" v-if="job.next_run_time">
               <el-icon><Clock /></el-icon> {{ formatTime(job.next_run_time) }}
-              <el-tag size="small" type="info" style="margin-left:8px">{{ countdown(job.next_run_time) }}</el-tag>
+              <el-tag size="small" type="info" style="margin-left: 8px">{{
+                countdown(job.next_run_time)
+              }}</el-tag>
             </span>
             <span class="ti-value" v-else>-</span>
           </div>
@@ -51,16 +53,29 @@
             <span class="sr-label">成功率:</span>
             <el-progress
               :percentage="getTaskStats(job.id)?.success_rate ?? 0"
-              :color="(getTaskStats(job.id)?.success_rate ?? 0) > 90 ? '#1677FF' : (getTaskStats(job.id)?.success_rate ?? 0) > 70 ? '#475569' : '#64748B'"
+              :color="
+                (getTaskStats(job.id)?.success_rate ?? 0) > 90
+                  ? '#1677FF'
+                  : (getTaskStats(job.id)?.success_rate ?? 0) > 70
+                    ? '#475569'
+                    : '#64748B'
+              "
               :stroke-width="8"
-              style="flex:1; margin: 0 8px"
+              style="flex: 1; margin: 0 8px"
             />
-            <span class="sr-count">{{ getTaskStats(job.id)?.success ?? 0 }}/{{ getTaskStats(job.id)?.total ?? 0 }}</span>
+            <span class="sr-count"
+              >{{ getTaskStats(job.id)?.success ?? 0 }}/{{ getTaskStats(job.id)?.total ?? 0 }}</span
+            >
           </div>
         </div>
 
         <div class="task-actions">
-          <el-button type="info" size="small" :loading="triggering === job.id" @click="handleTrigger(job.id)">
+          <el-button
+            type="info"
+            size="small"
+            :loading="triggering === job.id"
+            @click="handleTrigger(job.id)"
+          >
             <el-icon><Lightning /></el-icon> 手动触发
           </el-button>
           <el-button type="primary" size="small" @click="openEditDialog(job.id)">
@@ -88,7 +103,9 @@
         </el-table-column>
         <el-table-column label="结果" width="100" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.result === 'success' ? 'primary' : 'info'" effect="dark">{{ row.result }}</el-tag>
+            <el-tag :type="row.result === 'success' ? 'primary' : 'info'" effect="dark">{{
+              row.result
+            }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="created_at" label="执行时间" width="180" />
@@ -133,7 +150,13 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  VideoPlay, VideoPause, Refresh, Setting, Clock, Edit, Lightning
+  VideoPlay,
+  VideoPause,
+  Refresh,
+  Setting,
+  Clock,
+  Edit,
+  Lightning,
 } from '@element-plus/icons-vue'
 import {
   getSchedulerStatus,
@@ -141,7 +164,7 @@ import {
   updateSchedulerConfig,
   getSchedulerLogs,
   type SchedulerStatus,
-  type SchedulerLogItem
+  type SchedulerLogItem,
 } from '@/api/system'
 
 const status = ref<SchedulerStatus>({ running: false, jobs: [], task_stats: {} })
@@ -165,7 +188,7 @@ const now = ref(Date.now())
 const jobNameMap: Record<string, string> = {
   sync_and_ingest: '工单同步入库',
   cleanup: '过期数据清理',
-  alert_check: '告警规则检查'
+  alert_check: '告警规则检查',
 }
 
 const jobDisplayName = (id: string) => jobNameMap[id] || id
@@ -189,10 +212,14 @@ const getTaskStats = (jobId: string): TaskStat | null => {
 }
 
 const overallStats = computed(() => {
-  let success = 0, total = 0
+  let success = 0,
+    total = 0
   for (const job of status.value.jobs) {
     const st = getTaskStats(job.id)
-    if (st) { success += st.success; total += st.total }
+    if (st) {
+      success += st.success
+      total += st.total
+    }
   }
   return { success, total, rate: total > 0 ? Math.round((success / total) * 100) : 100 }
 })
@@ -202,8 +229,15 @@ const successRate = computed(() => overallStats.value.rate)
 const formatTime = (iso: string) => {
   try {
     const d = new Date(iso)
-    return d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
-  } catch { return iso }
+    return d.toLocaleString('zh-CN', {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  } catch {
+    return iso
+  }
 }
 
 const countdown = (iso: string) => {
@@ -231,13 +265,20 @@ const loadStatus = async () => {
 
 const handleTrigger = async (jobId: string) => {
   try {
-    await ElMessageBox.confirm(`确认手动触发任务 "${jobDisplayName(jobId)}"？`, '提示', { type: 'info' })
-  } catch { return }
+    await ElMessageBox.confirm(`确认手动触发任务 "${jobDisplayName(jobId)}"？`, '提示', {
+      type: 'info',
+    })
+  } catch {
+    return
+  }
   triggering.value = jobId
   try {
     await triggerSchedulerJob(jobId)
     ElMessage.success('任务已触发')
-    setTimeout(() => { loadStatus(); loadLogs() }, 3000)
+    setTimeout(() => {
+      loadStatus()
+      loadLogs()
+    }, 3000)
   } catch {
     ElMessage.error('触发失败')
   } finally {
@@ -272,7 +313,9 @@ const formatStats = (stats: string) => {
   try {
     const obj = JSON.parse(stats)
     return JSON.stringify(obj)
-  } catch { return stats }
+  } catch {
+    return stats
+  }
 }
 
 const loadLogs = async () => {
@@ -288,7 +331,9 @@ const loadLogs = async () => {
 onMounted(() => {
   loadStatus()
   loadLogs()
-  countdownTimer = setInterval(() => { now.value = Date.now() }, 1000)
+  countdownTimer = setInterval(() => {
+    now.value = Date.now()
+  }, 1000)
 })
 
 onBeforeUnmount(() => {
@@ -302,7 +347,7 @@ onBeforeUnmount(() => {
   min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-  background-color: #F8FAFC;
+  background-color: #f8fafc;
 }
 
 .status-banner {
@@ -313,10 +358,16 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   margin-bottom: 20px;
   color: #fff;
-  border-color: #CBD5E1 !important;
+  border-color: #cbd5e1 !important;
 }
-.banner-running { background: #F1F5F9; color: #1677FF; }
-.banner-stopped { background: #F1F5F9; color: #1677FF; }
+.banner-running {
+  background: #f1f5f9;
+  color: #1677ff;
+}
+.banner-stopped {
+  background: #f1f5f9;
+  color: #1677ff;
+}
 
 .banner-left {
   display: flex;
@@ -353,7 +404,7 @@ onBeforeUnmount(() => {
   transition: transform 0.2s;
 }
 .task-card:hover {
-  border-color: #CBD5E1;
+  border-color: #cbd5e1;
 }
 
 .task-header {
@@ -365,7 +416,7 @@ onBeforeUnmount(() => {
 .task-name {
   font-size: 16px;
   font-weight: 600;
-  color: #0F172A;
+  color: #0f172a;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -385,7 +436,7 @@ onBeforeUnmount(() => {
   width: 70px;
 }
 .ti-value {
-  color: #0F172A;
+  color: #0f172a;
   display: flex;
   align-items: center;
   gap: 4px;

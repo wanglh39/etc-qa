@@ -23,7 +23,7 @@
     </el-card>
 
     <!-- 工单表格 -->
-    <el-table border :data="tableData" style="width:100%;">
+    <el-table border :data="tableData" style="width: 100%">
       <el-table-column label="工单ID" prop="id" width="80"></el-table-column>
       <el-table-column label="外部ID" prop="external_id" min-width="140">
         <template #default="{ row }">
@@ -61,13 +61,13 @@ import { ElMessage } from 'element-plus'
 import { getWorkOrders, type WorkOrderListItem } from '@/api/audit'
 
 const searchForm = ref({
-  status: ''
+  status: '',
 })
 
 const pageInfo = ref({
   pageNum: 1,
   pageSize: 10,
-  total: 0
+  total: 0,
 })
 
 const tableData = ref<WorkOrderListItem[]>([])
@@ -77,7 +77,7 @@ const getTableData = async () => {
     const res = await getWorkOrders({
       page: pageInfo.value.pageNum,
       page_size: pageInfo.value.pageSize,
-      status: searchForm.value.status || undefined
+      status: searchForm.value.status || undefined,
     })
     tableData.value = res.items
     pageInfo.value.total = res.total
@@ -107,7 +107,7 @@ const statusType = (s: string) => {
   const map: Record<string, string> = {
     submitted: 'info',
     answered: 'info',
-    processed: 'primary'
+    processed: 'primary',
   }
   return map[s] || ''
 }
@@ -116,7 +116,7 @@ const statusText = (s: string) => {
   const map: Record<string, string> = {
     submitted: '已提交',
     answered: '已回复',
-    processed: '已处理'
+    processed: '已处理',
   }
   return map[s] || s
 }

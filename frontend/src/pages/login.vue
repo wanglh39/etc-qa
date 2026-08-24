@@ -67,12 +67,12 @@ const loading = ref(false)
 
 const loginForm = reactive({
   username: '',
-  password: ''
+  password: '',
 })
 
 const loginRules: FormRules = {
   username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 }
 
 const handleLogin = async () => {
@@ -89,7 +89,7 @@ const handleLogin = async () => {
   try {
     const res = await loginApi({
       username: loginForm.username,
-      password: loginForm.password
+      password: loginForm.password,
     })
 
     authStore.setAuth(res.access_token, res.role, res.dept, loginForm.username)
@@ -120,7 +120,7 @@ const handleLogin = async () => {
   justify-content: center;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 }
 
 .glow {
@@ -131,7 +131,7 @@ const handleLogin = async () => {
 .glow-1 {
   width: 500px;
   height: 500px;
-  background: #1677FF;
+  background: #1677ff;
   top: -150px;
   left: -100px;
   opacity: 0.4;
@@ -139,7 +139,7 @@ const handleLogin = async () => {
 .glow-2 {
   width: 400px;
   height: 400px;
-  background: #3B82F6;
+  background: #3b82f6;
   bottom: -100px;
   right: -80px;
   opacity: 0.3;
@@ -147,7 +147,7 @@ const handleLogin = async () => {
 .glow-3 {
   width: 300px;
   height: 300px;
-  background: #0958D9;
+  background: #0958d9;
   top: 40%;
   left: 15%;
   opacity: 0.25;
@@ -162,7 +162,7 @@ const handleLogin = async () => {
 .login-panel {
   width: 820px;
   height: 100vh;
-  background: #F8FAFC;
+  background: #f8fafc;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -173,22 +173,24 @@ const handleLogin = async () => {
 .login-form-box {
   width: 100%;
   max-width: 380px;
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   padding: 40px 36px;
-  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-shadow:
+    0 4px 24px rgba(15, 23, 42, 0.08),
+    0 1px 2px rgba(15, 23, 42, 0.04);
 }
 .form-title {
   font-size: 24px;
   font-weight: 700;
-  color: #0F172A;
+  color: #0f172a;
   margin: 0 0 6px;
   letter-spacing: -0.02em;
 }
 .form-sub {
   font-size: 14px;
-  color: #64748B;
+  color: #64748b;
   margin: 0 0 32px;
 }
 

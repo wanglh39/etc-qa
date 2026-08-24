@@ -45,21 +45,34 @@
         <div class="toolbar">
           <h3>待审核新问题列表</h3>
           <div class="toolbar-right">
-            <el-select v-model="filterCategory" placeholder="全部分类" clearable style="width: 180px" @change="onFilterChange">
+            <el-select
+              v-model="filterCategory"
+              placeholder="全部分类"
+              clearable
+              style="width: 180px"
+              @change="onFilterChange"
+            >
               <el-option v-for="c in categoryOptions" :key="c" :label="c" :value="c" />
             </el-select>
             <el-button type="primary" @click="batchApprove">批量入库</el-button>
             <el-button type="primary" @click="batchReject">批量驳回</el-button>
           </div>
         </div>
-        <el-table border :data="currentPageList" @selection-change="handleSelectionChange" v-loading="loading">
+        <el-table
+          border
+          :data="currentPageList"
+          @selection-change="handleSelectionChange"
+          v-loading="loading"
+        >
           <el-table-column type="selection" width="55" />
           <el-table-column prop="id" label="知识ID" width="80" />
           <el-table-column prop="question" label="用户问题" min-width="260" />
           <el-table-column prop="category_l1" label="分类" width="120">
             <template #default="{ row }">
               <el-tag size="small">{{ row.category_l1 }}</el-tag>
-              <span v-if="row.category_l2" style="color: #bfbfbf; margin-left: 4px">/ {{ row.category_l2 }}</span>
+              <span v-if="row.category_l2" style="color: #bfbfbf; margin-left: 4px"
+                >/ {{ row.category_l2 }}</span
+              >
             </template>
           </el-table-column>
           <el-table-column prop="created_at" label="提交时间" width="170">
@@ -110,12 +123,16 @@ const filterCategory = ref('')
 const currentPageList = computed(() => tableAllData.value)
 const categoryCount = computed(() => {
   const set = new Set<string>()
-  tableAllData.value.forEach((r) => { if (r.category_l1) set.add(r.category_l1) })
+  tableAllData.value.forEach((r) => {
+    if (r.category_l1) set.add(r.category_l1)
+  })
   return set.size
 })
 const categoryOptions = computed(() => {
   const set = new Set<string>()
-  tableAllData.value.forEach((r) => { if (r.category_l1) set.add(r.category_l1) })
+  tableAllData.value.forEach((r) => {
+    if (r.category_l1) set.add(r.category_l1)
+  })
   return Array.from(set).sort()
 })
 
@@ -126,7 +143,7 @@ const loadData = async () => {
       page: page.value,
       page_size: pageSize.value,
       status: 'deprecated',
-      category_l1: filterCategory.value || undefined
+      category_l1: filterCategory.value || undefined,
     })
     tableAllData.value = res.items
     total.value = res.total
@@ -229,11 +246,11 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 16px;
-  
+
   transition: transform 0.2s;
 }
 .kpi-card:hover {
-  border-color: #CBD5E1;
+  border-color: #cbd5e1;
 }
 .kpi-icon {
   width: 48px;
@@ -244,12 +261,13 @@ onMounted(() => {
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
-  background: #F1F5F9; color: #1677FF;
+  background: #f1f5f9;
+  color: #1677ff;
 }
 .kpi-value {
   font-size: 24px;
   font-weight: 700;
-  color: #0F172A;
+  color: #0f172a;
 }
 .kpi-label {
   font-size: 13px;

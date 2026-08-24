@@ -11,7 +11,7 @@ export const formatTime = () => {
 // 树形数据扁平化（分类树用）
 export const flattenTree = (tree: any[], key = 'children') => {
   let res: any[] = []
-  tree.forEach(item => {
+  tree.forEach((item) => {
     res.push(item)
     if (item[key] && item[key].length) {
       res = res.concat(flattenTree(item[key], key))

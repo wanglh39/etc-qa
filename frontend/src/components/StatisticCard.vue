@@ -12,7 +12,10 @@
       </span>
     </div>
     <div v-if="progress" class="progress-bar">
-      <div class="progress-fill" :style="{ width: progressPercent + '%', background: alert ? '#64748B' : iconColor }" />
+      <div
+        class="progress-fill"
+        :style="{ width: progressPercent + '%', background: alert ? '#64748B' : iconColor }"
+      />
     </div>
     <div v-if="sparkline && sparkline.length > 1" class="sparkline-wrap">
       <svg :viewBox="`0 0 ${sparkline.length * 8} 20`" class="sparkline" preserveAspectRatio="none">
@@ -40,7 +43,7 @@ const props = defineProps<{
   iconColor?: string
   growth?: number
   to?: string
-  progress?: { current: number, total: number }
+  progress?: { current: number; total: number }
   alert?: boolean
   sparkline?: number[]
 }>()
@@ -79,10 +82,13 @@ const animateCount = (target: number) => {
   requestAnimationFrame(step)
 }
 
-watch(() => props.value, (v) => {
-  if (typeof v === 'number') animateCount(v)
-  else displayValue.value = String(v)
-})
+watch(
+  () => props.value,
+  (v) => {
+    if (typeof v === 'number') animateCount(v)
+    else displayValue.value = String(v)
+  }
+)
 
 onMounted(() => {
   if (typeof props.value === 'number') animateCount(props.value)
@@ -108,10 +114,10 @@ const handleClick = () => {
   cursor: pointer;
 }
 .stat-card.clickable:hover {
-  border-color: #CBD5E1 !important;
+  border-color: #cbd5e1 !important;
 }
 .stat-card.alert {
-  border-color: #64748B !important;
+  border-color: #64748b !important;
 }
 .stat-top {
   display: flex;
@@ -120,13 +126,13 @@ const handleClick = () => {
 }
 .stat-title {
   font-size: 13px;
-  color: #64748B;
+  color: #64748b;
   font-weight: 500;
 }
 .stat-num {
   font-size: 26px;
   font-weight: 700;
-  color: #0F172A;
+  color: #0f172a;
   letter-spacing: -0.02em;
   line-height: 1;
 }
@@ -138,21 +144,21 @@ const handleClick = () => {
 }
 .stat-desc {
   font-size: 12px;
-  color: #94A3B8;
+  color: #94a3b8;
 }
 .stat-growth {
   font-size: 12px;
   font-weight: 600;
 }
 .stat-growth.up {
-  color: #1677FF;
+  color: #1677ff;
 }
 .stat-growth.down {
-  color: #64748B;
+  color: #64748b;
 }
 .progress-bar {
   height: 3px;
-  background: #F1F5F9;
+  background: #f1f5f9;
   border-radius: 2px;
   overflow: hidden;
 }
@@ -170,13 +176,13 @@ const handleClick = () => {
 }
 .click-hint {
   font-size: 11px;
-  color: #94A3B8;
+  color: #94a3b8;
   display: flex;
   align-items: center;
   gap: 2px;
 }
 .stat-card.clickable:hover .click-hint {
-  color: #1677FF;
+  color: #1677ff;
 }
 .arrow {
   transition: transform 0.2s;

@@ -9,7 +9,12 @@
       <el-col :span="8">
         <el-card class="full-height-card">
           <template #header>分类树</template>
-          <el-input v-model="searchKey" placeholder="搜索分类" clearable style="margin-bottom:10px"/>
+          <el-input
+            v-model="searchKey"
+            placeholder="搜索分类"
+            clearable
+            style="margin-bottom: 10px"
+          />
           <el-tree
             :data="categoryTree"
             :props="{ label: 'label', children: 'children' }"
@@ -24,7 +29,7 @@
           <template #header>分类详情</template>
           <el-form label-width="100px">
             <el-form-item label="分类名称">
-              <el-input v-model="form.label" placeholder="请输入分类名称"/>
+              <el-input v-model="form.label" placeholder="请输入分类名称" />
             </el-form-item>
             <el-form-item label="上级分类">
               <el-tree-select
@@ -36,7 +41,12 @@
               />
             </el-form-item>
             <el-form-item label="分类描述">
-              <el-input v-model="form.desc" type="textarea" :rows="3" placeholder="请输入分类描述"/>
+              <el-input
+                v-model="form.desc"
+                type="textarea"
+                :rows="3"
+                placeholder="请输入分类描述"
+              />
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="save">保存</el-button>
@@ -63,7 +73,7 @@ const form = ref<{ id: number | ''; label: string; parentId: number | ''; desc: 
   id: '',
   label: '',
   parentId: '',
-  desc: ''
+  desc: '',
 })
 
 const loadTree = async () => {
@@ -94,7 +104,7 @@ const save = async () => {
   const payload = {
     label: form.value.label,
     parent_id: form.value.parentId || null,
-    description: form.value.desc
+    description: form.value.desc,
   }
   try {
     if (form.value.id) {

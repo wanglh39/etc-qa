@@ -11,9 +11,15 @@
         <el-descriptions-item label="发起客服ID">{{ orderInfo.service_id }}</el-descriptions-item>
         <el-descriptions-item label="客户名称">{{ orderInfo.customer_name }}</el-descriptions-item>
         <el-descriptions-item label="客户手机号">{{ orderInfo.phone }}</el-descriptions-item>
-        <el-descriptions-item label="问题分类">{{ getTypeName(orderInfo.problem_type) }}</el-descriptions-item>
-        <el-descriptions-item label="转交本处理部门">{{ getDeptName(orderInfo.next_dept) }}</el-descriptions-item>
-        <el-descriptions-item label="工单优先级">{{ getPriorityText(orderInfo.priority) }}</el-descriptions-item>
+        <el-descriptions-item label="问题分类">{{
+          getTypeName(orderInfo.problem_type)
+        }}</el-descriptions-item>
+        <el-descriptions-item label="转交本处理部门">{{
+          getDeptName(orderInfo.next_dept)
+        }}</el-descriptions-item>
+        <el-descriptions-item label="工单优先级">{{
+          getPriorityText(orderInfo.priority)
+        }}</el-descriptions-item>
         <el-descriptions-item label="客户原始问题描述" span="2">
           {{ orderInfo.detail_desc }}
         </el-descriptions-item>
@@ -74,17 +80,17 @@ const orderInfo = ref<WorkOrderDetail>({
   next_dept: '',
   priority: '',
   detail_desc: '',
-  handle_remark: ''
+  handle_remark: '',
 })
 
 // 业务部门填写的回复内容
 const handleForm = ref({
-  handleRemark: ''
+  handleRemark: '',
 })
 
 // 回复必填校验
 const handleRules = ref({
-  handleRemark: [{ required: true, message: '请填写本部门处理回复', trigger: 'blur' }]
+  handleRemark: [{ required: true, message: '请填写本部门处理回复', trigger: 'blur' }],
 })
 
 // 页面加载：根据路由id读取客服创建的工单数据
@@ -111,7 +117,7 @@ const completeAndReturn = async () => {
     submitting.value = true
     try {
       await replyWorkOrder(orderInfo.value.id, {
-        handle_remark: handleForm.value.handleRemark
+        handle_remark: handleForm.value.handleRemark,
       })
       ElMessage.success('处理回复提交成功')
       router.push('/crm/list')
@@ -129,7 +135,7 @@ const getTypeName = (val: string) => {
     consult: '产品咨询',
     refund: '售后退换',
     fault: '系统故障',
-    complaint: '投诉建议'
+    complaint: '投诉建议',
   }
   return map[val] || val
 }
@@ -141,7 +147,7 @@ const getDeptName = (val: string) => {
     ops: '技术运维部',
     finance: '财务部',
     market: '市场部',
-    human: '人事部'
+    human: '人事部',
   }
   return map[val] || val
 }
@@ -150,7 +156,7 @@ const getPriorityText = (val: string) => {
   const map: Record<string, string> = {
     low: '低',
     mid: '中等',
-    high: '紧急'
+    high: '紧急',
   }
   return map[val] || val
 }
@@ -159,7 +165,7 @@ const statusType = (s: string) => {
   const map: Record<string, string> = {
     submitted: 'info',
     answered: 'info',
-    processed: 'primary'
+    processed: 'primary',
   }
   return map[s] || ''
 }
@@ -168,7 +174,7 @@ const statusText = (s: string) => {
   const map: Record<string, string> = {
     submitted: '已提交',
     answered: '已回复',
-    processed: '已处理'
+    processed: '已处理',
   }
   return map[s] || s
 }

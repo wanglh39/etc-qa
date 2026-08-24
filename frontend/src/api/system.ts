@@ -14,7 +14,6 @@ export function reloadConfig() {
   return request.post('/config/reload').then((r) => r.data)
 }
 
-
 // ===== 账号管理 =====
 
 export interface UserListItem {
@@ -48,7 +47,12 @@ export interface UserUpdateRequest {
   status?: string
 }
 
-export function getUserList(params: { page?: number; page_size?: number; role?: string; status?: string }) {
+export function getUserList(params: {
+  page?: number
+  page_size?: number
+  role?: string
+  status?: string
+}) {
   return request.get<UserListResponse>('/users', { params }).then((r) => r.data)
 }
 
@@ -61,7 +65,9 @@ export function updateUser(userId: number, data: UserUpdateRequest) {
 }
 
 export function resetPassword(userId: number, newPassword: string) {
-  return request.put(`/users/${userId}/password`, { user_id: userId, new_password: newPassword }).then((r) => r.data)
+  return request
+    .put(`/users/${userId}/password`, { user_id: userId, new_password: newPassword })
+    .then((r) => r.data)
 }
 
 export function deleteUser(userId: number) {
@@ -97,7 +103,9 @@ export function getRoleList() {
 }
 
 export function getMyPermissions() {
-  return request.get<{ permissions: string[] }>('/roles/permissions').then((r) => r.data.permissions)
+  return request
+    .get<{ permissions: string[] }>('/roles/permissions')
+    .then((r) => r.data.permissions)
 }
 
 export function createRole(data: RoleCreateRequest) {
@@ -132,7 +140,12 @@ export interface OperationLogListResponse {
   page_size: number
 }
 
-export function getOperationList(params: { page?: number; page_size?: number; operator?: string; action?: string }) {
+export function getOperationList(params: {
+  page?: number
+  page_size?: number
+  operator?: string
+  action?: string
+}) {
   return request.get<OperationLogListResponse>('/operations', { params }).then((r) => r.data)
 }
 
@@ -204,7 +217,12 @@ export interface AlertListResponse {
   page_size: number
 }
 
-export function getAlertList(params: { page?: number; page_size?: number; status?: string; severity?: string }) {
+export function getAlertList(params: {
+  page?: number
+  page_size?: number
+  status?: string
+  severity?: string
+}) {
   return request.get<AlertListResponse>('/alerts', { params }).then((r) => r.data)
 }
 
@@ -250,4 +268,3 @@ export interface SystemLogResponse {
 export function getSystemLogs(params: { lines?: number; level?: string }) {
   return request.get<SystemLogResponse>('/system/logs', { params }).then((r) => r.data)
 }
-

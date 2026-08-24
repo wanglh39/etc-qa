@@ -39,12 +39,18 @@
           </el-select>
           <el-button type="primary" style="margin-left: 12px" @click="handleSearch">搜索</el-button>
           <el-button style="margin-left: 8px" @click="handleReset">重置</el-button>
-          <el-button type="primary" style="margin-left: 24px" @click="openAddDialog">新增知识</el-button>
+          <el-button type="primary" style="margin-left: 24px" @click="openAddDialog"
+            >新增知识</el-button
+          >
         </div>
 
         <div class="btn-group">
-          <el-button type="primary" @click="batchUpdateStatus('active', '上架')">批量上架</el-button>
-          <el-button type="info" @click="batchUpdateStatus('deprecated', '下架')">批量下架</el-button>
+          <el-button type="primary" @click="batchUpdateStatus('active', '上架')"
+            >批量上架</el-button
+          >
+          <el-button type="info" @click="batchUpdateStatus('deprecated', '下架')"
+            >批量下架</el-button
+          >
           <el-button type="info" @click="batchDelete">批量删除</el-button>
         </div>
 
@@ -82,13 +88,15 @@
                 link
                 type="primary"
                 @click="handleToggleStatus(row.id, 'active', '上架')"
-              >上架</el-button>
+                >上架</el-button
+              >
               <el-button
                 v-else
                 link
                 type="info"
                 @click="handleToggleStatus(row.id, 'deprecated', '下架')"
-              >下架</el-button>
+                >下架</el-button
+              >
               <el-button link type="info" @click="handleDelete(row.id)">删除</el-button>
             </template>
           </el-table-column>
@@ -120,7 +128,9 @@
           <div style="white-space: pre-wrap">{{ detailData.internal_process }}</div>
         </el-descriptions-item>
         <el-descriptions-item label="反馈部门">{{ detailData.feedback_dept }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ statusLabel(detailData.status) }}</el-descriptions-item>
+        <el-descriptions-item label="状态">{{
+          statusLabel(detailData.status)
+        }}</el-descriptions-item>
         <el-descriptions-item label="创建时间">{{ detailData.created_at }}</el-descriptions-item>
         <el-descriptions-item label="更新时间">{{ detailData.updated_at }}</el-descriptions-item>
       </el-descriptions>
@@ -134,13 +144,28 @@
     >
       <el-form :model="formData" label-width="90px">
         <el-form-item label="问题内容" required>
-          <el-input v-model="formData.question" type="textarea" :rows="3" placeholder="请输入标准化问题" />
+          <el-input
+            v-model="formData.question"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入标准化问题"
+          />
         </el-form-item>
         <el-form-item label="标准答案" required>
-          <el-input v-model="formData.answer" type="textarea" :rows="5" placeholder="请输入标准解决方案" />
+          <el-input
+            v-model="formData.answer"
+            type="textarea"
+            :rows="5"
+            placeholder="请输入标准解决方案"
+          />
         </el-form-item>
         <el-form-item label="一级分类">
-          <el-select v-model="formData.category_l1" placeholder="请选择" clearable style="width: 100%">
+          <el-select
+            v-model="formData.category_l1"
+            placeholder="请选择"
+            clearable
+            style="width: 100%"
+          >
             <el-option
               v-for="c in categoryOptions"
               :key="c.label"
@@ -150,7 +175,12 @@
           </el-select>
         </el-form-item>
         <el-form-item label="二级分类">
-          <el-select v-model="formData.category_l2" placeholder="请选择" clearable style="width: 100%">
+          <el-select
+            v-model="formData.category_l2"
+            placeholder="请选择"
+            clearable
+            style="width: 100%"
+          >
             <el-option
               v-for="c in subCategoryOptions"
               :key="c.label"
@@ -160,7 +190,12 @@
           </el-select>
         </el-form-item>
         <el-form-item label="内部流程">
-          <el-input v-model="formData.internal_process" type="textarea" :rows="2" placeholder="可选" />
+          <el-input
+            v-model="formData.internal_process"
+            type="textarea"
+            :rows="2"
+            placeholder="可选"
+          />
         </el-form-item>
         <el-form-item label="反馈部门">
           <el-input v-model="formData.feedback_dept" placeholder="可选" />
@@ -168,7 +203,9 @@
       </el-form>
       <template #footer>
         <el-button @click="formVisible = false">取消</el-button>
-        <el-button v-if="formMode === 'add'" type="primary" :loading="submitting" @click="handleAdd">确认新增</el-button>
+        <el-button v-if="formMode === 'add'" type="primary" :loading="submitting" @click="handleAdd"
+          >确认新增</el-button
+        >
         <el-button v-else type="primary" @click="handleEditNotSupported">确认编辑</el-button>
       </template>
     </el-dialog>
@@ -188,7 +225,7 @@ import {
   getCategories,
   type QAListItem,
   type QADetailResponse,
-  type CategoryNode
+  type CategoryNode,
 } from '@/api/knowledge'
 
 const keyword = ref('')
@@ -220,7 +257,7 @@ const formData = ref({
   category_l1: '',
   category_l2: '',
   internal_process: '',
-  feedback_dept: ''
+  feedback_dept: '',
 })
 
 const statusLabel = (s: string) => {
@@ -245,13 +282,13 @@ const loadData = async () => {
           category_l1: filterCategory.value || undefined,
           status: filterStatus.value || undefined,
           page: page.value,
-          page_size: pageSize.value
+          page_size: pageSize.value,
         })
       : await getQAList({
           page: page.value,
           page_size: pageSize.value,
           category_l1: filterCategory.value || undefined,
-          status: filterStatus.value || undefined
+          status: filterStatus.value || undefined,
         })
     tableData.value = res.items
     total.value = res.total
@@ -300,7 +337,7 @@ const handleDelete = async (qaId: number) => {
     await ElMessageBox.confirm('确认删除该知识条目？删除后不可恢复。', '删除确认', {
       type: 'info',
       confirmButtonText: '确认',
-      cancelButtonText: '取消'
+      cancelButtonText: '取消',
     })
   } catch {
     return
@@ -321,11 +358,15 @@ const batchUpdateStatus = async (status: string, actionName: string) => {
     return
   }
   try {
-    await ElMessageBox.confirm(`确认${actionName}选中的 ${ids.length} 条知识？`, `${actionName}确认`, {
-      type: 'info',
-      confirmButtonText: '确认',
-      cancelButtonText: '取消'
-    })
+    await ElMessageBox.confirm(
+      `确认${actionName}选中的 ${ids.length} 条知识？`,
+      `${actionName}确认`,
+      {
+        type: 'info',
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+      }
+    )
   } catch {
     return
   }
@@ -347,11 +388,15 @@ const batchDelete = async () => {
     return
   }
   try {
-    await ElMessageBox.confirm(`确认删除选中的 ${ids.length} 条知识？删除后不可恢复。`, '批量删除确认', {
-      type: 'info',
-      confirmButtonText: '确认',
-      cancelButtonText: '取消'
-    })
+    await ElMessageBox.confirm(
+      `确认删除选中的 ${ids.length} 条知识？删除后不可恢复。`,
+      '批量删除确认',
+      {
+        type: 'info',
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+      }
+    )
   } catch {
     return
   }
@@ -383,7 +428,7 @@ const resetForm = () => {
     category_l1: '',
     category_l2: '',
     internal_process: '',
-    feedback_dept: ''
+    feedback_dept: '',
   }
   editingId.value = null
 }
@@ -403,7 +448,7 @@ const openEditDialog = (row: QAListItem) => {
     category_l1: row.category_l1,
     category_l2: row.category_l2,
     internal_process: '',
-    feedback_dept: ''
+    feedback_dept: '',
   }
   formVisible.value = true
 }
@@ -425,7 +470,7 @@ const handleAdd = async () => {
       category_l1: formData.value.category_l1 || undefined,
       category_l2: formData.value.category_l2 || undefined,
       internal_process: formData.value.internal_process || undefined,
-      feedback_dept: formData.value.feedback_dept || undefined
+      feedback_dept: formData.value.feedback_dept || undefined,
     })
     ElMessage.success('新增成功')
     formVisible.value = false

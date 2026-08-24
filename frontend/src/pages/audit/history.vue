@@ -53,7 +53,7 @@
 
         <el-table-column prop="answer" label="标准化答案" min-width="200">
           <template #default="{ row }">
-            <span style="color: #bfbfbf;">{{ row.answer || '暂无' }}</span>
+            <span style="color: #bfbfbf">{{ row.answer || '暂无' }}</span>
           </template>
         </el-table-column>
 
@@ -71,7 +71,9 @@
         <el-table-column prop="operator" label="操作管理员" width="120">
           <template #default="{ row }">
             <div style="display: flex; align-items: center; gap: 6px">
-              <el-avatar :size="24" style="background: #F1F5F9; color: #1677FF; font-size: 12px">{{ (row.operator || '?').charAt(0).toUpperCase() }}</el-avatar>
+              <el-avatar :size="24" style="background: #f1f5f9; color: #1677ff; font-size: 12px">{{
+                (row.operator || '?').charAt(0).toUpperCase()
+              }}</el-avatar>
               <span>{{ row.operator || '-' }}</span>
             </div>
           </template>
@@ -149,11 +151,11 @@ onMounted(loadData)
   display: flex;
   align-items: center;
   gap: 16px;
-  
+
   transition: transform 0.2s;
 }
 .kpi-card:hover {
-  border-color: #CBD5E1;
+  border-color: #cbd5e1;
 }
 .kpi-icon {
   width: 48px;
@@ -164,12 +166,13 @@ onMounted(loadData)
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
-  background: #F1F5F9; color: #1677FF;
+  background: #f1f5f9;
+  color: #1677ff;
 }
 .kpi-value {
   font-size: 24px;
   font-weight: 700;
-  color: #0F172A;
+  color: #0f172a;
 }
 .kpi-label {
   font-size: 13px;

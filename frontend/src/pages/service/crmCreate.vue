@@ -26,7 +26,7 @@
       </el-form-item>
 
       <el-form-item label="客户问题分类" prop="problemType">
-        <el-select v-model="formData.problemType" placeholder="挑选问题分类" style="width:100%">
+        <el-select v-model="formData.problemType" placeholder="挑选问题分类" style="width: 100%">
           <el-option label="产品咨询" value="consult"></el-option>
           <el-option label="售后退换" value="refund"></el-option>
           <el-option label="系统故障" value="fault"></el-option>
@@ -36,7 +36,7 @@
 
       <!-- 客服指定：流转给哪个业务部门处理 -->
       <el-form-item label="转交处理部门" prop="nextDept">
-        <el-select v-model="formData.nextDept" placeholder="选择需要处理的部门" style="width:100%">
+        <el-select v-model="formData.nextDept" placeholder="选择需要处理的部门" style="width: 100%">
           <el-option label="售后处理部" value="aftersale"></el-option>
           <el-option label="技术运维部" value="ops"></el-option>
           <el-option label="财务部" value="finance"></el-option>
@@ -54,11 +54,18 @@
       </el-form-item>
 
       <el-form-item label="客户原始问题描述" prop="detailDesc">
-        <el-input v-model="formData.detailDesc" type="textarea" :rows="6" placeholder="完整记录客户诉求、沟通情况"></el-input>
+        <el-input
+          v-model="formData.detailDesc"
+          type="textarea"
+          :rows="6"
+          placeholder="完整记录客户诉求、沟通情况"
+        ></el-input>
       </el-form-item>
 
       <el-form-item>
-        <el-button type="primary" :loading="submitting" @click="submitWorkOrder">提交工单，转交对应部门处理</el-button>
+        <el-button type="primary" :loading="submitting" @click="submitWorkOrder"
+          >提交工单，转交对应部门处理</el-button
+        >
         <el-button @click="resetWorkForm">重置表单</el-button>
       </el-form-item>
     </el-form>
@@ -81,9 +88,9 @@ const formData = ref({
   customerName: '',
   phone: '',
   problemType: '',
-  nextDept: '',      // 转交处理部门（业务部门）
+  nextDept: '', // 转交处理部门（业务部门）
   priority: 'mid',
-  detailDesc: ''     // 客户原始问题
+  detailDesc: '', // 客户原始问题
 })
 
 const formRules = ref({
@@ -91,11 +98,11 @@ const formRules = ref({
   customerName: [{ required: true, message: '客户名称不能为空', trigger: 'blur' }],
   phone: [
     { required: true, message: '手机号必填', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式有误', trigger: 'blur' }
+    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式有误', trigger: 'blur' },
   ],
   problemType: [{ required: true, message: '需要选择问题分类', trigger: 'change' }],
   nextDept: [{ required: true, message: '请选择转交处理部门', trigger: 'change' }],
-  detailDesc: [{ required: true, message: '填写客户问题详情', trigger: 'blur' }]
+  detailDesc: [{ required: true, message: '填写客户问题详情', trigger: 'blur' }],
 })
 
 // 客服提交工单：提交后跳转工单详情（给业务部门处理的页面）
@@ -115,7 +122,7 @@ const submitWorkOrder = async () => {
         problem_type: formData.value.problemType,
         next_dept: formData.value.nextDept,
         priority: formData.value.priority,
-        detail_desc: formData.value.detailDesc
+        detail_desc: formData.value.detailDesc,
       })
       ElMessage.success('工单已提交，转交对应业务部门处理')
       router.push({ name: 'CrmDetail', query: { id: res.id } })

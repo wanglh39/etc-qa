@@ -135,8 +135,14 @@ export function useStreamingASR() {
   }
 
   const startRecording = async () => {
-    if (!window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-      throw new Error('当前为非安全上下文（HTTP），浏览器禁止访问麦克风。请使用 localhost 或 HTTPS 访问')
+    if (
+      !window.isSecureContext &&
+      window.location.hostname !== 'localhost' &&
+      window.location.hostname !== '127.0.0.1'
+    ) {
+      throw new Error(
+        '当前为非安全上下文（HTTP），浏览器禁止访问麦克风。请使用 localhost 或 HTTPS 访问'
+      )
     }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       throw new Error('浏览器不支持麦克风采集（navigator.mediaDevices 不可用）')
@@ -153,7 +159,7 @@ export function useStreamingASR() {
           sampleRate: 48000,
           echoCancellation: true,
           noiseSuppression: true,
-        }
+        },
       })
 
       audioContext = new AudioContext({ sampleRate: 48000 })
@@ -166,7 +172,6 @@ export function useStreamingASR() {
         if (!ws || ws.readyState !== WebSocket.OPEN) return
         const inputBuffer = audioProcessingEvent.inputBuffer
         const channelData = inputBuffer.getChannelData(0)
-
 
         const downsampled = downsampleBuffer(channelData, audioContext!.sampleRate)
         const int16Data = float32ToInt16(downsampled)

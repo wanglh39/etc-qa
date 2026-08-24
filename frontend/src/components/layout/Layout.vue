@@ -96,7 +96,6 @@
         </div>
       </el-main>
     </el-container>
-
   </el-container>
 </template>
 
@@ -118,7 +117,7 @@ const authStore = useAuthStore()
 const menuGroups = ref<MenuGroup[]>([])
 
 const collapsed = ref(false)
-const sidebarWidth = computed(() => collapsed.value ? '64px' : '230px')
+const sidebarWidth = computed(() => (collapsed.value ? '64px' : '230px'))
 const currentRole = computed(() => authStore.role)
 const roleText = computed(() => authStore.roleText)
 
@@ -129,7 +128,16 @@ const exitImpersonate = () => {
 }
 
 const showBackBtn = computed(() => {
-  const homePaths = ['/service', '/workbench/admin/auditList', '/workbench/admin/dashboard', '/workbench/admin/account', '/workbench/admin/status', '/dept/handle/aftersale', '/dept/handle/ops', '/dept/handle/finance']
+  const homePaths = [
+    '/service',
+    '/workbench/admin/auditList',
+    '/workbench/admin/dashboard',
+    '/workbench/admin/account',
+    '/workbench/admin/status',
+    '/dept/handle/aftersale',
+    '/dept/handle/ops',
+    '/dept/handle/finance',
+  ]
   return !homePaths.includes(route.path)
 })
 
@@ -155,7 +163,9 @@ const goToAlerts = () => {
   router.push('/workbench/admin/alert')
 }
 const loadUnreadAlerts = async () => {
-  const hasAlertPage = menuGroups.value.some(g => g.items.some(i => i.path === '/workbench/admin/alert'))
+  const hasAlertPage = menuGroups.value.some((g) =>
+    g.items.some((i) => i.path === '/workbench/admin/alert')
+  )
   if (!hasAlertPage) return
   try {
     const res = await getAlertList({ status: 'active', page: 1, page_size: 1 })
@@ -184,7 +194,6 @@ const loadMenu = async () => {
     menuGroups.value = []
   }
 }
-
 </script>
 
 <style scoped>
@@ -195,12 +204,12 @@ const loadMenu = async () => {
 }
 .sidebar {
   height: 100vh;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
   overflow: hidden;
-  border-right: 1px solid #E2E8F0;
+  border-right: 1px solid #e2e8f0;
 }
 .logo-box {
   height: 52px;
@@ -208,7 +217,7 @@ const loadMenu = async () => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #0F172A;
+  color: #0f172a;
   flex-shrink: 0;
 }
 .logo-text {
@@ -231,12 +240,12 @@ const loadMenu = async () => {
   line-height: 36px;
 }
 :deep(.side-menu .el-menu-item.is-active) {
-  background-color: #F1F5F9 !important;
-  color: #0F172A !important;
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
   font-weight: 600;
 }
 :deep(.side-menu .el-menu-item:hover) {
-  background-color: #F1F5F9 !important;
+  background-color: #f1f5f9 !important;
 }
 :deep(.side-menu .el-sub-menu__title) {
   border-radius: 6px;
@@ -245,11 +254,11 @@ const loadMenu = async () => {
   line-height: 36px;
 }
 :deep(.side-menu .el-sub-menu__title:hover) {
-  background-color: #F1F5F9 !important;
+  background-color: #f1f5f9 !important;
 }
 :deep(.side-menu .el-sub-menu .el-menu-item.is-active) {
-  background-color: #F1F5F9 !important;
-  color: #0F172A !important;
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
   font-weight: 600;
 }
 .sidebar-footer {
@@ -258,11 +267,11 @@ const loadMenu = async () => {
   align-items: center;
   gap: 10px;
   padding: 0 16px;
-  border-top: 1px solid #E2E8F0;
+  border-top: 1px solid #e2e8f0;
   flex-shrink: 0;
 }
 .user-avatar {
-  background: #F1F5F9;
+  background: #f1f5f9;
   color: #475569;
   font-weight: 600;
   flex-shrink: 0;
@@ -274,7 +283,7 @@ const loadMenu = async () => {
   overflow: hidden;
 }
 .user-name {
-  color: #0F172A;
+  color: #0f172a;
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
@@ -282,7 +291,7 @@ const loadMenu = async () => {
   text-overflow: ellipsis;
 }
 .user-role {
-  color: #94A3B8;
+  color: #94a3b8;
   font-size: 12px;
 }
 .right-container {
@@ -293,8 +302,8 @@ const loadMenu = async () => {
 }
 .header-bar {
   height: 52px;
-  background-color: #FFFFFF;
-  border-bottom: 1px solid #E2E8F0;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -313,7 +322,7 @@ const loadMenu = async () => {
   transition: color 0.2s;
 }
 .collapse-btn:hover {
-  color: #1677FF;
+  color: #1677ff;
 }
 .user-info {
   display: flex;
@@ -333,7 +342,7 @@ const loadMenu = async () => {
   height: 50px;
   padding: 0 20px;
   background-color: #fff;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   flex-shrink: 0;
@@ -348,8 +357,8 @@ const loadMenu = async () => {
   align-items: center;
   gap: 8px;
   padding: 8px 20px;
-  background-color: #E6F4FF;
-  border-bottom: 1px solid #91CAFF;
+  background-color: #e6f4ff;
+  border-bottom: 1px solid #91caff;
   color: #475569;
   font-size: 13px;
   flex-shrink: 0;
@@ -369,7 +378,6 @@ const loadMenu = async () => {
   transition: color 0.2s;
 }
 .header-icon:hover {
-  color: #1677FF;
+  color: #1677ff;
 }
-
 </style>

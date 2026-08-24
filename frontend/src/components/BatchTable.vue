@@ -29,14 +29,18 @@
       :total="total"
       :page-size="pageSize"
       :current-page="pageNum"
-      @size-change="(val:number) => {
-        emit('update:pageSize', val)
-        emit('page-change')
-      }"
-      @current-change="(val:number) => {
-        emit('update:pageNum', val)
-        emit('page-change')
-      }"
+      @size-change="
+        (val: number) => {
+          emit('update:pageSize', val)
+          emit('page-change')
+        }
+      "
+      @current-change="
+        (val: number) => {
+          emit('update:pageNum', val)
+          emit('page-change')
+        }
+      "
     />
   </div>
 </template>

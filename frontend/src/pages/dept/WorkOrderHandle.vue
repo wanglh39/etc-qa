@@ -4,7 +4,9 @@
     <div class="kpi-row">
       <el-card class="kpi-card" shadow="hover" @click="filterByStatus('')">
         <div class="kpi-inner">
-          <div class="kpi-icon total"><el-icon><Document /></el-icon></div>
+          <div class="kpi-icon total">
+            <el-icon><Document /></el-icon>
+          </div>
           <div class="kpi-info">
             <div class="kpi-num">{{ stats.total || 0 }}</div>
             <div class="kpi-label">全部工单</div>
@@ -13,7 +15,9 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover" @click="filterByStatus('submitted')">
         <div class="kpi-inner">
-          <div class="kpi-icon pending"><el-icon><Clock /></el-icon></div>
+          <div class="kpi-icon pending">
+            <el-icon><Clock /></el-icon>
+          </div>
           <div class="kpi-info">
             <div class="kpi-num">{{ stats.submitted || 0 }}</div>
             <div class="kpi-label">待处理</div>
@@ -22,7 +26,9 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover" @click="filterByStatus('answered')">
         <div class="kpi-inner">
-          <div class="kpi-icon answered"><el-icon><ChatDotRound /></el-icon></div>
+          <div class="kpi-icon answered">
+            <el-icon><ChatDotRound /></el-icon>
+          </div>
           <div class="kpi-info">
             <div class="kpi-num">{{ stats.answered || 0 }}</div>
             <div class="kpi-label">已回复</div>
@@ -31,7 +37,9 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover" @click="filterByStatus('processed')">
         <div class="kpi-inner">
-          <div class="kpi-icon done"><el-icon><CircleCheck /></el-icon></div>
+          <div class="kpi-icon done">
+            <el-icon><CircleCheck /></el-icon>
+          </div>
           <div class="kpi-info">
             <div class="kpi-num">{{ stats.processed || 0 }}</div>
             <div class="kpi-label">已办结</div>
@@ -40,7 +48,9 @@
       </el-card>
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
-          <div class="kpi-icon today"><el-icon><Calendar /></el-icon></div>
+          <div class="kpi-icon today">
+            <el-icon><Calendar /></el-icon>
+          </div>
           <div class="kpi-info">
             <div class="kpi-num">{{ stats.today || 0 }}</div>
             <div class="kpi-label">今日新增</div>
@@ -90,7 +100,13 @@
       <!-- 搜索区域 -->
       <el-form :model="searchForm" inline class="search-form">
         <el-form-item label="工单编号">
-          <el-input v-model="searchForm.orderNo" placeholder="请输入工单编号" clearable style="width: 200px;" @keyup.enter="handleSearch"></el-input>
+          <el-input
+            v-model="searchForm.orderNo"
+            placeholder="请输入工单编号"
+            clearable
+            style="width: 200px"
+            @keyup.enter="handleSearch"
+          ></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">查询</el-button>
@@ -104,12 +120,17 @@
           :data="displayList"
           border
           stripe
-          style="width: 100%; height: 100%;"
+          style="width: 100%; height: 100%"
           height="100%"
           v-loading="loading"
           @selection-change="onSelectionChange"
         >
-          <el-table-column type="selection" width="45" align="center" :selectable="(row: WorkOrderListItem) => row.status !== 'processed'" />
+          <el-table-column
+            type="selection"
+            width="45"
+            align="center"
+            :selectable="(row: WorkOrderListItem) => row.status !== 'processed'"
+          />
           <el-table-column label="工单ID" prop="id" width="80" align="center"></el-table-column>
           <el-table-column label="工单编号" prop="external_id" min-width="180"></el-table-column>
           <el-table-column label="问题类型" min-width="120" align="center">
@@ -132,24 +153,38 @@
               <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column label="提交时间" prop="created_at" min-width="160" align="center"></el-table-column>
+          <el-table-column
+            label="提交时间"
+            prop="created_at"
+            min-width="160"
+            align="center"
+          ></el-table-column>
           <el-table-column label="工单状态" prop="status" width="100" align="center">
             <template #default="scope">
-              <el-tag v-if="scope.row.status === 'submitted'" type="info" effect="light">待处理</el-tag>
-              <el-tag v-else-if="scope.row.status === 'answered'" type="primary" effect="light">已回复</el-tag>
-              <el-tag v-else-if="scope.row.status === 'processed'" type="primary" effect="light">已办结</el-tag>
+              <el-tag v-if="scope.row.status === 'submitted'" type="info" effect="light"
+                >待处理</el-tag
+              >
+              <el-tag v-else-if="scope.row.status === 'answered'" type="primary" effect="light"
+                >已回复</el-tag
+              >
+              <el-tag v-else-if="scope.row.status === 'processed'" type="primary" effect="light"
+                >已办结</el-tag
+              >
             </template>
           </el-table-column>
           <el-table-column label="操作" width="180" align="center" fixed="right">
             <template #default="scope">
-              <el-button link type="primary" size="small" @click="openDetail(scope.row)">查看详情</el-button>
+              <el-button link type="primary" size="small" @click="openDetail(scope.row)"
+                >查看详情</el-button
+              >
               <el-button
                 link
                 type="primary"
                 size="small"
                 :disabled="scope.row.status === 'processed'"
                 @click="handleFinish(scope.row)"
-              >办结</el-button>
+                >办结</el-button
+              >
             </template>
           </el-table-column>
         </el-table>
@@ -176,7 +211,12 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Document, Clock, ChatDotRound, CircleCheck, Calendar } from '@element-plus/icons-vue'
-import { getWorkOrders, getWorkOrderStats, type WorkOrderListItem, type WorkOrderStats } from '@/api/audit'
+import {
+  getWorkOrders,
+  getWorkOrderStats,
+  type WorkOrderListItem,
+  type WorkOrderStats,
+} from '@/api/audit'
 import { replyWorkOrder } from '@/api/workorder'
 
 const route = useRoute()
@@ -187,7 +227,7 @@ const deptNameMap: Record<string, string> = {
   ops: '技术运维部',
   finance: '财务部',
   market: '市场部',
-  human: '人事部'
+  human: '人事部',
 }
 const deptCode = computed(() => route.params.deptCode as string)
 const currentDeptName = computed(() => deptNameMap[deptCode.value] || '通用部门')
@@ -202,7 +242,11 @@ const selectedIds = ref<number[]>([])
 const batchLoading = ref(false)
 
 const parseRaw = (row: WorkOrderListItem): Record<string, any> => {
-  try { return JSON.parse(row.raw_data || '{}') } catch { return {} }
+  try {
+    return JSON.parse(row.raw_data || '{}')
+  } catch {
+    return {}
+  }
 }
 
 const priorityType = (p: string): 'primary' | 'info' => {
@@ -224,7 +268,7 @@ const getTableList = async () => {
       page: page.value.pageNum,
       page_size: page.value.pageSize,
       dept: deptCode.value,
-      status: activeTab.value || undefined
+      status: activeTab.value || undefined,
     })
     tableData.value = res.items
     page.value.total = res.total
@@ -288,14 +332,18 @@ const handleFinish = async (row: WorkOrderListItem) => {
 
 const batchFinish = async () => {
   try {
-    await ElMessageBox.confirm(`确认批量办结 ${selectedIds.value.length} 条工单？`, '批量办结', { type: 'info' })
+    await ElMessageBox.confirm(`确认批量办结 ${selectedIds.value.length} 条工单？`, '批量办结', {
+      type: 'info',
+    })
     batchLoading.value = true
     let ok = 0
     for (const id of selectedIds.value) {
       try {
         await replyWorkOrder(id, { handle_remark: '批量办结' })
         ok++
-      } catch { /* skip */ }
+      } catch {
+        /* skip */
+      }
     }
     ElMessage.success(`成功办结 ${ok}/${selectedIds.value.length} 条`)
     selectedIds.value = []
@@ -324,7 +372,7 @@ watch(deptCode, () => {
 .dept-page {
   width: 100%;
   min-height: 100vh;
-  background-color: #F8FAFC;
+  background-color: #f8fafc;
   padding: 20px;
   box-sizing: border-box;
 }
@@ -338,12 +386,14 @@ watch(deptCode, () => {
 
 .kpi-card {
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   height: 100%;
 }
 .kpi-card:hover {
-  border-color: #CBD5E1 !important;
-  border-color: #CBD5E1 !important;
+  border-color: #cbd5e1 !important;
+  border-color: #cbd5e1 !important;
 }
 
 .kpi-inner {
@@ -362,16 +412,31 @@ watch(deptCode, () => {
   font-size: 24px;
   color: #fff;
 }
-.kpi-icon.total { background: #F1F5F9; color: #1677FF; }
-.kpi-icon.pending { background: #F1F5F9; color: #1677FF; }
-.kpi-icon.answered { background: #F1F5F9; color: #1677FF; }
-.kpi-icon.done { background: #F1F5F9; color: #1677FF; }
-.kpi-icon.today { background: #F1F5F9; color: #64748B; }
+.kpi-icon.total {
+  background: #f1f5f9;
+  color: #1677ff;
+}
+.kpi-icon.pending {
+  background: #f1f5f9;
+  color: #1677ff;
+}
+.kpi-icon.answered {
+  background: #f1f5f9;
+  color: #1677ff;
+}
+.kpi-icon.done {
+  background: #f1f5f9;
+  color: #1677ff;
+}
+.kpi-icon.today {
+  background: #f1f5f9;
+  color: #64748b;
+}
 
 .kpi-num {
   font-size: 24px;
   font-weight: 700;
-  color: #0F172A;
+  color: #0f172a;
   line-height: 1.2;
 }
 .kpi-label {
@@ -394,7 +459,7 @@ watch(deptCode, () => {
 .card-title {
   font-size: 18px;
   font-weight: 600;
-  color: #0F172A;
+  color: #0f172a;
 }
 .header-actions {
   display: flex;
@@ -409,7 +474,7 @@ watch(deptCode, () => {
 .search-form {
   margin-bottom: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .table-wrapper {

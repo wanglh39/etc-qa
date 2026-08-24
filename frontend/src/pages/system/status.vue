@@ -71,7 +71,13 @@
             <span class="log-count" v-if="logLines.length">({{ logLines.length }}条)</span>
           </div>
           <div class="log-actions">
-            <el-select v-model="logLevel" placeholder="日志级别" clearable style="width: 120px" @change="loadLogs">
+            <el-select
+              v-model="logLevel"
+              placeholder="日志级别"
+              clearable
+              style="width: 120px"
+              @change="loadLogs"
+            >
               <el-option label="ERROR" value="ERROR" />
               <el-option label="WARNING" value="WARNING" />
               <el-option label="INFO" value="INFO" />
@@ -83,7 +89,12 @@
         </div>
       </template>
       <div class="terminal">
-        <div v-for="(log, i) in logLines" :key="i" class="terminal-line" :class="'term-' + log.level.toLowerCase()">
+        <div
+          v-for="(log, i) in logLines"
+          :key="i"
+          class="terminal-line"
+          :class="'term-' + log.level.toLowerCase()"
+        >
           <span class="term-prompt">$</span> {{ log.line }}
         </div>
         <div v-if="logLines.length === 0" class="terminal-empty">~ 暂无日志 ~</div>
@@ -96,10 +107,27 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
-  CircleCheck, CircleClose, Warning, Refresh, Link, Document,
-  Cpu, Coin, Box, Microphone, Timer, Bell, Monitor, Stopwatch
+  CircleCheck,
+  CircleClose,
+  Warning,
+  Refresh,
+  Link,
+  Document,
+  Cpu,
+  Coin,
+  Box,
+  Microphone,
+  Timer,
+  Bell,
+  Monitor,
+  Stopwatch,
 } from '@element-plus/icons-vue'
-import { getSystemStatus, getSystemLogs, type SystemComponent, type SystemLogItem } from '@/api/system'
+import {
+  getSystemStatus,
+  getSystemLogs,
+  type SystemComponent,
+  type SystemLogItem,
+} from '@/api/system'
 
 const components = ref<SystemComponent[]>([])
 const overall = ref('')
@@ -110,7 +138,7 @@ const loading = ref(false)
 
 let refreshTimer: ReturnType<typeof setInterval> | null = null
 
-const healthyCount = computed(() => components.value.filter(c => c.status === 'healthy').length)
+const healthyCount = computed(() => components.value.filter((c) => c.status === 'healthy').length)
 
 const overallClass = computed(() => {
   if (overall.value === 'healthy') return 'banner-healthy'
@@ -133,8 +161,12 @@ const statusTagType = (s: string): 'primary' | 'info' => {
 
 const statusText = (s: string) => {
   const map: Record<string, string> = {
-    healthy: '正常', unhealthy: '异常', degraded: '降级',
-    standby: '待加载', stopped: '已停止', unknown: '未知'
+    healthy: '正常',
+    unhealthy: '异常',
+    degraded: '降级',
+    standby: '待加载',
+    stopped: '已停止',
+    unknown: '未知',
   }
   return map[s] || s
 }
@@ -192,7 +224,7 @@ onBeforeUnmount(() => {
   min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-  background-color: #F8FAFC;
+  background-color: #f8fafc;
 }
 
 .health-banner {
@@ -203,11 +235,20 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   margin-bottom: 20px;
   color: #fff;
-  border-color: #CBD5E1 !important;
+  border-color: #cbd5e1 !important;
 }
-.banner-healthy { background: #F1F5F9; color: #1677FF; }
-.banner-degraded { background: #F1F5F9; color: #1677FF; }
-.banner-unhealthy { background: #F1F5F9; color: #1677FF; }
+.banner-healthy {
+  background: #f1f5f9;
+  color: #1677ff;
+}
+.banner-degraded {
+  background: #f1f5f9;
+  color: #1677ff;
+}
+.banner-unhealthy {
+  background: #f1f5f9;
+  color: #1677ff;
+}
 
 .banner-left {
   display: flex;
@@ -264,12 +305,20 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 .comp-card:hover {
-  border-color: #CBD5E1;
+  border-color: #cbd5e1;
 }
-.comp-healthy { border-left: 3px solid #1677FF; }
-.comp-unhealthy { border-left: 3px solid #64748B; }
-.comp-degraded { border-left: 3px solid #475569; }
-.comp-unknown { border-left: 3px solid #bfbfbf; }
+.comp-healthy {
+  border-left: 3px solid #1677ff;
+}
+.comp-unhealthy {
+  border-left: 3px solid #64748b;
+}
+.comp-degraded {
+  border-left: 3px solid #475569;
+}
+.comp-unknown {
+  border-left: 3px solid #bfbfbf;
+}
 
 .comp-header {
   display: flex;
@@ -287,22 +336,40 @@ onBeforeUnmount(() => {
   position: relative;
   line-height: 0;
 }
-.comp-icon-wrap.comp-healthy { background: #E6F4FF; color: #1677FF; }
-.comp-icon-wrap.comp-unhealthy { background: #F1F5F9; color: #64748B; }
-.comp-icon-wrap.comp-degraded { background: #F1F5F9; color: #475569; }
-.comp-icon-wrap.comp-unknown { background: #F8FAFC; color: #bfbfbf; }
+.comp-icon-wrap.comp-healthy {
+  background: #e6f4ff;
+  color: #1677ff;
+}
+.comp-icon-wrap.comp-unhealthy {
+  background: #f1f5f9;
+  color: #64748b;
+}
+.comp-icon-wrap.comp-degraded {
+  background: #f1f5f9;
+  color: #475569;
+}
+.comp-icon-wrap.comp-unknown {
+  background: #f8fafc;
+  color: #bfbfbf;
+}
 
 .pulse-ring {
   position: absolute;
   inset: 0;
   border-radius: 8px;
-  border: 2px solid #1677FF;
+  border: 2px solid #1677ff;
   animation: pulse 2s infinite;
   transform-origin: center;
 }
 @keyframes pulse {
-  0% { transform: scale(1); opacity: 1; }
-  100% { transform: scale(1.3); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
 }
 
 .comp-info {
@@ -314,7 +381,7 @@ onBeforeUnmount(() => {
 .comp-name {
   font-weight: 600;
   font-size: 15px;
-  color: #0F172A;
+  color: #0f172a;
 }
 .comp-detail {
   color: #475569;
@@ -357,8 +424,8 @@ onBeforeUnmount(() => {
 }
 
 .terminal {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
   padding: 12px 16px;
   max-height: 350px;
@@ -372,14 +439,20 @@ onBeforeUnmount(() => {
   word-break: break-all;
 }
 .term-prompt {
-  color: #94A3B8;
+  color: #94a3b8;
   margin-right: 4px;
 }
-.term-error { color: #475569; }
-.term-warning { color: #475569; }
-.term-info { color: #475569; }
+.term-error {
+  color: #475569;
+}
+.term-warning {
+  color: #475569;
+}
+.term-info {
+  color: #475569;
+}
 .terminal-empty {
-  color: #94A3B8;
+  color: #94a3b8;
   text-align: center;
   padding: 20px;
 }

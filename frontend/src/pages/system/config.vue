@@ -51,7 +51,7 @@
             type="textarea"
             :rows="10"
             placeholder="输入 JSON 格式的值"
-            style="font-family: monospace;"
+            style="font-family: monospace"
           />
         </el-form-item>
       </el-form>
@@ -80,38 +80,33 @@ const configList = ref<ConfigRow[]>([])
 const editVisible = ref(false)
 const editForm = ref({ key: '', valueStr: '' })
 
-const CONFIG_KEYS = [
-  'qa_statuses',
-  'brand_keywords',
-  'forbidden_new_kws',
-  'enterprise_name'
-]
+const CONFIG_KEYS = ['qa_statuses', 'brand_keywords', 'forbidden_new_kws', 'enterprise_name']
 
 const configMeta: Record<string, { label: string; desc: string; icon: any; color: string }> = {
   qa_statuses: {
     label: '工单状态列表',
     desc: '定义系统中工单的所有可用状态，用于状态流转控制',
     icon: Document,
-    color: '#1677FF'
+    color: '#1677FF',
   },
   brand_keywords: {
     label: '品牌关键词',
     desc: '用于识别用户提问中是否包含品牌相关词汇，影响分类和检索',
     icon: Key,
-    color: '#1677FF'
+    color: '#1677FF',
   },
   forbidden_new_kws: {
     label: '禁用关键词',
     desc: '新建知识条目时禁止使用的关键词，防止不规范内容入库',
     icon: Warning,
-    color: '#1677FF'
+    color: '#1677FF',
   },
   enterprise_name: {
     label: '企业名称',
     desc: '系统展示的企业名称，用于界面标题和品牌标识',
     icon: Shop,
-    color: '#1677FF'
-  }
+    color: '#1677FF',
+  },
 }
 
 const getConfigLabel = (key: string) => configMeta[key]?.label || key
@@ -142,7 +137,7 @@ const loadConfigs = async () => {
 const editConfig = (row: ConfigRow) => {
   editForm.value = {
     key: row.key,
-    valueStr: formatValue(row.value)
+    valueStr: formatValue(row.value),
   }
   editVisible.value = true
 }
@@ -189,26 +184,26 @@ onMounted(() => {
 }
 
 .config-banner {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 16px 20px;
   display: flex;
   align-items: center;
   gap: 16px;
   margin-bottom: 16px;
-  color: #0F172A;
+  color: #0f172a;
 }
 .banner-icon {
   width: 48px;
   height: 48px;
   border-radius: 8px;
-  background: #F1F5F9;
+  background: #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: #1677FF;
+  color: #1677ff;
 }
 .banner-text {
   flex: 1;
@@ -230,13 +225,13 @@ onMounted(() => {
 }
 .config-card {
   background: #fff;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 16px;
   transition: border-color 0.2s;
 }
 .config-card:hover {
-  border-color: #CBD5E1;
+  border-color: #cbd5e1;
 }
 .cc-header {
   display: flex;
@@ -260,11 +255,11 @@ onMounted(() => {
 .cc-title {
   font-size: 15px;
   font-weight: 600;
-  color: #0F172A;
+  color: #0f172a;
 }
 .cc-key {
   font-size: 12px;
-  color: #94A3B8;
+  color: #94a3b8;
   font-family: monospace;
 }
 .cc-desc {
@@ -274,7 +269,7 @@ onMounted(() => {
   line-height: 1.5;
 }
 .cc-value {
-  background: #F8FAFC;
+  background: #f8fafc;
   border-radius: 6px;
   padding: 12px;
   max-height: 200px;

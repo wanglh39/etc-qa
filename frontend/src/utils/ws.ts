@@ -12,7 +12,7 @@ class MockWebSocket {
       ElNotification({
         title: '新咨询消息',
         message: '收到用户新的智能问答工单，请前往工作台处理',
-        type: 'info'
+        type: 'info',
       })
     }, 35000)
   }

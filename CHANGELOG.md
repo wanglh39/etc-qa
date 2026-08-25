@@ -12,18 +12,23 @@
 - CONTRIBUTING.md 贡献指南
 - docs/security/安全设计文档.md（RBAC + JWT + 模拟登录 + 数据安全）
 - docs/ops/运维手册.md（Runbook + 故障处理 + 告警规则 + 监控指标）
-- docs/architecture/adr/ 架构决策记录（ADR-001~005）
+- docs/architecture/adr/ 架构决策记录（ADR-001~006）
+- ADR-006: Embedding/Reranker 改用 SiliconFlow API 替代本地模型
 
 ### 变更
+- **嵌入/重排模型改 SiliconFlow API**：移除 sentence-transformers 依赖，新增 rag/siliconflow.py 多 key 负载均衡
+- Reranker 模型从 bge-reranker-large 升级为 bge-reranker-v2-m3，阈值重调适配新分数尺度
 - README.md 重写：52 个 API 端点 + 5 角色 RBAC + 测试/CI 描述
 - API接口文档.md 重写：全部 52 端点 + JWT 认证 + 5 角色权限 + 状态码
 - 数据库设计文档.md 重写：12 表 + Milvus 集合 + 关系图
 - 开发规范.md 补充：状态码 401/403/404/429 + 角色权限规范 + 测试/CI 规范
-- 开发环境搭建.md 补充：前端启动 + 角色账号 + models 路径修正
+- 开发环境搭建.md 补充：前端启动 + 角色账号 + SiliconFlow API 配置
+- 全部文档同步更新 SiliconFlow API 变更（技术栈/部署/运维/交接清单等）
 
 ### 移除
 - 删除影子测试（shadow_recorder）相关文档引用
 - 删除提示词版本管理（version_manager）相关文档引用
+- 移除 sentence-transformers + torch 本地模型依赖（Embedding/Reranker 改用 API）
 
 ---
 

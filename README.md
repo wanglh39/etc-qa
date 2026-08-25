@@ -49,8 +49,8 @@ etc-qa/
 | UI | — | Element Plus |
 | 状态管理 | — | Pinia |
 | 图表 | — | ECharts |
-| Embedding | bge-large-zh-v1.5 (1024维) | — |
-| Reranker | bge-reranker-large | — |
+| Embedding | SiliconFlow API (bge-large-zh-v1.5, 1024维) | — |
+| Reranker | SiliconFlow API (bge-reranker-v2-m3) | — |
 | LLM | DeepSeek Chat | — |
 | Agent | LangGraph 状态图编排 | — |
 | BM25 | jieba + rank_bm25 | — |
@@ -88,9 +88,7 @@ pip install -r requirements.txt
 
 # 配置环境变量
 cp .env.example .env
-# 编辑 .env，填入 DEEPSEEK_API_KEY
-
-# 配置模型路径 (修改 config/models.yaml 中的路径为你本机路径)
+# 编辑 .env，填入 DEEPSEEK_API_KEY 和 SILICONFLOW_API_KEYS（逗号分隔多个 key）
 
 # 初始化数据库 (需要 MySQL 运行中)
 python scripts/data/init_db.py test
@@ -332,7 +330,7 @@ GitHub Actions 统一 CI（`.github/workflows/ci.yml`），9 个 job：
 | [后端目录结构.md](docs/architecture/后端目录结构.md) | 后端目录结构 |
 | [前端目录结构.md](docs/architecture/前端目录结构.md) | 前端目录结构 |
 | [高并发演进路线.md](docs/architecture/高并发演进路线.md) | 并发演进规划 |
-| [adr/](docs/architecture/adr/) | 架构决策记录（ADR-001~005） |
+| [adr/](docs/architecture/adr/) | 架构决策记录（ADR-001~006） |
 
 ### docs/api/ — API 文档
 
@@ -386,4 +384,4 @@ GitHub Actions 统一 CI（`.github/workflows/ci.yml`），9 个 job：
 |------|------|
 | [Docker使用教程.md](docs/tutorials/Docker使用教程.md) | Docker 使用指南 |
 | [Git使用教程.md](docs/tutorials/Git使用教程.md) | Git 使用指南 |
-| [AI交互脚本.md](docs/tutorials/AI交互脚本.md) | AI 交互脚本 |
+

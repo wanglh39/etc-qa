@@ -9,8 +9,8 @@
 | 后端 | FastAPI + Uvicorn | Python 3.10 |
 | 向量数据库 | Milvus Lite | 本地文件，无需独立部署 |
 | 关系数据库 | MySQL 8.x | Docker 容器 |
-| Embedding | bge-large-zh-v1.5 | 1024 维 |
-| Reranker | bge-reranker-large | CrossEncoder |
+| Embedding | SiliconFlow API (bge-large-zh-v1.5) | 1024 维 |
+| Reranker | SiliconFlow API (bge-reranker-v2-m3) | 多 key 负载均衡 |
 | LLM | DeepSeek API | 规整/分类/HyDE |
 | Agent | LangGraph | 状态图编排 |
 | BM25 | jieba + rank_bm25 | 关键词召回 |
@@ -22,6 +22,7 @@
 - Python 3.10+
 - Docker Desktop（用于启动 MySQL）
 - DeepSeek API Key（去 https://platform.deepseek.com 注册获取）
+- SiliconFlow API Keys（去 https://siliconflow.cn 注册获取，支持多 key 负载均衡）
 
 ## 快速开始
 
@@ -38,7 +39,7 @@ chmod +x setup.sh
 ./setup.sh
 ```
 
-脚本会自动完成：安装依赖 -> 下载模型 -> 启动MySQL -> 初始化数据库
+脚本会自动完成：安装依赖 -> 启动MySQL -> 初始化数据库
 
 ### 方式二：手动搭建
 
@@ -50,19 +51,17 @@ pip install -r requirements.txt
 2. 配置环境变量
 ```bash
 cp .env.template .env
-# 编辑 .env，填入 DeepSeek API Key
+# 编辑 .env，填入 DeepSeek API Key 和 SiliconFlow API Keys
 ```
 
-3. 下载模型（约5.6GB）
+3. 下载 ASR 模型（约2.1GB，Embedding/Reranker 已改用 SiliconFlow API 无需下载）
 ```bash
 pip install modelscope
-python scripts/setup/download_models.py
+python scripts/setup/download_models.py --models asr
 ```
 
 | 模型 | 用途 | 大小 |
 |------|------|------|
-| bge-large-zh-v1.5 | Embedding向量化 | ~1.3GB |
-| bge-reranker-large | Reranker精排 | ~2.2GB |
 | Fun-ASR-Nano-2512 | 语音识别 | ~2.1GB |
 
 4. 启动 MySQL + 初始化数据库
@@ -122,8 +121,8 @@ etc_qa/
 ├── asr/             # 语音识别
 ├── config/          # 配置文件（YAML + Pydantic校验）
 ├── db/              # MySQL + Milvus 客户端
-├── models/          # 本地模型文件（不入Git，不入Docker镜像）
-├── rag/             # 召回 + Reranker + 阈值判定
+├── models/                # ASR模型文件（不入Git，不入Docker镜像）
+├── rag/             # 召回 + Reranker + 阈值判定 + SiliconFlow API客户端
 ├── prompt/          # 提示词模板管理
 ├── scheduler/       # 定时任务调度
 ├── alert/           # 异常告警 + 通知

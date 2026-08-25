@@ -1,106 +1,121 @@
-﻿# Docker 浣跨敤鏁欑▼
+﻿# Docker 使用教程
 
-## 涓€銆丏ocker 鏄粈涔堬紵
+## 一、Docker 是什么？
 
-**涓€鍙ヨ瘽锛欴ocker = 鎶婁綘鐨勮繍琛岀幆澧冩墦鍖呮垚鐩掑瓙锛屽埆浜哄紑绠卞嵆鐢ㄣ€?*
+**一句话：Docker = 把你的运行环境打包成盒子，别人开箱即用。**
 
-### 娌℃湁 Docker 鐨勯棶棰?
-```
-浣犵殑鐢佃剳锛歅ython 3.10 + MySQL 8.0 + 渚濊禆鍏ㄨ濂?鈫?鑳借窇 鉁?闃熷弸鐢佃剳锛歅ython 3.12 + 娌¤MySQL + 渚濊禆鐗堟湰鍐茬獊 鈫?璺戜笉璧锋潵 鉂?```
-
-### 鏈?Docker 涔嬪悗
+### 没有 Docker 的问题
 
 ```
-浣犵殑鐢佃剳锛歞ocker compose up 鈫?鑳借窇 鉁?闃熷弸鐢佃剳锛歞ocker compose up 鈫?鑳借窇 鉁咃紙鐜涓€妯′竴鏍凤級
+你的电脑：Python 3.10 + MySQL 8.0 + 依赖全装好 → 能跑
+队友电脑：Python 3.12 + 没装MySQL + 依赖版本冲突 → 跑不起来
+```
+
+### 有 Docker 之后
+
+```
+你的电脑：docker compose up → 能跑
+队友电脑：docker compose up → 能跑（环境一模一样）
 ```
 
 ---
 
-## 浜屻€佹牳蹇冩蹇碉紙3 涓瘝灏卞锛?
-| 姒傚康 | 绫绘瘮 | 璇存槑 |
+## 二、核心概念（3 个词就够）
+
+| 概念 | 类比 | 说明 |
 |------|------|------|
-| **闀滃儚 (Image)** | 瀹夎鍏夌洏 | 鎵撳寘濂界殑鐜妯℃澘锛堝彧璇伙級 |
-| **瀹瑰櫒 (Container)** | 杩愯涓殑绋嬪簭 | 浠庨暅鍍忓惎鍔ㄧ殑瀹炰緥锛堝彲璇诲啓锛?|
-| **Compose** | 涓€閿惎鍔ㄨ剼鏈?| 缂栨帓澶氫釜瀹瑰櫒锛圡ySQL + 搴旂敤涓€璧峰惎鍔級 |
+| **镜像 (Image)** | 安装光盘 | 打包好的环境模板（只读） |
+| **容器 (Container)** | 运行中的程序 | 从镜像启动的实例（可读写） |
+| **Compose** | 一键启动脚本 | 编排多个容器（MySQL + 应用一起启动） |
 
 ```
-闀滃儚 鈹€鈹€docker run鈹€鈹€鈫?瀹瑰櫒锛堣繍琛屼腑锛?鍏夌洏 鈹€鈹€鏀惧叆鍏夐┍鈹€鈹€鈫? 杩愯涓殑绋嬪簭
+镜像 ──docker run──→ 容器（运行中）
+光盘 ──放入光驱──→ 运行中的程序
 ```
 
 ---
 
-## 涓夈€佸畨瑁?
+## 三、安装
+
 ### Windows
-1. 涓嬭浇 Docker Desktop锛歨ttps://www.docker.com/products/docker-desktop/
-2. 瀹夎鍚庨噸鍚數鑴?3. 鎵撳紑 Docker Desktop锛岀瓑寰呭惎鍔ㄥ畬鎴愶紙鎵樼洏鍥炬爣鍙樼豢锛?
-### 楠岃瘉瀹夎
+1. 下载 Docker Desktop：https://www.docker.com/products/docker-desktop/
+2. 安装后重启电脑
+3. 打开 Docker Desktop，等待启动完成（托盘图标变绿）
+
+### 验证安装
 ```bash
-docker --version        # 鐪嬪埌 Docker version xx.x.x 灏卞浜?docker compose version  # 鐪嬪埌 Docker Compose version 灏卞浜?```
+docker --version        # 看到 Docker version xx.x.x 就对了
+docker compose version  # 看到 Docker Compose version 就对了
+```
 
 ---
 
-## 鍥涖€佹湰椤圭洰甯哥敤鍛戒护
+## 四、本项目常用命令
 
-### 4.1 鍚姩鎵€鏈夋湇鍔★紙MySQL + 搴旂敤锛?
+### 4.1 启动所有服务（MySQL + 应用）
 ```bash
-# 寮€鍙戠幆澧?docker compose -f docker-compose.dev.yml up -d
+# 开发环境
+docker compose -f docker-compose.dev.yml up -d
 
-# 鐢熶骇鐜
+# 生产环境
 docker compose up -d
 ```
 
-`-d` = 鍚庡彴杩愯锛堜笉鍗犵粓绔獥鍙ｏ級
+`-d` = 后台运行（不占终端窗口）
 
-### 4.2 鍙惎鍔?MySQL
+### 4.2 只启动 MySQL
 
 ```bash
 docker compose -f docker-compose.dev.yml up -d mysql
 ```
 
-### 4.3 鍚姩搴旂敤锛圡ySQL 宸插湪杩愯锛?
+### 4.3 启动应用（MySQL 已在运行）
 ```bash
 docker compose -f docker-compose.dev.yml up -d etc-qa
 ```
 
-### 4.4 鏌ョ湅杩愯鐘舵€?
+### 4.4 查看运行状态
 ```bash
 docker compose -f docker-compose.dev.yml ps
 ```
 
-杈撳嚭绀轰緥锛?```
+输出示例：
+```
 NAME         STATUS       PORTS
 mysql        running      0.0.0.0:3306->3306/tcp
 etc-qa       running      0.0.0.0:8000->8000/tcp
 ```
 
-### 4.5 鏌ョ湅鏃ュ織
+### 4.5 查看日志
 
 ```bash
-# 鏌ョ湅搴旂敤鏃ュ織
+# 查看应用日志
 docker compose -f docker-compose.dev.yml logs etc-qa
 
-# 瀹炴椂璺熻釜鏃ュ織锛圕trl+C 閫€鍑猴級
+# 实时跟踪日志（Ctrl+C 退出）
 docker compose -f docker-compose.dev.yml logs -f etc-qa
 
-# 鏌ョ湅鏈€杩?50 琛?docker compose -f docker-compose.dev.yml logs --tail 50 etc-qa
+# 查看最后 50 行
+docker compose -f docker-compose.dev.yml logs --tail 50 etc-qa
 ```
 
-### 4.6 鍋滄鏈嶅姟
+### 4.6 停止服务
 
 ```bash
-# 鍋滄鎵€鏈夊鍣?docker compose -f docker-compose.dev.yml down
+# 停止所有容器
+docker compose -f docker-compose.dev.yml down
 
-# 鍋滄骞跺垹闄ゆ暟鎹紙鈿狅笍 浼氭竻绌篗ySQL鏁版嵁锛侊級
+# 停止并删除数据（⚠️ 会清空MySQL数据！）
 docker compose -f docker-compose.dev.yml down -v
 ```
 
-### 4.7 閲嶅惎鏈嶅姟
+### 4.7 重启服务
 
 ```bash
 docker compose -f docker-compose.dev.yml restart etc-qa
 ```
 
-### 4.8 閲嶆柊鏋勫缓闀滃儚锛堟敼浜嗕唬鐮佹垨渚濊禆鍚庯級
+### 4.8 重新构建镜像（改了代码或依赖后）
 
 ```bash
 docker compose -f docker-compose.dev.yml build etc-qa
@@ -109,91 +124,122 @@ docker compose -f docker-compose.dev.yml up -d etc-qa
 
 ---
 
-## 浜斻€丏ocker Desktop 鍥惧舰鐣岄潰
+## 五、Docker Desktop 图形界面
 
-### 5.1 鎵撳紑鏂瑰紡
+### 5.1 打开方式
 
-鍙屽嚮妗岄潰鍥炬爣鎴栨墭鐩樺浘鏍?鈫?鎵撳紑 Docker Desktop
+双击桌面图标或托盘图标 → 打开 Docker Desktop
 
-### 5.2 鐣岄潰璇存槑
+### 5.2 界面说明
 
 ```
-鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?鈹? 宸︿晶鏍忥細                                      鈹?鈹?   Containers  鈫?鏌ョ湅杩愯涓殑瀹瑰櫒锛堝搴?docker ps锛?鈹?鈹?   Images      鈫?鏌ョ湅闀滃儚鍒楄〃                    鈹?鈹?   Volumes     鈫?鏌ョ湅鏁版嵁鍗?                     鈹?鈹?                                               鈹?鈹? 涓诲尯鍩燂細                                        鈹?鈹?   瀹瑰櫒鍒楄〃 鈫?姣忎釜瀹瑰櫒鏈?鍚姩/鍋滄/閲嶅惎/鍒犻櫎 鎸夐挳    鈹?鈹?   鐐瑰嚮瀹瑰櫒鍚?鈫?鏌ョ湅鏃ュ織锛堝搴?docker logs锛?       鈹?鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?```
+┌──────────────────────────────────────────────┐
+│ 左侧栏：                                      │
+│   Containers  → 查看运行中的容器（对应 docker ps）│
+│   Images      → 查看镜像列表                    │
+│   Volumes     → 查看数据卷                      │
+│                                               │
+│ 主区域：                                        │
+│   容器列表 → 每个容器有 启动/停止/重启/删除 按钮   │
+│   点击容器名 → 查看日志（对应 docker logs）       │
+└──────────────────────────────────────────────┘
+```
 
-### 5.3 甯哥敤鎿嶄綔
+### 5.3 常用操作
 
-| 鎿嶄綔 | 鍥惧舰鐣岄潰 | 绛変环鍛戒护 |
+| 操作 | 图形界面 | 等价命令 |
 |------|---------|---------|
-| 鍚姩瀹瑰櫒 | Containers 鈫?鐐瑰鍣?鈫?Start | `docker start 瀹瑰櫒鍚峘 |
-| 鍋滄瀹瑰櫒 | Containers 鈫?鐐瑰鍣?鈫?Stop | `docker stop 瀹瑰櫒鍚峘 |
-| 鏌ョ湅鏃ュ織 | 鐐瑰鍣ㄥ悕 鈫?Logs 鏍囩 | `docker logs 瀹瑰櫒鍚峘 |
-| 鍒犻櫎瀹瑰櫒 | 鐐瑰鍣?鈫?Delete | `docker rm 瀹瑰櫒鍚峘 |
-| 杩涘叆瀹瑰櫒缁堢 | 鐐瑰鍣?鈫?Exec 鏍囩 | `docker exec -it 瀹瑰櫒鍚?sh` |
+| 启动容器 | Containers → 点容器 → Start | `docker start 容器名` |
+| 停止容器 | Containers → 点容器 → Stop | `docker stop 容器名` |
+| 查看日志 | 点容器名 → Logs 标签 | `docker logs 容器名` |
+| 删除容器 | 点容器 → Delete | `docker rm 容器名` |
+| 进入容器终端 | 点容器 → Exec 标签 | `docker exec -it 容器名 sh` |
 
 ---
 
-## 鍏€佹湰椤圭洰鐨?Docker 鏋舵瀯
+## 六、本项目的 Docker 架构
 
 ```
-docker-compose.dev.yml 鍚姩鍚庯細
+docker-compose.dev.yml 启动后：
 
-鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?鈹? Docker 缃戠粶                              鈹?鈹?                                         鈹?鈹? 鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?     鈹屸攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹? 鈹?鈹? 鈹? MySQL    鈹?     鈹? etc-qa 搴旂敤      鈹? 鈹?鈹? 鈹? 绔彛3306 鈹?鈫愨攢鈹€鈫?鈹? 绔彛8000        鈹? 鈹?鈹? 鈹? 鏁版嵁鎸佷箙鍖栤攤      鈹? 鎸傝浇models/     鈹? 鈹?鈹? 鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?     鈹? 鎸傝浇data/       鈹? 鈹?鈹?                    鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹? 鈹?鈹斺攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹?        鈫?                     鈫?   鏈湴:3306              鏈湴:8000
-   (Navicat绛夎繛鎺?        (娴忚鍣ㄨ闂瓵PI)
+┌─────────────────────────────────────────┐
+│ Docker 网络                              │
+│                                         │
+│ ┌──────────┐     ┌──────────────────┐   │
+│ │ MySQL    │     │ etc-qa 应用      │   │
+│ │ 端口3306 │←──→ │ 端口8000        │   │
+│ │ 数据持久化│      │ 挂载models/     │   │
+│ └──────────┘     │ 挂载data/       │   │
+│                   └──────────────────┘   │
+└─────────────────────────────────────────┘
+        ↓                     ↓
+   本地:3306              本地:8000
+   (Navicat等连接)        (浏览器访问API)
 ```
 
-### 浠€涔堝湪 Docker 閲岋紝浠€涔堜笉鍦紵
+### 什么在 Docker 里，什么不在？
 
-| 椤圭洰 | 鍦ㄥ摢 | 鍘熷洜 |
+| 项目 | 在哪 | 原因 |
 |------|------|------|
-| MySQL | Docker 瀹瑰櫒 | 闃熷弸涓嶇敤鑷繁瑁?|
-| Python + 渚濊禆 | Docker 闀滃儚 | 鐜涓€鑷存€?|
-| Milvus 鏁版嵁 | Docker Volume | 鑷姩绠＄悊 |
-| 妯″瀷鏂囦欢 | 鏈湴 `models/` 鐩綍 | 澶ぇ锛垀10G锛夛紝鎸傝浇杩涘鍣?|
-| API Key | 鏈湴 `.env` 鏂囦欢 | 涓嶈兘杩涢暅鍍忥紝闃叉硠闇?|
-| 婧愪唬鐮?| 鏈湴鐩綍 | 寮€鍙戞椂鏀逛唬鐮侊紝瀹瑰櫒閲屽疄鏃剁敓鏁堬紙--reload锛?|
+| MySQL | Docker 容器 | 队友不用自己装 |
+| Python + 依赖 | Docker 镜像 | 环境一致 |
+| Milvus 数据 | Docker Volume | 自动管理 |
+| ASR模型文件 | 本地 `models/` 目录 | 太大（~2.1G），挂载进容器 |
+| API Key | 本地 `.env` 文件 | 不能进镜像，防泄露（含 SiliconFlow + DeepSeek） |
+| 源代码 | 本地目录 | 开发时改代码，容器里实时生效（--reload） |
 
 ---
 
-## 涓冦€佸父瑙侀棶棰?
-### Q: Docker Desktop 鍚姩寰堟參锛?姝ｅ父鐜拌薄锛岄娆″惎鍔ㄩ渶瑕?30-60 绉掋€傜瓑鎵樼洏鍥炬爣鍙樼豢鍗冲彲銆?
-### Q: 绔彛琚崰鐢紵
+## 七、常见问题
+
+### Q: Docker Desktop 启动很慢？
+正常现象，首次启动需要 30-60 秒。等托盘图标变绿即可。
+
+### Q: 端口被占用？
 ```
 Error: Bind for 0.0.0.0:3306 failed: port is already allocated
 ```
-璇存槑浣犳湰鍦板凡缁忚浜?MySQL 鍗犱簡 3306 绔彛銆備袱绉嶈В鍐虫柟寮忥細
-1. 鍏虫帀鏈湴 MySQL 鏈嶅姟
-2. 鏀?`docker-compose.dev.yml` 涓殑绔彛锛歚"3307:3306"`锛堝閮ㄧ敤 3307 杩烇級
+说明你本地已经装了 MySQL 占了 3306 端口。两种解决方式：
+1. 关掉本地 MySQL 服务
+2. 改 `docker-compose.dev.yml` 中的端口：`"3307:3306"`（外部用 3307 连）
 
-### Q: 瀹瑰櫒鍚姩鍚庣珛鍒婚€€鍑猴紵
-鏌ョ湅鏃ュ織鎵惧師鍥狅細
+### Q: 容器启动后立刻退出？
+查看日志找原因：
 ```bash
 docker compose -f docker-compose.dev.yml logs etc-qa
 ```
 
-### Q: 鏀逛簡浠ｇ爜浣嗕笉鐢熸晥锛?寮€鍙戠幆澧冪敤浜?`--reload`锛屼唬鐮佹敼鍔ㄤ細鑷姩鐢熸晥銆傚鏋滄病鐢熸晥锛?```bash
+### Q: 改了代码但不生效？
+开发环境用了 `--reload`，代码改动会自动生效。如果没生效：
+```bash
 docker compose -f docker-compose.dev.yml restart etc-qa
 ```
 
-### Q: 鏀逛簡 requirements.txt 涓嶇敓鏁堬紵
-闇€瑕侀噸鏂版瀯寤洪暅鍍忥細
+### Q: 改了 requirements.txt 不生效？
+需要重新构建镜像：
 ```bash
 docker compose -f docker-compose.dev.yml build etc-qa
 docker compose -f docker-compose.dev.yml up -d etc-qa
 ```
 
-### Q: 鎯冲畬鍏ㄩ噸缃幆澧冿紵
+### Q: 想完全重置环境？
 ```bash
-docker compose -f docker-compose.dev.yml down -v   # 鍒犻櫎瀹瑰櫒+鏁版嵁鍗?docker compose -f docker-compose.dev.yml up -d       # 閲嶆柊鍚姩
+docker compose -f docker-compose.dev.yml down -v   # 删除容器+数据卷
+docker compose -f docker-compose.dev.yml up -d       # 重新启动
 ```
-鈿狅笍 `-v` 浼氬垹闄?MySQL 鏁版嵁锛岄渶瑕侀噸鏂拌繍琛?`init_db.py`
+⚠️ `-v` 会删除 MySQL 数据，需要重新运行 `init_db.py`
 
-### Q: 瀹瑰櫒閲屾€庝箞鎵ц鍛戒护锛?```bash
-# 杩涘叆搴旂敤瀹瑰櫒鐨勭粓绔?docker compose -f docker-compose.dev.yml exec etc-qa sh
+### Q: 容器里怎么执行命令？
+```bash
+# 进入应用容器的终端
+docker compose -f docker-compose.dev.yml exec etc-qa sh
 
-# 鐩存帴鎵ц鍗曟潯鍛戒护
+# 直接执行单条命令
 docker compose -f docker-compose.dev.yml exec etc-qa python scripts/data/init_db.py dev
 ```
 
-### Q: Windows 涓?Docker 寰堝崱锛?Docker Desktop 鈫?Settings 鈫?Resources锛?- Memory: 寤鸿 4GB+
-- CPUs: 寤鸿 2+
-- Disk: 寤鸿 20GB+
+### Q: Windows 下 Docker 很卡？
+Docker Desktop → Settings → Resources：
+- Memory: 建议 4GB+
+- CPUs: 建议 2+
+- Disk: 建议 20GB+

@@ -20,7 +20,7 @@ RAG 检索需要从知识库中找到最匹配的 QA。候选方案：
 1. **互补**：向量检索擅长语义匹配（"怎么换手机号" ≈ "如何变更绑定号码"），BM25 擅长关键词匹配（ETC、OBU 等专有名词）
 2. **并行**：ThreadPoolExecutor(max_workers=2) 并行执行，延迟不增加
 3. **RRF 权重**：vector_weight=0.7, bm25_weight=0.3，向量为主、BM25 补充
-4. **Reranker 精排**：合并后用 CrossEncoder 精排，提升 Top-1 准确率
+4. **Reranker 精排**：合并后用 SiliconFlow API (bge-reranker-v2-m3) 精排，提升 Top-1 准确率
 
 ## 代价
 

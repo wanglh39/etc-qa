@@ -8,7 +8,9 @@
             <el-icon><Document /></el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ stats.total || 0 }}</div>
+            <div class="kpi-num">
+              {{ stats.total || 0 }}
+            </div>
             <div class="kpi-label">全部工单</div>
           </div>
         </div>
@@ -19,7 +21,9 @@
             <el-icon><Clock /></el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ stats.submitted || 0 }}</div>
+            <div class="kpi-num">
+              {{ stats.submitted || 0 }}
+            </div>
             <div class="kpi-label">待处理</div>
           </div>
         </div>
@@ -30,7 +34,9 @@
             <el-icon><ChatDotRound /></el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ stats.answered || 0 }}</div>
+            <div class="kpi-num">
+              {{ stats.answered || 0 }}
+            </div>
             <div class="kpi-label">已回复</div>
           </div>
         </div>
@@ -41,7 +47,9 @@
             <el-icon><CircleCheck /></el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ stats.processed || 0 }}</div>
+            <div class="kpi-num">
+              {{ stats.processed || 0 }}
+            </div>
             <div class="kpi-label">已办结</div>
           </div>
         </div>
@@ -52,7 +60,9 @@
             <el-icon><Calendar /></el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ stats.today || 0 }}</div>
+            <div class="kpi-num">
+              {{ stats.today || 0 }}
+            </div>
             <div class="kpi-label">今日新增</div>
           </div>
         </div>
@@ -64,8 +74,8 @@
       <template #header>
         <div class="card-header">
           <span class="card-title">{{ currentDeptName }}工单处理</span>
-          <div class="header-actions" v-if="selectedIds.length > 0">
-            <el-tag type="info">已选 {{ selectedIds.length }} 条</el-tag>
+          <div v-if="selectedIds.length > 0" class="header-actions">
+            <el-tag type="info"> 已选 {{ selectedIds.length }} 条 </el-tag>
             <el-button type="primary" size="small" :loading="batchLoading" @click="batchFinish">
               批量办结
             </el-button>
@@ -106,23 +116,23 @@
             clearable
             style="width: 200px"
             @keyup.enter="handleSearch"
-          ></el-input>
+          />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="resetSearch">重置</el-button>
+          <el-button type="primary" @click="handleSearch"> 查询 </el-button>
+          <el-button @click="resetSearch"> 重置 </el-button>
         </el-form-item>
       </el-form>
 
       <!-- 表格区域 -->
       <div class="table-wrapper">
         <el-table
+          v-loading="loading"
           :data="displayList"
           border
           stripe
           style="width: 100%; height: 100%"
           height="100%"
-          v-loading="loading"
           @selection-change="onSelectionChange"
         >
           <el-table-column
@@ -131,8 +141,8 @@
             align="center"
             :selectable="(row: WorkOrderListItem) => row.status !== 'processed'"
           />
-          <el-table-column label="工单ID" prop="id" width="80" align="center"></el-table-column>
-          <el-table-column label="工单编号" prop="external_id" min-width="180"></el-table-column>
+          <el-table-column label="工单ID" prop="id" width="80" align="center" />
+          <el-table-column label="工单编号" prop="external_id" min-width="180" />
           <el-table-column label="问题类型" min-width="120" align="center">
             <template #default="scope">
               <el-tag v-if="parseRaw(scope.row).problem_type" size="small" effect="plain">
@@ -153,38 +163,34 @@
               <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column
-            label="提交时间"
-            prop="created_at"
-            min-width="160"
-            align="center"
-          ></el-table-column>
+          <el-table-column label="提交时间" prop="created_at" min-width="160" align="center" />
           <el-table-column label="工单状态" prop="status" width="100" align="center">
             <template #default="scope">
-              <el-tag v-if="scope.row.status === 'submitted'" type="info" effect="light"
-                >待处理</el-tag
-              >
-              <el-tag v-else-if="scope.row.status === 'answered'" type="primary" effect="light"
-                >已回复</el-tag
-              >
-              <el-tag v-else-if="scope.row.status === 'processed'" type="primary" effect="light"
-                >已办结</el-tag
-              >
+              <el-tag v-if="scope.row.status === 'submitted'" type="info" effect="light">
+                待处理
+              </el-tag>
+              <el-tag v-else-if="scope.row.status === 'answered'" type="primary" effect="light">
+                已回复
+              </el-tag>
+              <el-tag v-else-if="scope.row.status === 'processed'" type="primary" effect="light">
+                已办结
+              </el-tag>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="180" align="center" fixed="right">
             <template #default="scope">
-              <el-button link type="primary" size="small" @click="openDetail(scope.row)"
-                >查看详情</el-button
-              >
+              <el-button link type="primary" size="small" @click="openDetail(scope.row)">
+                查看详情
+              </el-button>
               <el-button
                 link
                 type="primary"
                 size="small"
                 :disabled="scope.row.status === 'processed'"
                 @click="handleFinish(scope.row)"
-                >办结</el-button
               >
+                办结
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -200,7 +206,7 @@
           background
           @size-change="getTableList"
           @current-change="getTableList"
-        ></el-pagination>
+        />
       </div>
     </el-card>
   </div>

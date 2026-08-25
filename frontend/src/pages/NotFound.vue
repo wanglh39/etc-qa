@@ -3,7 +3,7 @@
     <div class="content">
       <div class="code">404</div>
       <div class="desc">页面不存在或已被移除</div>
-      <el-button type="primary" @click="goHome">返回首页</el-button>
+      <el-button type="primary" @click="goHome"> 返回首页 </el-button>
     </div>
   </div>
 </template>

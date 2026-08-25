@@ -2,10 +2,10 @@
   <div class="top-navbar">
     <div class="navbar-left">
       <el-menu mode="horizontal" :default-active="activeMenu" class="nav-menu">
-        <el-menu-item index="/workbench">智能问答工作台</el-menu-item>
-        <el-menu-item index="/knowledge">知识列表</el-menu-item>
-        <el-menu-item index="/category">分类管理</el-menu-item>
-        <el-menu-item index="/audit/pending">审核中心</el-menu-item>
+        <el-menu-item index="/workbench"> 智能问答工作台 </el-menu-item>
+        <el-menu-item index="/knowledge"> 知识列表 </el-menu-item>
+        <el-menu-item index="/category"> 分类管理 </el-menu-item>
+        <el-menu-item index="/audit/pending"> 审核中心 </el-menu-item>
       </el-menu>
     </div>
     <div class="navbar-right">
@@ -23,7 +23,7 @@
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item>个人中心</el-dropdown-item>
-            <el-dropdown-item @click="logout">退出登录</el-dropdown-item>
+            <el-dropdown-item @click="logout"> 退出登录 </el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>

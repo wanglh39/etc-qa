@@ -5,10 +5,14 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon">
-            <el-icon :size="24"><UserFilled /></el-icon>
+            <el-icon :size="24">
+              <UserFilled />
+            </el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ total }}</div>
+            <div class="kpi-num">
+              {{ total }}
+            </div>
             <div class="kpi-label">总账号数</div>
           </div>
         </div>
@@ -16,10 +20,14 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon">
-            <el-icon :size="24"><CircleCheck /></el-icon>
+            <el-icon :size="24">
+              <CircleCheck />
+            </el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ activeCount }}</div>
+            <div class="kpi-num">
+              {{ activeCount }}
+            </div>
             <div class="kpi-label">启用</div>
           </div>
         </div>
@@ -27,10 +35,14 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon">
-            <el-icon :size="24"><CircleClose /></el-icon>
+            <el-icon :size="24">
+              <CircleClose />
+            </el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ disabledCount }}</div>
+            <div class="kpi-num">
+              {{ disabledCount }}
+            </div>
             <div class="kpi-label">禁用</div>
           </div>
         </div>
@@ -38,10 +50,14 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon">
-            <el-icon :size="24"><Avatar /></el-icon>
+            <el-icon :size="24">
+              <Avatar />
+            </el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ superadminCount }}</div>
+            <div class="kpi-num">
+              {{ superadminCount }}
+            </div>
             <div class="kpi-label">超管数</div>
           </div>
         </div>
@@ -82,8 +98,10 @@
             <el-option label="启用" value="active" />
             <el-option label="禁用" value="disabled" />
           </el-select>
-          <el-button type="primary" style="margin-left: 12px" @click="handleSearch">搜索</el-button>
-          <el-button style="margin-left: 8px" @click="handleReset">重置</el-button>
+          <el-button type="primary" style="margin-left: 12px" @click="handleSearch">
+            搜索
+          </el-button>
+          <el-button style="margin-left: 8px" @click="handleReset"> 重置 </el-button>
         </div>
 
         <el-table border :max-height="'calc(100vh - 380px)'" :data="tableData">
@@ -94,7 +112,9 @@
                   {{ row.username.charAt(0).toUpperCase() }}
                 </div>
                 <div class="user-info">
-                  <div class="user-name">{{ row.username }}</div>
+                  <div class="user-name">
+                    {{ row.username }}
+                  </div>
                   <div class="user-id">ID: {{ row.id }}</div>
                 </div>
               </div>
@@ -123,19 +143,20 @@
           <el-table-column prop="created_at" label="创建时间" width="170" align="center" />
           <el-table-column label="操作" width="280" fixed="right">
             <template #default="{ row }">
-              <el-button link type="primary" @click="openEditDialog(row)">编辑</el-button>
-              <el-button link type="info" @click="openResetDialog(row)">重置密码</el-button>
+              <el-button link type="primary" @click="openEditDialog(row)"> 编辑 </el-button>
+              <el-button link type="info" @click="openResetDialog(row)"> 重置密码 </el-button>
               <el-button
                 v-if="row.status === 'active'"
                 link
                 type="info"
                 @click="handleToggleStatus(row, 'disabled')"
-                >禁用</el-button
               >
-              <el-button v-else link type="primary" @click="handleToggleStatus(row, 'active')"
-                >启用</el-button
-              >
-              <el-button link type="info" @click="handleDelete(row)">删除</el-button>
+                禁用
+              </el-button>
+              <el-button v-else link type="primary" @click="handleToggleStatus(row, 'active')">
+                启用
+              </el-button>
+              <el-button link type="info" @click="handleDelete(row)"> 删除 </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -196,8 +217,8 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="formVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmit">确认</el-button>
+        <el-button @click="formVisible = false"> 取消 </el-button>
+        <el-button type="primary" :loading="submitting" @click="handleSubmit"> 确认 </el-button>
       </template>
     </el-dialog>
 
@@ -216,10 +237,10 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="resetVisible = false">取消</el-button>
-        <el-button type="primary" :loading="resetting" @click="handleResetPassword"
-          >确认重置</el-button
-        >
+        <el-button @click="resetVisible = false"> 取消 </el-button>
+        <el-button type="primary" :loading="resetting" @click="handleResetPassword">
+          确认重置
+        </el-button>
       </template>
     </el-dialog>
   </div>

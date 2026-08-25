@@ -5,10 +5,14 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon">
-            <el-icon :size="24"><Document /></el-icon>
+            <el-icon :size="24">
+              <Document />
+            </el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ total }}</div>
+            <div class="kpi-num">
+              {{ total }}
+            </div>
             <div class="kpi-label">总操作数</div>
           </div>
         </div>
@@ -16,10 +20,14 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon">
-            <el-icon :size="24"><CirclePlus /></el-icon>
+            <el-icon :size="24">
+              <CirclePlus />
+            </el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ actionCount('create') }}</div>
+            <div class="kpi-num">
+              {{ actionCount('create') }}
+            </div>
             <div class="kpi-label">创建操作</div>
           </div>
         </div>
@@ -27,10 +35,14 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon">
-            <el-icon :size="24"><Edit /></el-icon>
+            <el-icon :size="24">
+              <Edit />
+            </el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ actionCount('update') }}</div>
+            <div class="kpi-num">
+              {{ actionCount('update') }}
+            </div>
             <div class="kpi-label">修改操作</div>
           </div>
         </div>
@@ -38,10 +50,14 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon">
-            <el-icon :size="24"><Delete /></el-icon>
+            <el-icon :size="24">
+              <Delete />
+            </el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ actionCount('delete') }}</div>
+            <div class="kpi-num">
+              {{ actionCount('delete') }}
+            </div>
             <div class="kpi-label">删除操作</div>
           </div>
         </div>
@@ -53,8 +69,8 @@
         <div class="header-bar">
           <h3>操作日志</h3>
           <el-radio-group v-model="viewMode" size="small">
-            <el-radio-button label="table">表格</el-radio-button>
-            <el-radio-button label="timeline">时间线</el-radio-button>
+            <el-radio-button label="table"> 表格 </el-radio-button>
+            <el-radio-button label="timeline"> 时间线 </el-radio-button>
           </el-radio-group>
         </div>
 
@@ -78,8 +94,10 @@
             <el-option label="删除" value="delete" />
             <el-option label="重置密码" value="reset_password" />
           </el-select>
-          <el-button type="primary" style="margin-left: 12px" @click="handleSearch">搜索</el-button>
-          <el-button style="margin-left: 8px" @click="handleReset">重置</el-button>
+          <el-button type="primary" style="margin-left: 12px" @click="handleSearch">
+            搜索
+          </el-button>
+          <el-button style="margin-left: 8px" @click="handleReset"> 重置 </el-button>
         </div>
 
         <!-- 表格视图 -->
@@ -93,7 +111,9 @@
           <el-table-column label="操作人" width="130">
             <template #default="{ row }">
               <div class="op-cell">
-                <div class="op-avatar">{{ row.operator.charAt(0).toUpperCase() }}</div>
+                <div class="op-avatar">
+                  {{ row.operator.charAt(0).toUpperCase() }}
+                </div>
                 <span>{{ row.operator }}</span>
               </div>
             </template>
@@ -101,9 +121,9 @@
           <el-table-column label="动作" width="110" align="center">
             <template #default="{ row }">
               <el-tag :type="actionTagType(row.action)" effect="dark">
-                <el-icon style="margin-right: 2px"
-                  ><component :is="actionIcon(row.action)"
-                /></el-icon>
+                <el-icon style="margin-right: 2px">
+                  <component :is="actionIcon(row.action)" />
+                </el-icon>
                 {{ actionLabel(row.action) }}
               </el-tag>
             </template>
@@ -127,14 +147,18 @@
               <el-card shadow="hover" class="timeline-card">
                 <div class="tl-header">
                   <div class="op-cell">
-                    <div class="op-avatar">{{ log.operator.charAt(0).toUpperCase() }}</div>
+                    <div class="op-avatar">
+                      {{ log.operator.charAt(0).toUpperCase() }}
+                    </div>
                     <span class="tl-operator">{{ log.operator }}</span>
                   </div>
                   <el-tag :type="actionTagType(log.action)" effect="dark" size="small">
                     {{ actionLabel(log.action) }}
                   </el-tag>
                 </div>
-                <div class="tl-detail">{{ log.detail }}</div>
+                <div class="tl-detail">
+                  {{ log.detail }}
+                </div>
                 <div class="tl-meta">
                   <span v-if="log.target_type">对象: {{ log.target_type }}</span>
                   <span v-if="log.target_id">ID: {{ log.target_id }}</span>

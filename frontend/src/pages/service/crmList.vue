@@ -2,7 +2,7 @@
   <div class="crm-list-page">
     <div class="page-header">
       <h2>CRM工单列表</h2>
-      <el-button type="primary" @click="$router.push('/crm/create')">新建工单</el-button>
+      <el-button type="primary" @click="$router.push('/crm/create')"> 新建工单 </el-button>
     </div>
 
     <!-- 搜索区域 -->
@@ -10,21 +10,21 @@
       <el-form inline :model="searchForm">
         <el-form-item label="工单状态">
           <el-select v-model="searchForm.status" placeholder="全部" clearable>
-            <el-option label="已提交" value="submitted"></el-option>
-            <el-option label="已处理" value="processed"></el-option>
-            <el-option label="已回复" value="answered"></el-option>
+            <el-option label="已提交" value="submitted" />
+            <el-option label="已处理" value="processed" />
+            <el-option label="已回复" value="answered" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="getTableData">查询</el-button>
-          <el-button @click="resetSearch">重置</el-button>
+          <el-button type="primary" @click="getTableData"> 查询 </el-button>
+          <el-button @click="resetSearch"> 重置 </el-button>
         </el-form-item>
       </el-form>
     </el-card>
 
     <!-- 工单表格 -->
     <el-table border :data="tableData" style="width: 100%">
-      <el-table-column label="工单ID" prop="id" width="80"></el-table-column>
+      <el-table-column label="工单ID" prop="id" width="80" />
       <el-table-column label="外部ID" prop="external_id" min-width="140">
         <template #default="{ row }">
           {{ row.external_id || '-' }}
@@ -37,10 +37,12 @@
       </el-table-column>
       <el-table-column label="状态" width="100">
         <template #default="{ row }">
-          <el-tag :type="statusType(row.status)">{{ statusText(row.status) }}</el-tag>
+          <el-tag :type="statusType(row.status)">
+            {{ statusText(row.status) }}
+          </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="创建时间" prop="created_at" width="170"></el-table-column>
+      <el-table-column label="创建时间" prop="created_at" width="170" />
     </el-table>
 
     <!-- 分页 -->
@@ -51,7 +53,7 @@
       layout="total, sizes, prev, pager, next, jumper"
       class="pagination-box"
       @change="getTableData"
-    ></el-pagination>
+    />
   </div>
 </template>
 

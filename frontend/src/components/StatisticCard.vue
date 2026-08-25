@@ -2,9 +2,13 @@
   <el-card class="stat-card" :class="{ clickable: to, alert: alert }" @click="handleClick">
     <div class="stat-top">
       <span class="stat-title">{{ title }}</span>
-      <el-icon :size="24" :color="iconColor"><component :is="icon" /></el-icon>
+      <el-icon :size="24" :color="iconColor">
+        <component :is="icon" />
+      </el-icon>
     </div>
-    <div class="stat-num">{{ displayValue }}</div>
+    <div class="stat-num">
+      {{ displayValue }}
+    </div>
     <div class="stat-bottom">
       <span class="stat-desc">{{ desc }}</span>
       <span v-if="growth !== undefined" class="stat-growth" :class="growth >= 0 ? 'up' : 'down'">
@@ -24,7 +28,9 @@
     </div>
     <div v-if="to" class="click-hint">
       <span>点击查看</span>
-      <el-icon class="arrow"><ArrowRight /></el-icon>
+      <el-icon class="arrow">
+        <ArrowRight />
+      </el-icon>
     </div>
   </el-card>
 </template>

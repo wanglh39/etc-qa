@@ -1,7 +1,7 @@
 <template>
   <div class="audio-wrapper">
     <!-- 独立闭合audio, 内部不放任何div -->
-    <audio controls preload="metadata" :src="audioUrl"></audio>
+    <audio controls preload="metadata" :src="audioUrl" />
     <!-- 👈 在这里添加了 </audio> -->
 
     <!-- 转写div放在audio外面, 平级布局 -->

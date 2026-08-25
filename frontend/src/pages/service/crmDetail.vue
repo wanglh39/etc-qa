@@ -1,30 +1,38 @@
 <template>
   <div class="crm-detail-page">
     <div class="page-header">
-      <el-button @click="$router.back()" icon="ArrowLeft">返回我的待办工单列表</el-button>
+      <el-button icon="ArrowLeft" @click="$router.back()"> 返回我的待办工单列表 </el-button>
       <h2>业务部门工单处理回复页</h2>
     </div>
 
     <!-- 只读：客服发起工单原始信息（业务部门仅查看，不可编辑） -->
     <el-card title="【客服发起工单原始信息】" class="info-card">
       <el-descriptions border :column="2">
-        <el-descriptions-item label="发起客服ID">{{ orderInfo.service_id }}</el-descriptions-item>
-        <el-descriptions-item label="客户名称">{{ orderInfo.customer_name }}</el-descriptions-item>
-        <el-descriptions-item label="客户手机号">{{ orderInfo.phone }}</el-descriptions-item>
-        <el-descriptions-item label="问题分类">{{
-          getTypeName(orderInfo.problem_type)
-        }}</el-descriptions-item>
-        <el-descriptions-item label="转交本处理部门">{{
-          getDeptName(orderInfo.next_dept)
-        }}</el-descriptions-item>
-        <el-descriptions-item label="工单优先级">{{
-          getPriorityText(orderInfo.priority)
-        }}</el-descriptions-item>
+        <el-descriptions-item label="发起客服ID">
+          {{ orderInfo.service_id }}
+        </el-descriptions-item>
+        <el-descriptions-item label="客户名称">
+          {{ orderInfo.customer_name }}
+        </el-descriptions-item>
+        <el-descriptions-item label="客户手机号">
+          {{ orderInfo.phone }}
+        </el-descriptions-item>
+        <el-descriptions-item label="问题分类">
+          {{ getTypeName(orderInfo.problem_type) }}
+        </el-descriptions-item>
+        <el-descriptions-item label="转交本处理部门">
+          {{ getDeptName(orderInfo.next_dept) }}
+        </el-descriptions-item>
+        <el-descriptions-item label="工单优先级">
+          {{ getPriorityText(orderInfo.priority) }}
+        </el-descriptions-item>
         <el-descriptions-item label="客户原始问题描述" span="2">
           {{ orderInfo.detail_desc }}
         </el-descriptions-item>
         <el-descriptions-item label="工单状态" span="2">
-          <el-tag :type="statusType(orderInfo.status)">{{ statusText(orderInfo.status) }}</el-tag>
+          <el-tag :type="statusType(orderInfo.status)">
+            {{ statusText(orderInfo.status) }}
+          </el-tag>
         </el-descriptions-item>
       </el-descriptions>
     </el-card>
@@ -50,7 +58,7 @@
         <el-button type="primary" :loading="submitting" @click="completeAndReturn">
           提交处理回复
         </el-button>
-        <el-button @click="$router.back()">取消，返回列表</el-button>
+        <el-button @click="$router.back()"> 取消，返回列表 </el-button>
       </el-form-item>
     </el-form>
   </div>

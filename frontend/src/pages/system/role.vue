@@ -22,15 +22,21 @@
             </el-icon>
           </div>
           <div class="role-meta">
-            <div class="role-name">{{ role.role_name }}</div>
-            <div class="role-key">{{ role.role_key }}</div>
+            <div class="role-name">
+              {{ role.role_name }}
+            </div>
+            <div class="role-key">
+              {{ role.role_key }}
+            </div>
           </div>
           <el-tag :color="roleColor(role.role_key)" effect="dark" style="border: none">
             {{ userCountByRole(role.role_key) }}人
           </el-tag>
         </div>
 
-        <div class="role-desc">{{ role.description || '暂无描述' }}</div>
+        <div class="role-desc">
+          {{ role.description || '暂无描述' }}
+        </div>
 
         <!-- 权限矩阵 -->
         <div class="perm-section">
@@ -42,14 +48,15 @@
               size="small"
               effect="plain"
               style="margin: 2px"
-              >{{ perm }}</el-tag
             >
+              {{ perm }}
+            </el-tag>
           </div>
         </div>
 
         <div class="role-actions">
-          <el-button link type="primary" @click="openEditDialog(role)">编辑</el-button>
-          <el-button link type="info" @click="handleDelete(role)">删除</el-button>
+          <el-button link type="primary" @click="openEditDialog(role)"> 编辑 </el-button>
+          <el-button link type="info" @click="handleDelete(role)"> 删除 </el-button>
         </div>
       </el-card>
     </div>
@@ -77,14 +84,16 @@
         <el-form-item label="可访问页面">
           <el-checkbox-group v-model="formData.permissions">
             <div v-for="page in ALL_PAGES" :key="page.path" style="margin-bottom: 4px">
-              <el-checkbox :value="page.path">{{ page.label }}</el-checkbox>
+              <el-checkbox :value="page.path">
+                {{ page.label }}
+              </el-checkbox>
             </div>
           </el-checkbox-group>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="formVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmit">确认</el-button>
+        <el-button @click="formVisible = false"> 取消 </el-button>
+        <el-button type="primary" :loading="submitting" @click="handleSubmit"> 确认 </el-button>
       </template>
     </el-dialog>
   </div>

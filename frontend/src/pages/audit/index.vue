@@ -3,10 +3,10 @@
     <div class="container-root">
       <!-- 顶部操作按钮 -->
       <div class="top-actions">
-        <el-button type="primary">刷新数据</el-button>
-        <el-button type="primary">一键采用回复</el-button>
-        <el-button type="info">标记无效</el-button>
-        <el-button type="primary">创建CRM工单</el-button>
+        <el-button type="primary"> 刷新数据 </el-button>
+        <el-button type="primary"> 一键采用回复 </el-button>
+        <el-button type="info"> 标记无效 </el-button>
+        <el-button type="primary"> 创建CRM工单 </el-button>
       </div>
 
       <div class="main-content">

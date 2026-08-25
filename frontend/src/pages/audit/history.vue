@@ -4,34 +4,48 @@
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-icon">
-          <el-icon :size="24"><DataLine /></el-icon>
+          <el-icon :size="24">
+            <DataLine />
+          </el-icon>
         </div>
         <div class="kpi-info">
-          <div class="kpi-value">{{ total }}</div>
+          <div class="kpi-value">
+            {{ total }}
+          </div>
           <div class="kpi-label">总审核数</div>
         </div>
       </div>
       <div class="kpi-card">
         <div class="kpi-icon">
-          <el-icon :size="24"><CircleCheck /></el-icon>
+          <el-icon :size="24">
+            <CircleCheck />
+          </el-icon>
         </div>
         <div class="kpi-info">
-          <div class="kpi-value">{{ passCount }}</div>
+          <div class="kpi-value">
+            {{ passCount }}
+          </div>
           <div class="kpi-label">入库通过</div>
         </div>
       </div>
       <div class="kpi-card">
         <div class="kpi-icon">
-          <el-icon :size="24"><CircleClose /></el-icon>
+          <el-icon :size="24">
+            <CircleClose />
+          </el-icon>
         </div>
         <div class="kpi-info">
-          <div class="kpi-value">{{ rejectCount }}</div>
+          <div class="kpi-value">
+            {{ rejectCount }}
+          </div>
           <div class="kpi-label">已驳回</div>
         </div>
       </div>
       <div class="kpi-card">
         <div class="kpi-icon">
-          <el-icon :size="24"><Histogram /></el-icon>
+          <el-icon :size="24">
+            <Histogram />
+          </el-icon>
         </div>
         <div class="kpi-info">
           <div class="kpi-value">{{ passRate }}%</div>
@@ -44,10 +58,10 @@
       <template #header>
         <div class="card-header">
           <span>审核历史记录</span>
-          <el-button type="primary" size="small" @click="loadData">刷新</el-button>
+          <el-button type="primary" size="small" @click="loadData"> 刷新 </el-button>
         </div>
       </template>
-      <el-table :data="historyList" border v-loading="loading">
+      <el-table v-loading="loading" :data="historyList" border>
         <el-table-column prop="id" label="审核编号" width="100" />
         <el-table-column prop="question" label="审核问题" min-width="200" />
 
@@ -71,9 +85,9 @@
         <el-table-column prop="operator" label="操作管理员" width="120">
           <template #default="{ row }">
             <div style="display: flex; align-items: center; gap: 6px">
-              <el-avatar :size="24" style="background: #f1f5f9; color: #1677ff; font-size: 12px">{{
-                (row.operator || '?').charAt(0).toUpperCase()
-              }}</el-avatar>
+              <el-avatar :size="24" style="background: #f1f5f9; color: #1677ff; font-size: 12px">
+                {{ (row.operator || '?').charAt(0).toUpperCase() }}
+              </el-avatar>
               <span>{{ row.operator || '-' }}</span>
             </div>
           </template>

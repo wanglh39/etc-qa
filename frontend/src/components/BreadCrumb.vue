@@ -1,6 +1,6 @@
 <template>
   <el-breadcrumb separator="/">
-    <el-breadcrumb-item to="/">首页</el-breadcrumb-item>
+    <el-breadcrumb-item to="/"> 首页 </el-breadcrumb-item>
     <el-breadcrumb-item v-for="item in breadList" :key="item.path" :to="item.path">
       {{ item.meta?.title }}
     </el-breadcrumb-item>

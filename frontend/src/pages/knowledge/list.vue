@@ -37,21 +37,23 @@
             <el-option label="已下架" value="deprecated" />
             <el-option label="已归档" value="archived" />
           </el-select>
-          <el-button type="primary" style="margin-left: 12px" @click="handleSearch">搜索</el-button>
-          <el-button style="margin-left: 8px" @click="handleReset">重置</el-button>
-          <el-button type="primary" style="margin-left: 24px" @click="openAddDialog"
-            >新增知识</el-button
-          >
+          <el-button type="primary" style="margin-left: 12px" @click="handleSearch">
+            搜索
+          </el-button>
+          <el-button style="margin-left: 8px" @click="handleReset"> 重置 </el-button>
+          <el-button type="primary" style="margin-left: 24px" @click="openAddDialog">
+            新增知识
+          </el-button>
         </div>
 
         <div class="btn-group">
-          <el-button type="primary" @click="batchUpdateStatus('active', '上架')"
-            >批量上架</el-button
-          >
-          <el-button type="info" @click="batchUpdateStatus('deprecated', '下架')"
-            >批量下架</el-button
-          >
-          <el-button type="info" @click="batchDelete">批量删除</el-button>
+          <el-button type="primary" @click="batchUpdateStatus('active', '上架')">
+            批量上架
+          </el-button>
+          <el-button type="info" @click="batchUpdateStatus('deprecated', '下架')">
+            批量下架
+          </el-button>
+          <el-button type="info" @click="batchDelete"> 批量删除 </el-button>
         </div>
 
         <el-table
@@ -75,29 +77,35 @@
           </el-table-column>
           <el-table-column label="状态" width="90">
             <template #default="{ row }">
-              <el-tag :type="statusTagType(row.status)">{{ statusLabel(row.status) }}</el-tag>
+              <el-tag :type="statusTagType(row.status)">
+                {{ statusLabel(row.status) }}
+              </el-tag>
             </template>
           </el-table-column>
           <el-table-column prop="updated_at" label="更新时间" width="150" />
           <el-table-column label="操作" width="240" fixed="right">
             <template #default="{ row }">
-              <el-button link type="primary" @click="openDetailDialog(row.id)">查看详情</el-button>
-              <el-button link type="primary" @click="openEditDialog(row)">编辑</el-button>
+              <el-button link type="primary" @click="openDetailDialog(row.id)">
+                查看详情
+              </el-button>
+              <el-button link type="primary" @click="openEditDialog(row)"> 编辑 </el-button>
               <el-button
                 v-if="row.status !== 'active'"
                 link
                 type="primary"
                 @click="handleToggleStatus(row.id, 'active', '上架')"
-                >上架</el-button
               >
+                上架
+              </el-button>
               <el-button
                 v-else
                 link
                 type="info"
                 @click="handleToggleStatus(row.id, 'deprecated', '下架')"
-                >下架</el-button
               >
-              <el-button link type="info" @click="handleDelete(row.id)">删除</el-button>
+                下架
+              </el-button>
+              <el-button link type="info" @click="handleDelete(row.id)"> 删除 </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -116,23 +124,41 @@
     </el-card>
 
     <el-dialog v-model="detailVisible" title="知识详情" width="640px">
-      <el-descriptions :column="1" border v-if="detailData">
-        <el-descriptions-item label="知识ID">{{ detailData.id }}</el-descriptions-item>
-        <el-descriptions-item label="问题内容">{{ detailData.question }}</el-descriptions-item>
+      <el-descriptions v-if="detailData" :column="1" border>
+        <el-descriptions-item label="知识ID">
+          {{ detailData.id }}
+        </el-descriptions-item>
+        <el-descriptions-item label="问题内容">
+          {{ detailData.question }}
+        </el-descriptions-item>
         <el-descriptions-item label="标准答案">
-          <div style="white-space: pre-wrap">{{ detailData.answer }}</div>
+          <div style="white-space: pre-wrap">
+            {{ detailData.answer }}
+          </div>
         </el-descriptions-item>
-        <el-descriptions-item label="一级分类">{{ detailData.category_l1 }}</el-descriptions-item>
-        <el-descriptions-item label="二级分类">{{ detailData.category_l2 }}</el-descriptions-item>
+        <el-descriptions-item label="一级分类">
+          {{ detailData.category_l1 }}
+        </el-descriptions-item>
+        <el-descriptions-item label="二级分类">
+          {{ detailData.category_l2 }}
+        </el-descriptions-item>
         <el-descriptions-item label="内部流程">
-          <div style="white-space: pre-wrap">{{ detailData.internal_process }}</div>
+          <div style="white-space: pre-wrap">
+            {{ detailData.internal_process }}
+          </div>
         </el-descriptions-item>
-        <el-descriptions-item label="反馈部门">{{ detailData.feedback_dept }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{
-          statusLabel(detailData.status)
-        }}</el-descriptions-item>
-        <el-descriptions-item label="创建时间">{{ detailData.created_at }}</el-descriptions-item>
-        <el-descriptions-item label="更新时间">{{ detailData.updated_at }}</el-descriptions-item>
+        <el-descriptions-item label="反馈部门">
+          {{ detailData.feedback_dept }}
+        </el-descriptions-item>
+        <el-descriptions-item label="状态">
+          {{ statusLabel(detailData.status) }}
+        </el-descriptions-item>
+        <el-descriptions-item label="创建时间">
+          {{ detailData.created_at }}
+        </el-descriptions-item>
+        <el-descriptions-item label="更新时间">
+          {{ detailData.updated_at }}
+        </el-descriptions-item>
       </el-descriptions>
     </el-dialog>
 
@@ -202,11 +228,16 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="formVisible = false">取消</el-button>
-        <el-button v-if="formMode === 'add'" type="primary" :loading="submitting" @click="handleAdd"
-          >确认新增</el-button
+        <el-button @click="formVisible = false"> 取消 </el-button>
+        <el-button
+          v-if="formMode === 'add'"
+          type="primary"
+          :loading="submitting"
+          @click="handleAdd"
         >
-        <el-button v-else type="primary" @click="handleEditNotSupported">确认编辑</el-button>
+          确认新增
+        </el-button>
+        <el-button v-else type="primary" @click="handleEditNotSupported"> 确认编辑 </el-button>
       </template>
     </el-dialog>
   </div>

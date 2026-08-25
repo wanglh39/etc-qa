@@ -6,13 +6,13 @@
           <span class="page-title">{{ pageTitle }}</span>
           <!-- 右上角功能按钮插槽 -->
           <div class="page-actions">
-            <slot name="actions"></slot>
+            <slot name="actions" />
           </div>
         </div>
       </template>
       <!-- 页面主体内容插槽 -->
       <div class="page-content">
-        <slot></slot>
+        <slot />
       </div>
     </el-card>
   </div>

@@ -1,9 +1,9 @@
 <template>
   <div class="login-wrap">
-    <div class="glow glow-1"></div>
-    <div class="glow glow-2"></div>
-    <div class="glow glow-3"></div>
-    <div class="dot-grid"></div>
+    <div class="glow glow-1" />
+    <div class="glow glow-2" />
+    <div class="glow glow-3" />
+    <div class="dot-grid" />
 
     <div class="login-panel">
       <div class="login-form-box">

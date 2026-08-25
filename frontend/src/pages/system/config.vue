@@ -3,33 +3,43 @@
     <!-- 顶部横幅 -->
     <div class="config-banner">
       <div class="banner-icon">
-        <el-icon :size="28"><Setting /></el-icon>
+        <el-icon :size="28">
+          <Setting />
+        </el-icon>
       </div>
       <div class="banner-text">
         <h2>业务配置管理</h2>
         <p>管理系统运行参数，修改后点击刷新缓存生效</p>
       </div>
-      <el-button type="primary" @click="handleReload" :loading="reloading">
+      <el-button type="primary" :loading="reloading" @click="handleReload">
         <el-icon><Refresh /></el-icon> 刷新缓存
       </el-button>
     </div>
 
     <!-- 配置项卡片网格 -->
-    <div class="config-grid" v-loading="loading">
+    <div v-loading="loading" class="config-grid">
       <div v-for="item in configList" :key="item.key" class="config-card">
         <div class="cc-header">
           <div class="cc-icon" :style="{ background: getConfigColor(item.key) }">
-            <el-icon :size="20"><component :is="getConfigIcon(item.key)" /></el-icon>
+            <el-icon :size="20">
+              <component :is="getConfigIcon(item.key)" />
+            </el-icon>
           </div>
           <div class="cc-title-area">
-            <div class="cc-title">{{ getConfigLabel(item.key) }}</div>
-            <div class="cc-key">{{ item.key }}</div>
+            <div class="cc-title">
+              {{ getConfigLabel(item.key) }}
+            </div>
+            <div class="cc-key">
+              {{ item.key }}
+            </div>
           </div>
           <el-button link type="primary" @click="editConfig(item)">
             <el-icon><Edit /></el-icon> 编辑
           </el-button>
         </div>
-        <div class="cc-desc">{{ getConfigDesc(item.key) }}</div>
+        <div class="cc-desc">
+          {{ getConfigDesc(item.key) }}
+        </div>
         <div class="cc-value">
           <pre>{{ formatValue(item.value) }}</pre>
         </div>
@@ -56,8 +66,8 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="editVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveConfig">保存</el-button>
+        <el-button @click="editVisible = false"> 取消 </el-button>
+        <el-button type="primary" @click="saveConfig"> 保存 </el-button>
       </template>
     </el-dialog>
   </div>

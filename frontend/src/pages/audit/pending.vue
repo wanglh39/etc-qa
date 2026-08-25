@@ -4,37 +4,53 @@
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-icon">
-          <el-icon :size="24"><Clock /></el-icon>
+          <el-icon :size="24">
+            <Clock />
+          </el-icon>
         </div>
         <div class="kpi-info">
-          <div class="kpi-value">{{ total }}</div>
+          <div class="kpi-value">
+            {{ total }}
+          </div>
           <div class="kpi-label">待审核总数</div>
         </div>
       </div>
       <div class="kpi-card">
         <div class="kpi-icon">
-          <el-icon :size="24"><Document /></el-icon>
+          <el-icon :size="24">
+            <Document />
+          </el-icon>
         </div>
         <div class="kpi-info">
-          <div class="kpi-value">{{ currentPageList.length }}</div>
+          <div class="kpi-value">
+            {{ currentPageList.length }}
+          </div>
           <div class="kpi-label">当前页条数</div>
         </div>
       </div>
       <div class="kpi-card">
         <div class="kpi-icon">
-          <el-icon :size="24"><Select /></el-icon>
+          <el-icon :size="24">
+            <Select />
+          </el-icon>
         </div>
         <div class="kpi-info">
-          <div class="kpi-value">{{ selectedRows.length }}</div>
+          <div class="kpi-value">
+            {{ selectedRows.length }}
+          </div>
           <div class="kpi-label">已选中</div>
         </div>
       </div>
       <div class="kpi-card">
         <div class="kpi-icon">
-          <el-icon :size="24"><Files /></el-icon>
+          <el-icon :size="24">
+            <Files />
+          </el-icon>
         </div>
         <div class="kpi-info">
-          <div class="kpi-value">{{ categoryCount }}</div>
+          <div class="kpi-value">
+            {{ categoryCount }}
+          </div>
           <div class="kpi-label">涉及分类</div>
         </div>
       </div>
@@ -54,22 +70,24 @@
             >
               <el-option v-for="c in categoryOptions" :key="c" :label="c" :value="c" />
             </el-select>
-            <el-button type="primary" @click="batchApprove">批量入库</el-button>
-            <el-button type="primary" @click="batchReject">批量驳回</el-button>
+            <el-button type="primary" @click="batchApprove"> 批量入库 </el-button>
+            <el-button type="primary" @click="batchReject"> 批量驳回 </el-button>
           </div>
         </div>
         <el-table
+          v-loading="loading"
           border
           :data="currentPageList"
           @selection-change="handleSelectionChange"
-          v-loading="loading"
         >
           <el-table-column type="selection" width="55" />
           <el-table-column prop="id" label="知识ID" width="80" />
           <el-table-column prop="question" label="用户问题" min-width="260" />
           <el-table-column prop="category_l1" label="分类" width="120">
             <template #default="{ row }">
-              <el-tag size="small">{{ row.category_l1 }}</el-tag>
+              <el-tag size="small">
+                {{ row.category_l1 }}
+              </el-tag>
               <span v-if="row.category_l2" style="color: #bfbfbf; margin-left: 4px"
                 >/ {{ row.category_l2 }}</span
               >
@@ -82,9 +100,9 @@
           </el-table-column>
           <el-table-column label="操作" width="220">
             <template #default="{ row }">
-              <el-button link type="primary" @click="goDetail(row.id)">查看详情</el-button>
-              <el-button link type="primary" @click="handleApprove(row.id)">入库</el-button>
-              <el-button link type="primary" @click="handleReject(row.id)">驳回</el-button>
+              <el-button link type="primary" @click="goDetail(row.id)"> 查看详情 </el-button>
+              <el-button link type="primary" @click="handleApprove(row.id)"> 入库 </el-button>
+              <el-button link type="primary" @click="handleReject(row.id)"> 驳回 </el-button>
             </template>
           </el-table-column>
         </el-table>

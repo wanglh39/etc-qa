@@ -2,13 +2,13 @@
   <PageLayout page-title="分类管理">
     <!-- 右上角按钮 -->
     <template #actions>
-      <el-button type="primary" @click="resetForm">新增分类</el-button>
+      <el-button type="primary" @click="resetForm"> 新增分类 </el-button>
     </template>
 
     <el-row :gutter="20" align="stretch">
       <el-col :span="8">
         <el-card class="full-height-card">
-          <template #header>分类树</template>
+          <template #header> 分类树 </template>
           <el-input
             v-model="searchKey"
             placeholder="搜索分类"
@@ -26,7 +26,7 @@
       <!-- 右侧表单 -->
       <el-col :span="16">
         <el-card class="full-height-card">
-          <template #header>分类详情</template>
+          <template #header> 分类详情 </template>
           <el-form label-width="100px">
             <el-form-item label="分类名称">
               <el-input v-model="form.label" placeholder="请输入分类名称" />
@@ -49,9 +49,9 @@
               />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" @click="save">保存</el-button>
-              <el-button @click="resetForm">重置</el-button>
-              <el-button type="info" @click="remove" :disabled="!form.id">删除</el-button>
+              <el-button type="primary" @click="save"> 保存 </el-button>
+              <el-button @click="resetForm"> 重置 </el-button>
+              <el-button type="info" :disabled="!form.id" @click="remove"> 删除 </el-button>
             </el-form-item>
           </el-form>
         </el-card>

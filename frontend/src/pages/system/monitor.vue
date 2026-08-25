@@ -4,12 +4,12 @@
       <h3>性能监控看板</h3>
       <div class="header-actions">
         <el-radio-group v-model="refreshInterval" size="small" @change="resetTimer">
-          <el-radio-button :label="0">关闭</el-radio-button>
-          <el-radio-button :label="5">5s</el-radio-button>
-          <el-radio-button :label="10">10s</el-radio-button>
-          <el-radio-button :label="30">30s</el-radio-button>
+          <el-radio-button :label="0"> 关闭 </el-radio-button>
+          <el-radio-button :label="5"> 5s </el-radio-button>
+          <el-radio-button :label="10"> 10s </el-radio-button>
+          <el-radio-button :label="30"> 30s </el-radio-button>
         </el-radio-group>
-        <el-button type="primary" plain @click="loadData" :loading="loading">
+        <el-button type="primary" plain :loading="loading" @click="loadData">
           <el-icon><Refresh /></el-icon> 刷新
         </el-button>
       </div>
@@ -20,10 +20,14 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon" style="background: #1677ff">
-            <el-icon :size="24"><DataLine /></el-icon>
+            <el-icon :size="24">
+              <DataLine />
+            </el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ totalCalls }}</div>
+            <div class="kpi-num">
+              {{ totalCalls }}
+            </div>
             <div class="kpi-label">总调用量 (近10分钟)</div>
           </div>
         </div>
@@ -31,10 +35,14 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon" style="background: #1677ff">
-            <el-icon :size="24"><WarningFilled /></el-icon>
+            <el-icon :size="24">
+              <WarningFilled />
+            </el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ totalFailures }}</div>
+            <div class="kpi-num">
+              {{ totalFailures }}
+            </div>
             <div class="kpi-label">总失败数</div>
           </div>
         </div>
@@ -42,10 +50,14 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon" style="background: #1677ff">
-            <el-icon :size="24"><TrendCharts /></el-icon>
+            <el-icon :size="24">
+              <TrendCharts />
+            </el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ highFailureRate }}</div>
+            <div class="kpi-num">
+              {{ highFailureRate }}
+            </div>
             <div class="kpi-label">高失败率组件 (>10%)</div>
           </div>
         </div>
@@ -53,10 +65,14 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon" style="background: #1677ff">
-            <el-icon :size="24"><Timer /></el-icon>
+            <el-icon :size="24">
+              <Timer />
+            </el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ highLatency }}</div>
+            <div class="kpi-num">
+              {{ highLatency }}
+            </div>
             <div class="kpi-label">高延迟组件 (P95>3s)</div>
           </div>
         </div>
@@ -67,14 +83,14 @@
     <el-row :gutter="16" class="chart-row" align="stretch">
       <el-col :span="12">
         <el-card shadow="never" class="chart-card">
-          <template #header>各组件失败率 (%)</template>
-          <div ref="failureChartRef" class="chart-box"></div>
+          <template #header> 各组件失败率 (%) </template>
+          <div ref="failureChartRef" class="chart-box" />
         </el-card>
       </el-col>
       <el-col :span="12">
         <el-card shadow="never" class="chart-card">
-          <template #header>各组件 P95 延迟 (ms)</template>
-          <div ref="latencyChartRef" class="chart-box"></div>
+          <template #header> 各组件 P95 延迟 (ms) </template>
+          <div ref="latencyChartRef" class="chart-box" />
         </el-card>
       </el-col>
     </el-row>
@@ -82,13 +98,13 @@
     <el-row :gutter="16" class="chart-row" align="stretch">
       <el-col :span="12">
         <el-card shadow="never" class="chart-card">
-          <template #header>调用量分布</template>
-          <div ref="distributionChartRef" class="chart-box"></div>
+          <template #header> 调用量分布 </template>
+          <div ref="distributionChartRef" class="chart-box" />
         </el-card>
       </el-col>
       <el-col :span="12">
         <el-card shadow="never" class="chart-card">
-          <template #header>指标明细</template>
+          <template #header> 指标明细 </template>
           <el-table :data="metricTable" border size="small" style="width: 100%" :max-height="280">
             <el-table-column prop="name" label="指标" width="120" />
             <el-table-column prop="total" label="总调用" width="80" align="center" />

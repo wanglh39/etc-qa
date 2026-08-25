@@ -41,22 +41,22 @@
           style="margin-bottom: 8px"
         />
         <el-tree
+          ref="categoryTreeRef"
           :data="categoryTree"
           :props="{ label: 'label', children: 'children' }"
           :filter-node-method="filterCategoryNode"
-          ref="categoryTreeRef"
           node-key="label"
           highlight-current
-          @node-click="onCategoryClick"
           style="background: transparent"
+          @node-click="onCategoryClick"
         />
         <el-button
           v-if="selectedCategory"
           size="small"
           text
           type="primary"
-          @click="clearCategoryFilter"
           style="margin-top: 8px"
+          @click="clearCategoryFilter"
         >
           清除分类筛选
         </el-button>
@@ -78,7 +78,9 @@
                 effect="plain"
                 round
               >
-                <el-icon style="margin-right: 2px"><CircleCheck /></el-icon>
+                <el-icon style="margin-right: 2px">
+                  <CircleCheck />
+                </el-icon>
                 ASR {{ asrHealth.loaded ? '已就绪' : '待加载' }}
               </el-tag>
             </div>
@@ -98,8 +100,8 @@
                 circle
                 size="large"
                 type="info"
-                @click="pauseRecording"
                 title="暂停录音"
+                @click="pauseRecording"
               />
               <span class="pulse-ring" />
             </div>
@@ -108,8 +110,8 @@
               :icon="Microphone"
               circle
               size="large"
-              @click="startRecordingSession"
               title="开始录音"
+              @click="startRecordingSession"
             />
             <el-button
               v-if="recordingState === 'paused'"
@@ -117,8 +119,8 @@
               circle
               size="large"
               type="primary"
-              @click="resumeRecording"
               title="继续录音"
+              @click="resumeRecording"
             />
             <el-button
               v-if="recordingState !== 'idle'"
@@ -126,16 +128,16 @@
               circle
               size="large"
               type="primary"
-              @click="stopRecordingSession"
               title="停止录音"
+              @click="stopRecordingSession"
             />
-            <el-button type="primary" size="large" @click="openCreateDialog">创建工单</el-button>
-            <el-button type="primary" size="large" :loading="searching" @click="handleSearch"
-              >搜索</el-button
-            >
-            <el-button size="large" @click="clearAll" :disabled="recordingState !== 'idle'"
-              >清空</el-button
-            >
+            <el-button type="primary" size="large" @click="openCreateDialog"> 创建工单 </el-button>
+            <el-button type="primary" size="large" :loading="searching" @click="handleSearch">
+              搜索
+            </el-button>
+            <el-button size="large" :disabled="recordingState !== 'idle'" @click="clearAll">
+              清空
+            </el-button>
           </div>
           <div v-if="searchHistory.length" class="search-history">
             <span class="history-label">最近搜索：</span>
@@ -144,7 +146,10 @@
               :key="i"
               size="small"
               class="history-tag"
-              @click="searchText = q; handleSearch()"
+              @click="
+                searchText = q
+                handleSearch()
+              "
             >
               {{ q.length > 12 ? q.slice(0, 12) + '…' : q }}
             </el-tag>
@@ -172,13 +177,17 @@
               >
               实时语音识别
             </span>
-            <el-tag size="small" type="info">{{ asr.asrState.value }}</el-tag>
+            <el-tag size="small" type="info">
+              {{ asr.asrState.value }}
+            </el-tag>
           </div>
           <div class="asr-text">
             <span class="asr-full">{{ asr.fullText.value }}</span>
             <span class="asr-partial">{{ asr.partialText.value }}</span>
           </div>
-          <div v-if="asr.errorMsg.value" class="asr-error">{{ asr.errorMsg.value }}</div>
+          <div v-if="asr.errorMsg.value" class="asr-error">
+            {{ asr.errorMsg.value }}
+          </div>
         </div>
 
         <!-- 空状态 -->
@@ -199,7 +208,9 @@
                 plain
                 @click="copyToClipboard(finalReply)"
               >
-                <el-icon style="margin-right: 4px"><CopyDocument /></el-icon>
+                <el-icon style="margin-right: 4px">
+                  <CopyDocument />
+                </el-icon>
                 复制答复
               </el-button>
             </div>
@@ -226,7 +237,9 @@
             </div>
             <div class="confidence-tag">
               置信度：
-              <el-tag :type="confidenceType" size="small">{{ confidenceText }}</el-tag>
+              <el-tag :type="confidenceType" size="small">
+                {{ confidenceText }}
+              </el-tag>
             </div>
           </div>
 
@@ -251,7 +264,7 @@
                   复制
                 </el-button>
                 <span class="card-rank">#{{ idx + 1 }}</span>
-                <span class="card-category" v-if="item.category_l1">
+                <span v-if="item.category_l1" class="card-category">
                   {{ item.category_l1 }}{{ item.category_l2 ? ' / ' + item.category_l2 : '' }}
                 </span>
                 <div class="card-score-bar">
@@ -266,8 +279,12 @@
                   </span>
                 </div>
               </div>
-              <div class="card-question">{{ item.question }}</div>
-              <div class="card-answer">{{ item.answer }}</div>
+              <div class="card-question">
+                {{ item.question }}
+              </div>
+              <div class="card-answer">
+                {{ item.answer }}
+              </div>
             </div>
           </div>
         </div>
@@ -310,9 +327,9 @@
       </el-form-item>
       <el-form-item label="工单优先级" prop="priority">
         <el-radio-group v-model="workForm.priority">
-          <el-radio value="low">低</el-radio>
-          <el-radio value="mid">中等</el-radio>
-          <el-radio value="high">紧急</el-radio>
+          <el-radio value="low"> 低 </el-radio>
+          <el-radio value="mid"> 中等 </el-radio>
+          <el-radio value="high"> 紧急 </el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item label="问题描述" prop="detail_desc">
@@ -326,10 +343,10 @@
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button @click="dialogVisible = false">取消</el-button>
-      <el-button type="primary" :loading="submitting" @click="submitWorkOrder"
-        >提交工单 (Ctrl+Enter)</el-button
-      >
+      <el-button @click="dialogVisible = false"> 取消 </el-button>
+      <el-button type="primary" :loading="submitting" @click="submitWorkOrder">
+        提交工单 (Ctrl+Enter)
+      </el-button>
     </template>
   </el-dialog>
 </template>

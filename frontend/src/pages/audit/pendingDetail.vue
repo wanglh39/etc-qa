@@ -8,23 +8,27 @@
 
       <!-- 详情展示区域 -->
       <el-descriptions border :column="2" style="margin: 20px 0">
-        <el-descriptions-item label="知识ID">{{ detailInfo.id }}</el-descriptions-item>
+        <el-descriptions-item label="知识ID">
+          {{ detailInfo.id }}
+        </el-descriptions-item>
 
         <el-descriptions-item label="分类">
           {{ detailInfo.category_l1
           }}{{ detailInfo.category_l2 ? ' / ' + detailInfo.category_l2 : '' }}
         </el-descriptions-item>
 
-        <el-descriptions-item label="提交时间">{{
-          detailInfo.created_at || '-'
-        }}</el-descriptions-item>
+        <el-descriptions-item label="提交时间">
+          {{ detailInfo.created_at || '-' }}
+        </el-descriptions-item>
 
         <el-descriptions-item label="状态">
-          <el-tag type="info" size="small">待审核</el-tag>
+          <el-tag type="info" size="small"> 待审核 </el-tag>
         </el-descriptions-item>
 
         <el-descriptions-item label="用户问题" :span="2">
-          <div style="white-space: pre-wrap">{{ detailInfo.question }}</div>
+          <div style="white-space: pre-wrap">
+            {{ detailInfo.question }}
+          </div>
         </el-descriptions-item>
 
         <el-descriptions-item label="标准答案" :span="2">

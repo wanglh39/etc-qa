@@ -11,8 +11,10 @@
           </el-icon>
         </div>
         <div class="banner-info">
-          <div class="banner-title">{{ overallText }}</div>
-          <div class="banner-sub" v-if="timestamp">最后检查: {{ timestamp }}</div>
+          <div class="banner-title">
+            {{ overallText }}
+          </div>
+          <div v-if="timestamp" class="banner-sub">最后检查: {{ timestamp }}</div>
         </div>
       </div>
       <div class="banner-right">
@@ -20,7 +22,7 @@
           <span class="hc-num">{{ healthyCount }}</span>
           <span class="hc-label">/ {{ components.length }} 正常</span>
         </div>
-        <el-button type="primary" plain @click="loadData" :loading="loading">
+        <el-button type="primary" plain :loading="loading" @click="loadData">
           <el-icon><Refresh /></el-icon> 刷新
         </el-button>
         <el-button type="primary" plain @click="openLangSmith">
@@ -44,17 +46,21 @@
                 <Bell v-else-if="comp.name.includes('告警')" />
                 <Monitor v-else />
               </el-icon>
-              <span class="pulse-ring" v-if="comp.status === 'healthy'"></span>
+              <span v-if="comp.status === 'healthy'" class="pulse-ring" />
             </div>
             <div class="comp-info">
-              <div class="comp-name">{{ comp.name }}</div>
+              <div class="comp-name">
+                {{ comp.name }}
+              </div>
               <el-tag :type="statusTagType(comp.status)" size="small" effect="dark">
                 {{ statusText(comp.status) }}
               </el-tag>
             </div>
           </div>
-          <div class="comp-detail">{{ comp.detail }}</div>
-          <div class="comp-latency" v-if="comp.latency_ms > 0">
+          <div class="comp-detail">
+            {{ comp.detail }}
+          </div>
+          <div v-if="comp.latency_ms > 0" class="comp-latency">
             <el-icon><Stopwatch /></el-icon> {{ comp.latency_ms }}ms
           </div>
         </el-card>
@@ -68,7 +74,7 @@
           <div class="log-title">
             <el-icon><Document /></el-icon>
             <span>系统日志</span>
-            <span class="log-count" v-if="logLines.length">({{ logLines.length }}条)</span>
+            <span v-if="logLines.length" class="log-count">({{ logLines.length }}条)</span>
           </div>
           <div class="log-actions">
             <el-select

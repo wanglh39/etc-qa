@@ -19,8 +19,12 @@
             </el-icon>
           </div>
           <div class="card-title-area">
-            <div class="card-title">{{ target.label }}</div>
-            <div class="card-sub">{{ target.desc }}</div>
+            <div class="card-title">
+              {{ target.label }}
+            </div>
+            <div class="card-sub">
+              {{ target.desc }}
+            </div>
           </div>
         </div>
 

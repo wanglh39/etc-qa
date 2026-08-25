@@ -10,17 +10,19 @@
           </el-icon>
         </div>
         <div class="banner-info">
-          <div class="banner-title">{{ status.running ? '调度器运行中' : '调度器已停止' }}</div>
+          <div class="banner-title">
+            {{ status.running ? '调度器运行中' : '调度器已停止' }}
+          </div>
           <div class="banner-sub">{{ status.jobs.length }} 个任务 · {{ successRate }}% 成功率</div>
         </div>
       </div>
-      <el-button type="primary" plain @click="loadStatus" :loading="refreshing">
+      <el-button type="primary" plain :loading="refreshing" @click="loadStatus">
         <el-icon><Refresh /></el-icon> 刷新
       </el-button>
     </div>
 
     <!-- 任务卡片 -->
-    <div class="task-cards" v-if="status.jobs.length > 0">
+    <div v-if="status.jobs.length > 0" class="task-cards">
       <el-card v-for="job in status.jobs" :key="job.id" class="task-card" shadow="hover">
         <div class="task-header">
           <div class="task-name">
@@ -39,17 +41,17 @@
           </div>
           <div class="task-info-row">
             <span class="ti-label">下次执行:</span>
-            <span class="ti-value" v-if="job.next_run_time">
+            <span v-if="job.next_run_time" class="ti-value">
               <el-icon><Clock /></el-icon> {{ formatTime(job.next_run_time) }}
               <el-tag size="small" type="info" style="margin-left: 8px">{{
                 countdown(job.next_run_time)
               }}</el-tag>
             </span>
-            <span class="ti-value" v-else>-</span>
+            <span v-else class="ti-value">-</span>
           </div>
 
           <!-- 成功率进度条 -->
-          <div class="success-rate" v-if="getTaskStats(job.id)">
+          <div v-if="getTaskStats(job.id)" class="success-rate">
             <span class="sr-label">成功率:</span>
             <el-progress
               :percentage="getTaskStats(job.id)?.success_rate ?? 0"
@@ -90,22 +92,26 @@
       <template #header>
         <div class="log-header">
           <span class="section-title">执行日志</span>
-          <el-button text type="primary" size="small" @click="loadLogs">刷新</el-button>
+          <el-button text type="primary" size="small" @click="loadLogs"> 刷新 </el-button>
         </div>
       </template>
       <el-table border :max-height="'calc(100vh - 520px)'" :data="logData">
         <el-table-column prop="id" label="ID" width="70" />
         <el-table-column label="任务" width="160">
-          <template #default="{ row }">{{ jobDisplayName(row.task_name) }}</template>
+          <template #default="{ row }">
+            {{ jobDisplayName(row.task_name) }}
+          </template>
         </el-table-column>
         <el-table-column label="执行统计" min-width="300" show-overflow-tooltip>
-          <template #default="{ row }">{{ formatStats(row.stats) }}</template>
+          <template #default="{ row }">
+            {{ formatStats(row.stats) }}
+          </template>
         </el-table-column>
         <el-table-column label="结果" width="100" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.result === 'success' ? 'primary' : 'info'" effect="dark">{{
-              row.result
-            }}</el-tag>
+            <el-tag :type="row.result === 'success' ? 'primary' : 'info'" effect="dark">
+              {{ row.result }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="created_at" label="执行时间" width="180" />
@@ -139,8 +145,8 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="editDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="handleSaveSchedule">保存</el-button>
+        <el-button @click="editDialogVisible = false"> 取消 </el-button>
+        <el-button type="primary" :loading="saving" @click="handleSaveSchedule"> 保存 </el-button>
       </template>
     </el-dialog>
   </div>

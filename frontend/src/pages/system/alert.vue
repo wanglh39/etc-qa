@@ -5,10 +5,14 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon" style="background: #1677ff">
-            <el-icon :size="24"><BellFilled /></el-icon>
+            <el-icon :size="24">
+              <BellFilled />
+            </el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ severityCounts.P0 || 0 }}</div>
+            <div class="kpi-num">
+              {{ severityCounts.P0 || 0 }}
+            </div>
             <div class="kpi-label">P0 紧急</div>
           </div>
         </div>
@@ -16,10 +20,14 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon" style="background: #1677ff">
-            <el-icon :size="24"><WarningFilled /></el-icon>
+            <el-icon :size="24">
+              <WarningFilled />
+            </el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ severityCounts.P1 || 0 }}</div>
+            <div class="kpi-num">
+              {{ severityCounts.P1 || 0 }}
+            </div>
             <div class="kpi-label">P1 严重</div>
           </div>
         </div>
@@ -27,10 +35,14 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon" style="background: #1677ff">
-            <el-icon :size="24"><InfoFilled /></el-icon>
+            <el-icon :size="24">
+              <InfoFilled />
+            </el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ severityCounts.P2 || 0 }}</div>
+            <div class="kpi-num">
+              {{ severityCounts.P2 || 0 }}
+            </div>
             <div class="kpi-label">P2 提醒</div>
           </div>
         </div>
@@ -38,12 +50,14 @@
       <el-card class="kpi-card" shadow="hover">
         <div class="kpi-inner">
           <div class="kpi-icon" :style="{ background: unackedCount > 0 ? '#1677FF' : '#1677FF' }">
-            <el-icon :size="24"
-              ><CircleCheck v-if="unackedCount === 0" /><Warning v-else
-            /></el-icon>
+            <el-icon :size="24">
+              <CircleCheck v-if="unackedCount === 0" /><Warning v-else />
+            </el-icon>
           </div>
           <div class="kpi-info">
-            <div class="kpi-num">{{ unackedCount }}</div>
+            <div class="kpi-num">
+              {{ unackedCount }}
+            </div>
             <div class="kpi-label">未确认</div>
           </div>
         </div>
@@ -64,7 +78,7 @@
             >
               批量确认 ({{ selectedIds.length }})
             </el-button>
-            <el-button type="primary" plain @click="loadData" :loading="loading">
+            <el-button type="primary" plain :loading="loading" @click="loadData">
               <el-icon><Refresh /></el-icon> 刷新
             </el-button>
           </div>
@@ -92,8 +106,10 @@
             <el-option label="P1 严重" value="P1" />
             <el-option label="P2 提醒" value="P2" />
           </el-select>
-          <el-button type="primary" style="margin-left: 12px" @click="handleSearch">搜索</el-button>
-          <el-button style="margin-left: 8px" @click="handleReset">重置</el-button>
+          <el-button type="primary" style="margin-left: 12px" @click="handleSearch">
+            搜索
+          </el-button>
+          <el-button style="margin-left: 8px" @click="handleReset"> 重置 </el-button>
         </div>
 
         <el-table
@@ -111,9 +127,9 @@
           <el-table-column prop="id" label="ID" width="70" />
           <el-table-column label="级别" width="80" align="center">
             <template #default="{ row }">
-              <el-tag :type="severityTagType(row.severity)" effect="dark">{{
-                row.severity
-              }}</el-tag>
+              <el-tag :type="severityTagType(row.severity)" effect="dark">
+                {{ row.severity }}
+              </el-tag>
             </template>
           </el-table-column>
           <el-table-column prop="rule_id" label="规则" width="180" show-overflow-tooltip />
@@ -144,8 +160,9 @@
                 type="primary"
                 size="small"
                 @click="handleAck(row.id)"
-                >确认</el-button
               >
+                确认
+              </el-button>
             </template>
           </el-table-column>
         </el-table>

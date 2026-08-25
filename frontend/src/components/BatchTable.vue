@@ -1,10 +1,10 @@
 <template>
   <div class="batch-table">
     <!-- 批量操作栏 -->
-    <div class="batch-bar" v-if="showBatch">
+    <div v-if="showBatch" class="batch-bar">
       <el-space>
-        <el-button type="primary" @click="batchHandle">批量{{ batchText }}</el-button>
-        <el-button @click="clearSelection">清空选中</el-button>
+        <el-button type="primary" @click="batchHandle"> 批量{{ batchText }} </el-button>
+        <el-button @click="clearSelection"> 清空选中 </el-button>
         <span v-if="selectedList.length > 0">已选中{{ selectedList.length }}条数据</span>
       </el-space>
     </div>
@@ -15,10 +15,10 @@
       stripe
       row-key="id"
       :data="tableData"
-      @selection-change="handleSelectionChange"
       v-bind="$attrs"
+      @selection-change="handleSelectionChange"
     >
-      <el-table-column type="selection" width="55" v-if="showBatch" />
+      <el-table-column v-if="showBatch" type="selection" width="55" />
       <slot />
     </el-table>
     <!-- 分页 -->

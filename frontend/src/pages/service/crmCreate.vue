@@ -14,42 +14,42 @@
     >
       <!-- 当前操作人：客服ID（当前登录客服自动填充，可手动修改） -->
       <el-form-item label="发起客服ID" prop="serviceId">
-        <el-input v-model="formData.serviceId" placeholder="输入当前客服工号"></el-input>
+        <el-input v-model="formData.serviceId" placeholder="输入当前客服工号" />
       </el-form-item>
 
       <el-form-item label="客户名称" prop="customerName">
-        <el-input v-model="formData.customerName" placeholder="填写客户称呼"></el-input>
+        <el-input v-model="formData.customerName" placeholder="填写客户称呼" />
       </el-form-item>
 
       <el-form-item label="客户联系电话" prop="phone">
-        <el-input v-model="formData.phone" placeholder="输入客户手机号码"></el-input>
+        <el-input v-model="formData.phone" placeholder="输入客户手机号码" />
       </el-form-item>
 
       <el-form-item label="客户问题分类" prop="problemType">
         <el-select v-model="formData.problemType" placeholder="挑选问题分类" style="width: 100%">
-          <el-option label="产品咨询" value="consult"></el-option>
-          <el-option label="售后退换" value="refund"></el-option>
-          <el-option label="系统故障" value="fault"></el-option>
-          <el-option label="投诉建议" value="complaint"></el-option>
+          <el-option label="产品咨询" value="consult" />
+          <el-option label="售后退换" value="refund" />
+          <el-option label="系统故障" value="fault" />
+          <el-option label="投诉建议" value="complaint" />
         </el-select>
       </el-form-item>
 
       <!-- 客服指定：流转给哪个业务部门处理 -->
       <el-form-item label="转交处理部门" prop="nextDept">
         <el-select v-model="formData.nextDept" placeholder="选择需要处理的部门" style="width: 100%">
-          <el-option label="售后处理部" value="aftersale"></el-option>
-          <el-option label="技术运维部" value="ops"></el-option>
-          <el-option label="财务部" value="finance"></el-option>
-          <el-option label="市场部" value="market"></el-option>
-          <el-option label="人事部" value="human"></el-option>
+          <el-option label="售后处理部" value="aftersale" />
+          <el-option label="技术运维部" value="ops" />
+          <el-option label="财务部" value="finance" />
+          <el-option label="市场部" value="market" />
+          <el-option label="人事部" value="human" />
         </el-select>
       </el-form-item>
 
       <el-form-item label="工单优先级" prop="priority">
         <el-radio-group v-model="formData.priority">
-          <el-radio value="low">低</el-radio>
-          <el-radio value="mid">中等</el-radio>
-          <el-radio value="high">紧急</el-radio>
+          <el-radio value="low"> 低 </el-radio>
+          <el-radio value="mid"> 中等 </el-radio>
+          <el-radio value="high"> 紧急 </el-radio>
         </el-radio-group>
       </el-form-item>
 
@@ -59,14 +59,14 @@
           type="textarea"
           :rows="6"
           placeholder="完整记录客户诉求、沟通情况"
-        ></el-input>
+        />
       </el-form-item>
 
       <el-form-item>
-        <el-button type="primary" :loading="submitting" @click="submitWorkOrder"
-          >提交工单，转交对应部门处理</el-button
-        >
-        <el-button @click="resetWorkForm">重置表单</el-button>
+        <el-button type="primary" :loading="submitting" @click="submitWorkOrder">
+          提交工单，转交对应部门处理
+        </el-button>
+        <el-button @click="resetWorkForm"> 重置表单 </el-button>
       </el-form-item>
     </el-form>
   </div>

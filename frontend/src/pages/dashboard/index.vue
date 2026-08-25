@@ -7,19 +7,23 @@
         <p class="welcome-desc">欢迎使用智能客服话术系统数据看板</p>
       </div>
       <div class="welcome-right">
-        <div class="clock-display">{{ currentTime }}</div>
-        <div class="date-display">{{ currentDate }}</div>
+        <div class="clock-display">
+          {{ currentTime }}
+        </div>
+        <div class="date-display">
+          {{ currentDate }}
+        </div>
       </div>
     </div>
 
     <!-- 时间范围选择器 + 刷新 -->
     <div class="dashboard-header">
       <el-radio-group v-model="days" @change="loadTrend">
-        <el-radio-button :value="7">近7天</el-radio-button>
-        <el-radio-button :value="30">近30天</el-radio-button>
-        <el-radio-button :value="90">近90天</el-radio-button>
+        <el-radio-button :value="7"> 近7天 </el-radio-button>
+        <el-radio-button :value="30"> 近30天 </el-radio-button>
+        <el-radio-button :value="90"> 近90天 </el-radio-button>
       </el-radio-group>
-      <el-button type="primary" plain @click="loadAll">刷新</el-button>
+      <el-button type="primary" plain @click="loadAll"> 刷新 </el-button>
     </div>
 
     <!-- KPI卡片 -->
@@ -87,14 +91,14 @@
     <el-row :gutter="16" class="mb-4" align="stretch">
       <el-col :span="12">
         <el-card class="chart-card">
-          <template #header>每日咨询趋势</template>
-          <div ref="lineRef" style="height: 300px"></div>
+          <template #header> 每日咨询趋势 </template>
+          <div ref="lineRef" style="height: 300px" />
         </el-card>
       </el-col>
       <el-col :span="12">
         <el-card class="chart-card">
-          <template #header>问题分类占比</template>
-          <div ref="pieRef" style="height: 300px"></div>
+          <template #header> 问题分类占比 </template>
+          <div ref="pieRef" style="height: 300px" />
         </el-card>
       </el-col>
     </el-row>
@@ -102,14 +106,14 @@
     <el-row :gutter="16" align="stretch">
       <el-col :span="12">
         <el-card class="chart-card">
-          <template #header>工单状态分布</template>
-          <div ref="woStatusRef" style="height: 280px"></div>
+          <template #header> 工单状态分布 </template>
+          <div ref="woStatusRef" style="height: 280px" />
         </el-card>
       </el-col>
       <el-col :span="12">
         <el-card class="chart-card">
-          <template #header>知识库状态分布</template>
-          <div ref="qaStatusRef" style="height: 280px"></div>
+          <template #header> 知识库状态分布 </template>
+          <div ref="qaStatusRef" style="height: 280px" />
         </el-card>
       </el-col>
     </el-row>

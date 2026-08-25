@@ -3,7 +3,9 @@
     <!-- 左侧侧边栏 -->
     <el-aside :width="sidebarWidth" class="sidebar">
       <div class="logo-box">
-        <el-icon :size="20" color="#1677FF"><Headset /></el-icon>
+        <el-icon :size="20" color="#1677FF">
+          <Headset />
+        </el-icon>
         <span v-if="!collapsed" class="logo-text">智能客服系统</span>
       </div>
       <el-menu
@@ -34,8 +36,10 @@
       </el-menu>
 
       <!-- 侧边栏底部用户区 -->
-      <div class="sidebar-footer" v-if="!collapsed">
-        <el-avatar :size="36" class="user-avatar">{{ roleText.charAt(0) }}</el-avatar>
+      <div v-if="!collapsed" class="sidebar-footer">
+        <el-avatar :size="36" class="user-avatar">
+          {{ roleText.charAt(0) }}
+        </el-avatar>
         <div class="user-detail">
           <span class="user-name">{{ authStore.username || roleText }}</span>
           <span class="user-role">{{ roleText }}</span>
@@ -56,7 +60,9 @@
         </div>
         <div class="header-right">
           <el-badge :value="unreadAlerts" :hidden="unreadAlerts === 0" :max="99">
-            <el-icon class="header-icon" @click="goToAlerts"><Bell /></el-icon>
+            <el-icon class="header-icon" @click="goToAlerts">
+              <Bell />
+            </el-icon>
           </el-badge>
 
           <el-dropdown @command="handleCommand">
@@ -66,7 +72,7 @@
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+                <el-dropdown-item command="logout"> 退出登录 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -79,13 +85,15 @@
         <div v-if="authStore.isImpersonating" class="impersonate-banner">
           <el-icon><WarningFilled /></el-icon>
           <span>您正在以【{{ roleText }}】身份查看，操作会记录到日志</span>
-          <el-button type="primary" size="small" @click="exitImpersonate">退出模拟</el-button>
+          <el-button type="primary" size="small" @click="exitImpersonate"> 退出模拟 </el-button>
         </div>
 
         <!-- 页面顶部操作栏：放置返回按钮 -->
-        <div class="page-header" v-if="showBackBtn">
+        <div v-if="showBackBtn" class="page-header">
           <el-button link type="primary" size="large" @click="goBack">
-            <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon>
+            <el-icon style="margin-right: 4px">
+              <ArrowLeft />
+            </el-icon>
             返回
           </el-button>
         </div>

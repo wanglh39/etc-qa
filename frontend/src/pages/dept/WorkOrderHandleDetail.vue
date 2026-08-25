@@ -7,16 +7,18 @@
         </el-button>
         <span class="page-title">{{ deptName }}工单详情</span>
         <div class="header-right">
-          <el-tag v-if="orderInfo.status === 'submitted'" type="info" effect="dark">待处理</el-tag>
-          <el-tag v-else-if="orderInfo.status === 'answered'" type="primary" effect="dark"
-            >已回复</el-tag
-          >
-          <el-tag v-else-if="orderInfo.status === 'processed'" type="primary" effect="dark"
-            >已办结</el-tag
-          >
-          <el-tag v-if="priorityText" :type="priorityType" effect="dark" style="margin-left: 8px">{{
-            priorityText
-          }}</el-tag>
+          <el-tag v-if="orderInfo.status === 'submitted'" type="info" effect="dark">
+            待处理
+          </el-tag>
+          <el-tag v-else-if="orderInfo.status === 'answered'" type="primary" effect="dark">
+            已回复
+          </el-tag>
+          <el-tag v-else-if="orderInfo.status === 'processed'" type="primary" effect="dark">
+            已办结
+          </el-tag>
+          <el-tag v-if="priorityText" :type="priorityType" effect="dark" style="margin-left: 8px">
+            {{ priorityText }}
+          </el-tag>
         </div>
       </div>
     </el-card>
@@ -25,31 +27,41 @@
       <!-- 左栏：工单信息+处理表单 -->
       <div class="left-col">
         <el-card shadow="hover" class="info-card">
-          <template #header><span class="section-title">工单基础信息</span></template>
+          <template #header>
+            <span class="section-title">工单基础信息</span>
+          </template>
           <el-descriptions border :column="2">
-            <el-descriptions-item label="工单ID">{{ orderInfo.id }}</el-descriptions-item>
-            <el-descriptions-item label="工单编号">{{
-              orderInfo.external_id
-            }}</el-descriptions-item>
-            <el-descriptions-item label="提交时间">{{ orderInfo.created_at }}</el-descriptions-item>
-            <el-descriptions-item label="问题类型">{{
-              orderInfo.problem_type || '-'
-            }}</el-descriptions-item>
-            <el-descriptions-item label="客户名称">{{
-              orderInfo.customer_name || '-'
-            }}</el-descriptions-item>
-            <el-descriptions-item label="客户手机号">{{
-              orderInfo.phone || '-'
-            }}</el-descriptions-item>
+            <el-descriptions-item label="工单ID">
+              {{ orderInfo.id }}
+            </el-descriptions-item>
+            <el-descriptions-item label="工单编号">
+              {{ orderInfo.external_id }}
+            </el-descriptions-item>
+            <el-descriptions-item label="提交时间">
+              {{ orderInfo.created_at }}
+            </el-descriptions-item>
+            <el-descriptions-item label="问题类型">
+              {{ orderInfo.problem_type || '-' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="客户名称">
+              {{ orderInfo.customer_name || '-' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="客户手机号">
+              {{ orderInfo.phone || '-' }}
+            </el-descriptions-item>
             <el-descriptions-item label="问题描述" :span="2">
-              <div class="question-text">{{ orderInfo.detail_desc || '-' }}</div>
+              <div class="question-text">
+                {{ orderInfo.detail_desc || '-' }}
+              </div>
             </el-descriptions-item>
           </el-descriptions>
         </el-card>
 
         <!-- 处理时间线 -->
         <el-card shadow="hover" class="timeline-card">
-          <template #header><span class="section-title">处理时间线</span></template>
+          <template #header>
+            <span class="section-title">处理时间线</span>
+          </template>
           <el-timeline>
             <el-timeline-item
               timestamp="工单提交"
@@ -57,7 +69,9 @@
               :type="orderInfo.status ? 'primary' : 'info'"
             >
               <div class="timeline-content">
-                <div class="tl-time">{{ orderInfo.created_at || '-' }}</div>
+                <div class="tl-time">
+                  {{ orderInfo.created_at || '-' }}
+                </div>
                 <div class="tl-desc">客服提交工单至{{ deptName }}</div>
               </div>
             </el-timeline-item>
@@ -68,7 +82,9 @@
               type="primary"
             >
               <div class="timeline-content">
-                <div class="tl-time">{{ orderInfo.updated_at || '-' }}</div>
+                <div class="tl-time">
+                  {{ orderInfo.updated_at || '-' }}
+                </div>
                 <div class="tl-desc">部门已回复处理</div>
               </div>
             </el-timeline-item>
@@ -79,7 +95,9 @@
               type="primary"
             >
               <div class="timeline-content">
-                <div class="tl-time">{{ orderInfo.updated_at || '-' }}</div>
+                <div class="tl-time">
+                  {{ orderInfo.updated_at || '-' }}
+                </div>
                 <div class="tl-desc">工单已办结</div>
               </div>
             </el-timeline-item>
@@ -98,8 +116,10 @@
         </el-card>
 
         <!-- 处理表单 -->
-        <el-card shadow="hover" class="form-card" v-if="orderInfo.status !== 'processed'">
-          <template #header><span class="section-title">处理备注</span></template>
+        <el-card v-if="orderInfo.status !== 'processed'" shadow="hover" class="form-card">
+          <template #header>
+            <span class="section-title">处理备注</span>
+          </template>
 
           <!-- 快捷模板 -->
           <div class="quick-templates">
@@ -110,8 +130,9 @@
               size="small"
               plain
               @click="applyTemplate(tpl.text)"
-              >{{ tpl.label }}</el-button
             >
+              {{ tpl.label }}
+            </el-button>
           </div>
 
           <el-input
@@ -123,9 +144,9 @@
           />
 
           <div class="btn-box">
-            <el-button type="primary" :loading="submitting" @click="handleFinish"
-              >办结工单</el-button
-            >
+            <el-button type="primary" :loading="submitting" @click="handleFinish">
+              办结工单
+            </el-button>
           </div>
         </el-card>
       </div>
@@ -136,9 +157,9 @@
           <template #header>
             <div class="kb-header">
               <span class="section-title">知识库检索</span>
-              <el-button text type="primary" size="small" @click="searchKB" :loading="kbLoading"
-                >重新搜索</el-button
-              >
+              <el-button text type="primary" size="small" :loading="kbLoading" @click="searchKB">
+                重新搜索
+              </el-button>
             </div>
           </template>
 
@@ -146,16 +167,18 @@
             v-model="kbQuery"
             placeholder="输入问题搜索知识库"
             clearable
-            @keyup.enter="searchKB"
             style="margin-bottom: 12px"
+            @keyup.enter="searchKB"
           >
             <template #append>
-              <el-button @click="searchKB" :loading="kbLoading">搜索</el-button>
+              <el-button :loading="kbLoading" @click="searchKB"> 搜索 </el-button>
             </template>
           </el-input>
 
           <div v-if="kbResults.length === 0 && !kbLoading" class="kb-empty">
-            <el-icon :size="32"><DocumentRemove /></el-icon>
+            <el-icon :size="32">
+              <DocumentRemove />
+            </el-icon>
             <p>暂无匹配结果</p>
             <p class="kb-hint">尝试用问题描述搜索，找到相似解决方案</p>
           </div>
@@ -163,7 +186,9 @@
           <div v-loading="kbLoading" class="kb-list">
             <div v-for="item in kbResults" :key="item.qa_id" class="kb-item">
               <div class="kb-item-header">
-                <el-tag size="small" effect="plain">{{ item.category_l1 || '未分类' }}</el-tag>
+                <el-tag size="small" effect="plain">
+                  {{ item.category_l1 || '未分类' }}
+                </el-tag>
                 <span class="kb-score">匹配度 {{ (item.score * 100).toFixed(0) }}%</span>
               </div>
               <div class="kb-question">Q: {{ item.question }}</div>

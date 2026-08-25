@@ -4,7 +4,6 @@ import tempfile
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
 from filelock import FileLock
-from sentence_transformers import CrossEncoder, SentenceTransformer
 
 from api import routes
 from api.work_order.client import WorkOrderClient
@@ -14,6 +13,7 @@ from rag.bm25_index import BM25Index
 from rag.recall import RecallEngine
 from rag.reranker import Reranker
 from rag.service import QAService
+from rag.siliconflow import get_embedding_client, get_rerank_client
 from rag.threshold import ThresholdJudge
 from utils.config import load_config, validate_config
 from utils.jwt_utils import set_mysql_client
@@ -38,12 +38,6 @@ def create_service():
         raise SystemExit(1)
     logger.info("配置校验通过")
 
-    import torch
-    torch.set_num_threads(1)
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    logger.info(f"  使用设备: {device}")
-
     rag_enabled = cfg.get("rag", {}).get("enabled", True)
 
     logger.info("初始化数据库连接...")
@@ -51,13 +45,13 @@ def create_service():
 
     service = None
     if rag_enabled:
-        logger.info("加载Embedding模型...")
-        embed_model = SentenceTransformer(cfg["models"]["embed"]["path"], device=device)
+        logger.info("初始化Embedding客户端...")
+        embed_model = get_embedding_client()
 
-        logger.info("加载Reranker模型...")
+        logger.info("初始化Reranker客户端...")
         rerank_model = None
         if cfg["rerank"]["enabled"]:
-            rerank_model = CrossEncoder(cfg["models"]["rerank"]["path"], device=device)
+            rerank_model = get_rerank_client()
 
         milvus = MilvusQA()
 

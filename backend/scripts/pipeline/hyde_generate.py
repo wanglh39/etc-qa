@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, '.')
 import json
 
-from sentence_transformers import SentenceTransformer
+from rag.siliconflow import get_embedding_client
 
 from agent.processors.hyde_rewrite import hyde_rewrite
 from agent.state import AgentState
@@ -16,7 +16,7 @@ from utils.config import load_config
 cfg = load_config()
 
 mysql = MySQLClient()
-embed_model = SentenceTransformer(cfg["models"]["embed"]["path"])
+embed_model = get_embedding_client()
 query_prefix = cfg["models"]["query_prefix"]
 
 all_qa = mysql.get_all_questions()

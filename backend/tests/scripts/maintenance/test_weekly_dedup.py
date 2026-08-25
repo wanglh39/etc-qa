@@ -31,7 +31,7 @@ def _make_work_order(wo_id, external_id, question, answer):
 
 class TestWeeklyDedupNoWorkOrders:
     @patch("scripts.maintenance.weekly_dedup.get_config")
-    @patch("scripts.maintenance.weekly_dedup.SentenceTransformer")
+    @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
     def test_no_processed_work_orders(self, mock_mysql_cls, mock_milvus_cls,
@@ -46,7 +46,7 @@ class TestWeeklyDedupNoWorkOrders:
 
 class TestWeeklyDedupRound1:
     @patch("scripts.maintenance.weekly_dedup.get_config")
-    @patch("scripts.maintenance.weekly_dedup.SentenceTransformer")
+    @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
     def test_duplicate_with_kb_marked_rejected(self, mock_mysql_cls, mock_milvus_cls,
@@ -71,7 +71,7 @@ class TestWeeklyDedupRound1:
 
 class TestWeeklyDedupRound1NotDuplicate:
     @patch("scripts.maintenance.weekly_dedup.get_config")
-    @patch("scripts.maintenance.weekly_dedup.SentenceTransformer")
+    @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
     def test_not_duplicate_with_kb_marked_deduped(self, mock_mysql_cls, mock_milvus_cls,
@@ -94,7 +94,7 @@ class TestWeeklyDedupRound1NotDuplicate:
 
 class TestWeeklyDedupRound1NoResult:
     @patch("scripts.maintenance.weekly_dedup.get_config")
-    @patch("scripts.maintenance.weekly_dedup.SentenceTransformer")
+    @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
     def test_no_kb_match_marked_deduped(self, mock_mysql_cls, mock_milvus_cls,
@@ -117,7 +117,7 @@ class TestWeeklyDedupRound1NoResult:
 
 class TestWeeklyDedupRound2:
     @patch("scripts.maintenance.weekly_dedup.get_config")
-    @patch("scripts.maintenance.weekly_dedup.SentenceTransformer")
+    @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
     def test_internal_duplicate_both_similar_q_and_a(self, mock_mysql_cls, mock_milvus_cls,
@@ -155,7 +155,7 @@ class TestWeeklyDedupRound2:
         assert len(rejected_calls) >= 1 or len(deduped_calls) >= 1
 
     @patch("scripts.maintenance.weekly_dedup.get_config")
-    @patch("scripts.maintenance.weekly_dedup.SentenceTransformer")
+    @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
     def test_internal_not_duplicate_different_answer(self, mock_mysql_cls, mock_milvus_cls,
@@ -194,7 +194,7 @@ class TestWeeklyDedupRound2:
 
 class TestWeeklyDedupRound2KeepLonger:
     @patch("scripts.maintenance.weekly_dedup.get_config")
-    @patch("scripts.maintenance.weekly_dedup.SentenceTransformer")
+    @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
     def test_keeps_longer_answer(self, mock_mysql_cls, mock_milvus_cls,
@@ -235,7 +235,7 @@ class TestWeeklyDedupRound2KeepLonger:
 
 class TestWeeklyDedupSingleWorkOrder:
     @patch("scripts.maintenance.weekly_dedup.get_config")
-    @patch("scripts.maintenance.weekly_dedup.SentenceTransformer")
+    @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
     def test_single_work_order_skips_round2(self, mock_mysql_cls, mock_milvus_cls,
@@ -258,7 +258,7 @@ class TestWeeklyDedupSingleWorkOrder:
 
 class TestWeeklyDedupEmptyRawData:
     @patch("scripts.maintenance.weekly_dedup.get_config")
-    @patch("scripts.maintenance.weekly_dedup.SentenceTransformer")
+    @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
     def test_empty_raw_data_handled(self, mock_mysql_cls, mock_milvus_cls,

@@ -169,7 +169,7 @@ def run_evaluation(golden: list[dict], pipelines: list[str] = None) -> dict:
     qa_service = None
     if "rag" in (pipelines or ["rag"]):
         try:
-            from sentence_transformers import CrossEncoder, SentenceTransformer
+            from rag.siliconflow import get_embedding_client, get_rerank_client
 
             from db.milvus_client import MilvusQA
             from rag.bm25_index import BM25Index
@@ -183,8 +183,8 @@ def run_evaluation(golden: list[dict], pipelines: list[str] = None) -> dict:
             all_qa = mysql.get_all_questions()
             bm25 = BM25Index()
             bm25.build(all_qa)
-            embed_model = SentenceTransformer(cfg["models"]["embed"]["path"])
-            rerank_model = CrossEncoder(cfg["models"]["rerank"]["path"])
+            embed_model = get_embedding_client()
+            rerank_model = get_rerank_client()
             recall_eng = RecallEngine(embed_model, milvus, bm25)
             reranker = Reranker(rerank_model, mysql_client=mysql)
             threshold = ThresholdJudge()

@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, '.')
 import argparse
 
-from sentence_transformers import SentenceTransformer
+from rag.siliconflow import get_embedding_client
 
 from agent.processors.hyde_rewrite import hyde_rewrite
 from agent.state import AgentState
@@ -20,7 +20,7 @@ cfg = load_config()
 def batch_import(dry_run=False):
     mysql = MySQLClient()
     milvus = MilvusQA()
-    embed_model = SentenceTransformer(cfg["models"]["embed"]["path"])
+    embed_model = get_embedding_client()
     query_prefix = cfg["models"]["query_prefix"]
 
     deduped_orders = mysql.get_work_orders_by_status("deduped")

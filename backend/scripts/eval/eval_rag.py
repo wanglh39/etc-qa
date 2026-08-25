@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, '.')
 import csv
 
-from sentence_transformers import CrossEncoder, SentenceTransformer
+from rag.siliconflow import get_embedding_client, get_rerank_client
 
 from agent.processors.standardize_query import standardize_query
 from agent.state import AgentState
@@ -19,8 +19,8 @@ from utils.config import load_config
 
 cfg = load_config()
 
-embed_model = SentenceTransformer(cfg["models"]["embed"]["path"])
-rerank_model = CrossEncoder(cfg["models"]["rerank"]["path"])
+embed_model = get_embedding_client()
+rerank_model = get_rerank_client()
 mysql = MySQLClient()
 milvus = MilvusQA()
 all_qa = mysql.get_all_questions()

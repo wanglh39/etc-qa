@@ -15,7 +15,6 @@ import sys
 
 import pymysql
 from pymilvus import DataType, MilvusClient
-from sentence_transformers import SentenceTransformer
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -29,6 +28,7 @@ env = sys.argv[1] if len(sys.argv) > 1 else "test"
 os.environ['ETC_QA_ENV'] = env
 
 from utils.config import load_config
+from rag.siliconflow import get_embedding_client
 
 cfg = load_config()
 
@@ -43,7 +43,6 @@ CSV_PATH = os.path.join(PROJECT_ROOT, cfg.get("data", {}).get("qa_csv", "data/pr
 MILVUS_DB = os.path.join(os.path.dirname(__file__), "..", "..", cfg["milvus"]["db_path"])
 COLLECTION_NAME = cfg["milvus"]["collection_name"]
 DIM = cfg["models"]["embed"]["dim"]
-EMBED_MODEL_PATH = cfg["models"]["embed"]["path"]
 
 
 def init_mysql():
@@ -463,7 +462,7 @@ def import_to_milvus():
     print(f"  从MySQL读取了 {len(rows)} 条问题")
 
     print("  加载Embedding模型...")
-    embed_model = SentenceTransformer(EMBED_MODEL_PATH)
+    embed_model = get_embedding_client()
 
     client = MilvusClient(MILVUS_DB, grpc_options=_GRPC_OPTIONS)
 

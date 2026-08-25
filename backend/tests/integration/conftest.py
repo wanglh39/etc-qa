@@ -64,13 +64,8 @@ def milvus_conn():
 
 @pytest.fixture(scope="session")
 def embed_model():
-    from utils.config import get_config
-    cfg = get_config()
-    import torch
-    torch.set_num_threads(1)
-    from sentence_transformers import SentenceTransformer
-    model = SentenceTransformer(cfg["models"]["embed"]["path"])
-    return model
+    from rag.siliconflow import get_embedding_client
+    return get_embedding_client()
 
 
 @pytest.fixture(scope="session")
@@ -101,11 +96,8 @@ def reranker(mysql_conn):
     cfg = get_config()
     from rag.reranker import Reranker
     if cfg["rerank"]["enabled"]:
-        import torch
-        torch.set_num_threads(1)
-        from sentence_transformers import CrossEncoder
-        rerank_model = CrossEncoder(cfg["models"]["rerank"]["path"])
-        return Reranker(rerank_model, mysql_client=mysql_conn)
+        from rag.siliconflow import get_rerank_client
+        return Reranker(get_rerank_client(), mysql_client=mysql_conn)
     return Reranker(None, mysql_client=mysql_conn)
 
 

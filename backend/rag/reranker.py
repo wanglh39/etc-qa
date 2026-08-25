@@ -1,5 +1,3 @@
-from sentence_transformers import CrossEncoder
-
 from utils.config import get_config
 
 try:
@@ -12,7 +10,7 @@ except ImportError:
 
 
 class Reranker:
-    def __init__(self, model: CrossEncoder = None, mysql_client=None):
+    def __init__(self, model=None, mysql_client=None):
         self.model = model
         self.mysql_client = mysql_client
         cfg = get_config()["rerank"]

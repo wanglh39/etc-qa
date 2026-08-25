@@ -46,13 +46,15 @@ class MilvusSearchConfig(BaseModel):
 
 class EmbedModelConfig(BaseModel):
     name: str
-    path: str
     dim: int = Field(ge=1)
+    api_base: str = ""
+    api_keys: str = ""
 
 
 class RerankModelConfig(BaseModel):
     name: str
-    path: str
+    api_base: str = ""
+    api_keys: str = ""
 
 
 class ModelsConfig(BaseModel):

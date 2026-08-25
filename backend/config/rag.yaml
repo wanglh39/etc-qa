@@ -24,14 +24,15 @@ rerank:
 rewrite_confidence:
   accept: 0.5
   fallback: 0.5
+# 针对 SiliconFlow bge-reranker-v2-m3 的分数尺度重调（相关匹配集中在 0.05~0.98，错题约 0.015）
 threshold:
-  floor_high: 0.5
-  floor_low: 0.15
-  floor_mid: 0.3
-  gap_high: 0.15
-  gap_low: 0.03
-  gap_mid: 0.08
-  high: 0.8
-  low: 0.5
-  min: 0.2
+  floor_high: 0.2
+  floor_low: 0.02
+  floor_mid: 0.05
+  gap_high: 0.1
+  gap_low: 0.015
+  gap_mid: 0.04
+  high: 0.5
+  low: 0.1
+  min: 0.03
   mode: gap

@@ -25,11 +25,8 @@ class TestL2AddKnowledge:
         active_ids = mysql_conn.get_active_ids()
         assert qa_id in active_ids
 
-        from utils.config import get_config
-        cfg = get_config()
-        from sentence_transformers import SentenceTransformer
-        model = SentenceTransformer(cfg["models"]["embed"]["path"])
-        vector = model.encode(["ETC设备故障怎么办"], normalize_embeddings=True).tolist()[0]
+        from rag.siliconflow import get_embedding_client
+        vector = get_embedding_client().encode(["ETC设备故障怎么办"], normalize_embeddings=True).tolist()[0]
         results = milvus_conn.search(vector, top_k=5)
         found = any(r[0] == qa_id for r in results)
         assert found, f"新添加的qa_id={qa_id}在Milvus中搜索不到"

@@ -1,12 +1,14 @@
-# Embedding & Reranker 模型配置（各环境共用）
+# Embedding & Reranker 模型配置（SiliconFlow API）
 models:
   embed:
-    name: "bge-large-zh-v1.5"
-    path: "${MODEL_BASE_DIR:./models/hub}/models/BAAI--bge-large-zh-v1.5/snapshots/master"
+    name: "BAAI/bge-large-zh-v1.5"
     dim: 1024
+    api_base: "${SILICONFLOW_BASE_URL:https://api.siliconflow.cn/v1}"
+    api_keys: "${SILICONFLOW_API_KEYS}"
   rerank:
-    name: "bge-reranker-large"
-    path: "${MODEL_BASE_DIR:./models/hub}/models/BAAI--bge-reranker-large/snapshots/master"
+    name: "BAAI/bge-reranker-v2-m3"
+    api_base: "${SILICONFLOW_BASE_URL:https://api.siliconflow.cn/v1}"
+    api_keys: "${SILICONFLOW_API_KEYS}"
   query_prefix: "为这个句子生成表示以用于检索相关文章："
 
 # LLM模型能力注册表

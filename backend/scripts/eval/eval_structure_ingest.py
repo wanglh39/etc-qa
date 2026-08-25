@@ -11,7 +11,7 @@ import time
 from collections import Counter
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
+from rag.siliconflow import get_embedding_client
 
 from agent.processors.clean_text import clean_text
 from agent.processors.structure_ingest import get_category_tree, structure_ingest
@@ -24,7 +24,7 @@ from utils.config import load_config
 from utils.config_center import get_business_config
 
 cfg = load_config()
-embed_model = SentenceTransformer(cfg["models"]["embed"]["path"])
+embed_model = get_embedding_client()
 
 mysql = MySQLClient()
 milvus = MilvusQA()

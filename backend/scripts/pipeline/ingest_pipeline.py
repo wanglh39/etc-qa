@@ -248,8 +248,8 @@ def run_pipeline(csv_path=None, from_api=False, skip_llm=False, skip_hyde=False,
 
     mysql = MySQLClient()
     milvus = MilvusQA()
-    from sentence_transformers import SentenceTransformer
-    embed_model = SentenceTransformer(cfg["models"]["embed"]["path"])
+    from rag.siliconflow import get_embedding_client
+    embed_model = get_embedding_client()
     bm25 = BM25Index()
     all_qa = mysql.get_all_questions()
     bm25.build(all_qa)

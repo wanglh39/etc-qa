@@ -1,7 +1,7 @@
 import json
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
+from rag.siliconflow import get_embedding_client
 
 from db.milvus_client import MilvusQA
 from db.mysql_client import MySQLClient
@@ -12,7 +12,7 @@ def weekly_dedup():
     cfg = get_config()
     mysql = MySQLClient()
     milvus = MilvusQA()
-    embed_model = SentenceTransformer(cfg["models"]["embed"]["path"])
+    embed_model = get_embedding_client()
 
     dedup_cfg = cfg.get("dedup", {})
     q_threshold = dedup_cfg.get("question_threshold", 0.92)

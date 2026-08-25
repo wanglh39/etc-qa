@@ -9,30 +9,34 @@ etc-qa/
 ├── backend/                # 后端 (FastAPI + Python)
 │   ├── api/                # API 路由 + 认证
 │   ├── agent/              # LangGraph Agent 流水线
-│   ├── asr/                # 语音识别服务
+│   ├── asr/                # 语音识别服务 (WebSocket 流式)
+│   ├── alert/              # 告警监控 + 通知
 │   ├── config/             # 配置文件 (数据库/模型/Agent/RAG)
 │   ├── db/                 # MySQL + Milvus 客户端
 │   ├── models/             # Pydantic 数据模型
-│   ├── prompt/             # Prompt 版本管理 + Shadow 测试
+│   ├── prompt/             # 提示词模板管理
 │   ├── rag/                # RAG 检索 (向量+BM25+Reranker)
+│   ├── scheduler/          # 定时任务调度
 │   ├── scripts/            # 初始化/评估/维护脚本
-│   ├── tests/              # 单元测试 + 集成测试
-│   └── utils/              # JWT/配置/日志 工具
+│   ├── tests/              # 单元测试 + 集成测试 + 基准测试
+│   └── utils/              # JWT/配置/日志/权限 工具
 │
-└── frontend/               # 前端 (Vue3 + Element Plus + TypeScript)
-    └── src/
-        ├── api/            # API 调用层 (auth/workbench/knowledge/dashboard/audit/system)
-        ├── pages/          # 页面组件
-        │   ├── workbench/  # 智能问答工作台
-        │   ├── audit/      # 审核列表 + 详情
-        │   ├── dashboard/  # 数据看板
-        │   ├── category/   # 分类管理
-        │   ├── service/    # 工单管理
-        │   └── system/     # 系统配置
-        ├── components/     # 通用组件
-        ├── router/         # 路由配置
-        ├── store/          # Pinia 状态管理
-        └── utils/          # Axios 实例 + 拦截器
+├── frontend/               # 前端 (Vue3 + Element Plus + TypeScript)
+│   ├── src/
+│   │   ├── api/            # API 调用层
+│   │   ├── pages/          # 页面组件
+│   │   │   ├── workbench/  # 管理工作台 (看板/审核/分类/配置/账号/角色/运维)
+│   │   │   ├── service/    # 客服工作台
+│   │   │   └── dept/       # 部门工单处理
+│   │   ├── components/     # 通用组件
+│   │   ├── router/         # 路由配置
+│   │   ├── store/          # Pinia 状态管理
+│   │   └── utils/          # Axios 实例 + 工具函数
+│   ├── tests/              # 单元测试 + 契约测试
+│   └── e2e/                # E2E 测试 (Playwright)
+│
+├── docs/                   # 项目文档
+└── .github/workflows/      # CI/CD (ci.yml)
 ```
 
 ## 技术栈
@@ -47,10 +51,24 @@ etc-qa/
 | 图表 | — | ECharts |
 | Embedding | bge-large-zh-v1.5 (1024维) | — |
 | Reranker | bge-reranker-large | — |
-| LLM | DeepSeek Chat / DeepSeek V4 Pro | — |
+| LLM | DeepSeek Chat | — |
 | Agent | LangGraph 状态图编排 | — |
 | BM25 | jieba + rank_bm25 | — |
-| 认证 | JWT (PyJWT) | Axios 拦截器 |
+| 认证 | JWT (PyJWT) + RBAC | Axios 拦截器 + 路由守卫 |
+| 测试 | pytest + pytest-benchmark | vitest + Playwright |
+| CI | GitHub Actions (9 jobs) | — |
+
+---
+
+## 角色体系（5角色 RBAC）
+
+| 角色 | 定位 | 默认账号 | 默认首页 |
+|------|------|---------|---------|
+| superadmin | 超级管理员（账号/角色/日志） | superadmin / 123456 | /workbench/admin/account |
+| admin | 业务管理员（内容+审核+配置） | admin / 123456 | /workbench/admin/dashboard |
+| ops | 运维工程师（监控+调度+告警） | ops / 123456 | /workbench/admin/status |
+| service | 客服（一线问答） | service / 123456 | /service |
+| dept | 部门处理员（工单处理） | dept / 123456 | /dept/handle/{dept} |
 
 ---
 
@@ -101,426 +119,271 @@ npm run dev
 
 浏览器打开 `http://localhost:5173/dev-login.html` 自动注入 service 角色 token 跳转工作台。
 
-或访问 `http://localhost:5173/login` 手动登录：
-
-| 账号 | 密码 | 角色 | 默认页面 |
-|------|------|------|---------|
-| admin | 123456 | 管理员 | 待审核列表 |
-| service | 123456 | 客服 | 智能问答工作台 |
-| dept | 123456 | 部门 | 部门工单处理 |
+或访问 `http://localhost:5173/login` 手动登录（见上方角色表）。
 
 ---
 
-# API 接口文档
+## API 端点汇总（52个）
 
 **Base URL:** `http://localhost:8000/api`
 
-所有需要认证的接口在 Header 中携带 `Authorization: Bearer <token>`（通过 `/api/auth/login` 获取）。
+所有需认证的接口在 Header 中携带 `Authorization: Bearer <token>`（通过 `/api/auth/login` 获取）。
 
----
+### 认证（3个）
 
-## 1. 认证
-
-### POST /api/auth/login — 登录
-
-```
-Request:  { "username": "admin", "password": "123456" }
-Response: { "access_token": "eyJ...", "token_type": "bearer", "role": "admin", "dept": "" }
-```
-
-无需认证。返回的 token 有效期 24 小时。
-
----
-
-## 2. 核心 QA 检索
-
-### POST /api/query — 语义检索
-
-```
-Request:  { "question": "ETC设备如何更换绑定手机号", "category_l1": null }
-Response: {
-  "query": "ETC设备如何更换绑定手机号",
-  "standardized_query": "ETC设备更换绑定手机号",
-  "confidence": "high",       // high | mid | low | none
-  "total_candidates": 3,
-  "candidates": [
-    {
-      "qa_id": 101,
-      "question": "ETC设备绑定的手机号如何更换？",
-      "answer": "请用户打开ETC App → 我的 → 设备管理 → ...",
-      "category_l1": "登录账号类",
-      "category_l2": "手机号变更",
-      "internal_process": null,
-      "feedback_dept": null,
-      "score": 0.923
-    }
-  ],
-  "work_order_id": null
-}
-```
-
-需要认证。
-
-### POST /api/add — 新增知识条目
-
-```
-Request:  { "question": "...", "answer": "...", "category_l1": "...", "category_l2": "..." }
-Response: { "qa_id": 105, "message": "添加成功，索引已更新" }
-```
-
-需要认证。
-
-### POST /api/agent/process — Agent 预处理流水线
-
-```
-Request:  { "question": "原始问题", "answer": "", "context": "", "user_id": "" }
-Response: {
-  "question": "标准化后的问题",
-  "answer": "生成的标准答案",
-  "internal_process": "", "feedback_dept": "",
-  "is_duplicate": false, "duplicate_of": null,
-  "similarity_score": 0.0,
-  "category_l1": "登录账号类", "category_l2": "手机号变更",
-  "category_confidence": 0.85,
-  "needs_review": false, "review_highlights": [],
-  "current_step": "done", "error": null
-}
-```
-
-需要认证。
-
----
-
-## 3. 知识库 CRUD
-
-### GET /api/qa/list — 分页列表
-
-| 参数 | 类型 | 默认 | 说明 |
-|------|------|------|------|
-| page | int | 1 | 页码 |
-| page_size | int | 20 | 每页条数 (1-100) |
-| category_l1 | string | — | 一级分类过滤 |
-| status | string | — | 状态过滤 (active/deprecated/archived) |
-
-```
-Response: {
-  "items": [{ "id": 1, "question": "...", "answer": "...", "category_l1": "...", "category_l2": "...", "status": "active", "created_at": "..." }],
-  "total": 100, "page": 1, "page_size": 20
-}
-```
-
-需要认证。
-
-### GET /api/qa/{qa_id} — 详情
-
-```
-Response: {
-  "id": 1, "question": "...", "answer": "...",
-  "category_l1": "...", "category_l2": "...",
-  "internal_process": "...", "feedback_dept": "...",
-  "status": "active", "created_at": "...", "updated_at": "..."
-}
-```
-
-需要认证。404 表示不存在。
-
-### POST /api/qa/search — 关键词搜索
-
-```
-Request:  { "keyword": "验证码", "category_l1": null, "status": null, "page": 1, "page_size": 20 }
-Response: 同 GET /api/qa/list
-```
-
-需要认证。
-
-### PUT /api/qa/status — 修改状态
-
-```
-Request:  { "qa_id": 1, "status": "deprecated" }
-Response: { "qa_id": 1, "status": "deprecated", "message": "状态已更新为deprecated" }
-```
-
-合法状态: `active`, `deprecated`, `archived`。需要认证。
-
-### DELETE /api/qa/{qa_id} — 删除
-
-```
-Response: { "qa_id": 1, "message": "已删除" }
-```
-
-需要认证。404 表示不存在。
-
----
-
-## 4. 统计与分类
-
-### GET /api/stats — 聚合统计
-
-```
-Response: {
-  "qa_total": 200, "qa_active": 150, "qa_deprecated": 30, "qa_archived": 20,
-  "work_order_total": 50, "work_order_submitted": 30, "work_order_processed": 15,
-  "category_stats": { "登录账号类": 80, "订单支付类": 60, "系统功能类": 60 }
-}
-```
-
-需要认证。
-
-### GET /api/categories — 分类树
-
-```
-Response: {
-  "categories": [
-    { "id": 1, "label": "登录账号类", "parentId": null, "children": [
-      { "id": 11, "label": "登录失败", "parentId": 1 }
-    ]}
-  ]
-}
-```
-
-需要认证。
-
----
-
-## 5. 工单
-
-### GET /api/work_orders — 工单列表
-
-| 参数 | 类型 | 默认 | 说明 |
-|------|------|------|------|
-| page | int | 1 | 页码 |
-| page_size | int | 20 | 每页条数 |
-| status | string | — | submitted/answered/processed |
-
-```
-Response: {
-  "items": [{ "id": 1, "external_id": "WO-20260701-0001", "raw_data": "{...}", "status": "submitted", "created_at": "..." }],
-  "total": 10, "page": 1, "page_size": 20
-}
-```
-
-需要认证。
-
----
-
-## 6. 业务配置
-
-### GET /api/config/{key} — 读取配置
-
-```
-Response: { "key": "qa_statuses", "value": ["active", "deprecated", "archived"] }
-```
-
-需要认证。
-
-### PUT /api/config/{key} — 更新配置
-
-```
-Request:  { "value": ["active", "deprecated"], "description": "可选描述" }
-Response: { "key": "qa_statuses", "message": "配置已更新，缓存已刷新" }
-```
-
-需要认证。
-
-### POST /api/config/reload — 刷新缓存
-
-```
-Response: { "message": "所有配置缓存已刷新，将从DB重新加载" }
-```
-
-需要认证。
-
----
-
-## 7. Prompt 版本管理
-
-### GET /api/prompts — 列出所有 Prompt Key
-
-```
-Response: [{ "prompt_key": "standardize", "latest_version": 3, "active_count": 1, "shadow_count": 1 }]
-```
-
-需要认证。
-
-### GET /api/prompts/{key}/versions — 版本列表
-
-```
-Response: [{ "id": 1, "prompt_key": "standardize", "version": 1, "is_active": 1, "status": "active", "description": "", "template_text_preview": "前100字符..." }]
-```
-
-需要认证。
-
-### GET /api/prompts/{key}/versions/{version} — 完整版本内容
-
-需要认证。
-
-### POST /api/prompts/publish — 发布新版本
-
-```
-Request:  { "prompt_key": "standardize", "template_text": "完整模板...", "description": "修复了xxx问题" }
-```
-
-需要认证。
-
-### POST /api/prompts/rollback — 回滚版本
-
-```
-Request:  { "prompt_key": "standardize", "target_version": 2 }
-```
-
-需要认证。
-
----
-
-## 8. ASR 语音识别
-
-### POST /api/asr — 语音转文字
-
-```
-Request:  multipart/form-data, file 字段为音频文件
-Response: { "text": "识别结果", "confidence": 0.95, "duration_ms": 3200, "model": "funasr-nano-2512", "language": "zh" }
-```
-
-需要认证。
-
-### GET /api/asr/health — ASR 健康检查
-
-```
-Response: { "loaded": true, "model": "funasr-nano-2512", "device": "cpu", "finetuned": false }
-```
-
----
-
-## 9. 健康检查
-
-### GET /api/health
-
-```
-Response: { "status": "ok" }
-```
-
-无需认证。
-
----
-
-# API 端点汇总
-
-| # | 方法 | 路径 | 认证 | 说明 |
+| # | 方法 | 路径 | 权限 | 说明 |
 |---|------|------|------|------|
-| 1 | POST | /api/auth/login | 否 | 登录获取 JWT |
-| 2 | POST | /api/query | 是 | 语义检索 QA |
-| 3 | POST | /api/add | 是 | 新增知识 |
-| 4 | POST | /api/agent/process | 是 | Agent 预处理 |
-| 5 | GET | /api/qa/list | 是 | QA 分页列表 |
-| 6 | GET | /api/qa/{id} | 是 | QA 详情 |
-| 7 | POST | /api/qa/search | 是 | 关键词搜索 |
-| 8 | PUT | /api/qa/status | 是 | 修改状态 |
-| 9 | DELETE | /api/qa/{id} | 是 | 删除知识 |
-| 10 | GET | /api/stats | 是 | 聚合统计 |
-| 11 | GET | /api/categories | 是 | 分类树 |
-| 12 | GET | /api/work_orders | 是 | 工单列表 |
-| 13 | GET | /api/config/{key} | 是 | 读取配置 |
-| 14 | PUT | /api/config/{key} | 是 | 更新配置 |
-| 15 | POST | /api/config/reload | 是 | 刷新配置缓存 |
-| 16 | GET | /api/prompts | 是 | Prompt Key 列表 |
-| 17 | GET | /api/prompts/{key}/versions | 是 | 版本列表 |
-| 18 | GET | /api/prompts/{key}/versions/{v} | 是 | 版本详情 |
-| 19 | POST | /api/prompts/publish | 是 | 发布新版本 |
-| 20 | POST | /api/prompts/rollback | 是 | 回滚版本 |
-| 21 | POST | /api/prompts/shadow/start | 是 | 开启 Shadow 测试 |
-| 22 | POST | /api/prompts/shadow/stop | 是 | 停止 Shadow 测试 |
-| 23 | GET | /api/prompts/shadow/stats | 是 | Shadow 统计 |
-| 24 | GET | /api/prompts/shadow/records | 是 | Shadow 记录 |
-| 25 | POST | /api/asr | 是 | 语音转文字 |
-| 26 | GET | /api/asr/health | 是 | ASR 健康检查 |
-| 27 | GET | /api/health | 否 | 服务健康检查 |
+| 1 | POST | /api/auth/login | 公开 | 登录获取 JWT |
+| 2 | GET | /api/auth/verify | 已登录 | 验证 token 有效性 |
+| 3 | POST | /api/auth/impersonate | superadmin | 模拟登录为其他角色 |
+
+### QA 检索与知识管理（8个）
+
+| # | 方法 | 路径 | 权限 | 说明 |
+|---|------|------|------|------|
+| 4 | POST | /api/query | 已登录 | RAG 语义检索 |
+| 5 | POST | /api/add | admin, superadmin | 新增知识并更新索引 |
+| 6 | POST | /api/agent/process | 已登录 | Agent 入库结构化处理 |
+| 7 | GET | /api/qa/list | 已登录 | QA 分页列表 |
+| 8 | GET | /api/qa/{id} | 已登录 | QA 详情 |
+| 9 | POST | /api/qa/search | 已登录 | 关键词搜索 |
+| 10 | PUT | /api/qa/status | admin, superadmin | 修改 QA 状态 |
+| 11 | DELETE | /api/qa/{id} | admin, superadmin | 删除 QA |
+
+### 配置管理（3个）
+
+| # | 方法 | 路径 | 权限 | 说明 |
+|---|------|------|------|------|
+| 12 | GET | /api/config/{key} | admin, superadmin | 读取配置 |
+| 13 | PUT | /api/config/{key} | admin, superadmin | 更新配置 |
+| 14 | POST | /api/config/reload | admin, superadmin | 刷新配置缓存 |
+
+### 分类管理（4个）
+
+| # | 方法 | 路径 | 权限 | 说明 |
+|---|------|------|------|------|
+| 15 | GET | /api/categories | 已登录 | 分类树 |
+| 16 | POST | /api/categories | admin, superadmin | 创建分类 |
+| 17 | PUT | /api/categories/{id} | admin, superadmin | 更新分类 |
+| 18 | DELETE | /api/categories/{id} | admin, superadmin | 删除分类 |
+
+### 统计与审核（3个）
+
+| # | 方法 | 路径 | 权限 | 说明 |
+|---|------|------|------|------|
+| 19 | GET | /api/stats | admin, superadmin, ops | 聚合统计 |
+| 20 | GET | /api/stats/trend | admin, superadmin, ops | 趋势统计 |
+| 21 | GET | /api/audit/history | admin, superadmin | 审核历史 |
+
+### 工单管理（5个）
+
+| # | 方法 | 路径 | 权限 | 说明 |
+|---|------|------|------|------|
+| 22 | GET | /api/work_orders | 已登录 | 工单列表 |
+| 23 | GET | /api/work_orders/stats | 已登录 | 工单状态统计 |
+| 24 | POST | /api/work_orders | 已登录 | 创建工单 |
+| 25 | GET | /api/work_orders/{id} | 已登录 | 工单详情 |
+| 26 | PUT | /api/work_orders/{id}/reply | 已登录 | 工单回复/办结 |
+
+### ASR 语音（3个）
+
+| # | 方法 | 路径 | 权限 | 说明 |
+|---|------|------|------|------|
+| 27 | POST | /api/asr | 已登录 | 语音转文字 |
+| 28 | GET | /api/asr/health | 已登录 | ASR 健康检查 |
+| 29 | POST | /api/asr/query | 已登录 | ASR + 检索一体化 |
+
+### 用户管理（5个）
+
+| # | 方法 | 路径 | 权限 | 说明 |
+|---|------|------|------|------|
+| 30 | GET | /api/users | superadmin | 用户列表 |
+| 31 | POST | /api/users | superadmin | 创建用户 |
+| 32 | PUT | /api/users/{id} | superadmin | 更新用户 |
+| 33 | PUT | /api/users/{id}/password | superadmin | 重置密码 |
+| 34 | DELETE | /api/users/{id} | superadmin | 删除用户 |
+
+### 角色与权限（5个）
+
+| # | 方法 | 路径 | 权限 | 说明 |
+|---|------|------|------|------|
+| 35 | GET | /api/roles/permissions | 已登录 | 当前用户权限 |
+| 36 | GET | /api/roles | superadmin | 角色列表 |
+| 37 | POST | /api/roles | superadmin | 创建角色 |
+| 38 | PUT | /api/roles/{id} | superadmin | 更新角色 |
+| 39 | DELETE | /api/roles/{id} | superadmin | 删除角色 |
+
+### 操作日志（1个）
+
+| # | 方法 | 路径 | 权限 | 说明 |
+|---|------|------|------|------|
+| 40 | GET | /api/operations | superadmin | 操作日志列表 |
+
+### 定时调度（4个）
+
+| # | 方法 | 路径 | 权限 | 说明 |
+|---|------|------|------|------|
+| 41 | GET | /api/scheduler/status | admin, superadmin, ops | 调度器状态 |
+| 42 | POST | /api/scheduler/trigger/{job_id} | admin, superadmin, ops | 手动触发任务 |
+| 43 | PUT | /api/scheduler/config | superadmin, ops | 修改调度周期 |
+| 44 | GET | /api/scheduler/logs | admin, superadmin, ops | 调度日志 |
+
+### 告警管理（3个）
+
+| # | 方法 | 路径 | 权限 | 说明 |
+|---|------|------|------|------|
+| 45 | GET | /api/alerts | admin, superadmin, ops | 告警列表 |
+| 46 | PUT | /api/alerts/{id}/ack | admin, superadmin, ops | 确认告警 |
+| 47 | GET | /api/alerts/metrics | admin, superadmin, ops | 监控指标 |
+
+### 系统运维（2个）
+
+| # | 方法 | 路径 | 权限 | 说明 |
+|---|------|------|------|------|
+| 48 | GET | /api/system/status | superadmin, ops | 组件健康状态 |
+| 49 | GET | /api/system/logs | superadmin, ops | 应用日志 |
+
+### 健康检查（1个）
+
+| # | 方法 | 路径 | 权限 | 说明 |
+|---|------|------|------|------|
+| 50 | GET | /api/health | 公开 | 服务健康检查 |
+
+### WebSocket（1个）
+
+| # | 方法 | 路径 | 说明 |
+|---|------|------|------|
+| 51 | WS | /ws/asr/stream | 流式 ASR 识别 + 自动检索 |
+
+### 数据库表（1个）
+
+| # | 方法 | 路径 | 权限 | 说明 |
+|---|------|------|------|------|
+| 52 | GET | /api/categories | 已登录 | （分类树，与15相同接口） |
+
+> 实际独立端点 51 个（含 WebSocket），上表按功能模块分组列出。
 
 ---
 
-# 待测试项
+## 测试
 
-## 后端初始化
+### 后端测试
 
-- [ ] MySQL 8.x 已安装并运行 (端口 3306)
-- [ ] 编辑 `.env` 填入有效的 `DEEPSEEK_API_KEY`
-- [ ] 修改 `config/models.yaml` 中的模型路径为本机实际路径
-- [ ] 下载模型: `bge-large-zh-v1.5` + `bge-reranker-large`
-- [ ] `python scripts/data/init_db.py test` — 建表 + 导入 CSV + 创建 Milvus 向量
-- [ ] `python scripts/data/init_config.py test` — 导入业务配置
-- [ ] `python main.py` — 后端无报错启动
-- [ ] `curl http://localhost:8000/api/health` → `{"status":"ok"}`
+```bash
+cd backend
+# 单元测试
+python -m pytest tests/ -x -q -o addopts="" --ignore=tests/integration
+# 全量测试（含集成测试）
+python -m pytest tests/ -x -q
+# 基准测试
+python -m pytest tests/benchmark/ -q
+```
 
-## 认证
+- 测试文件：59 个
+- 测试用例：1240 个
+- 集成测试：13 个文件
+- 基准测试：5 个
 
-- [ ] `POST /api/auth/login` — admin/123456 返回 token + role=admin
-- [ ] `POST /api/auth/login` — service/123456 返回 token + role=service
-- [ ] `POST /api/auth/login` — 错误密码返回 401
-- [ ] 无 token 访问 `/api/query` → 401
+### 前端测试
 
-## QA 检索
+```bash
+cd frontend
+# 单元测试 + 覆盖率
+npm run test
+# E2E 测试
+npx playwright test
+# 类型检查
+npx vue-tsc --noEmit
+# Lint
+npm run lint
+```
 
-- [ ] `POST /api/query` — 输入已知问题 → 返回候选列表 score > 0.5
-- [ ] `POST /api/query` — 输入无关问题 → confidence=none
-- [ ] 候选结果按 score 降序排列
-- [ ] standardized_query 标准化正确
+- 单元测试文件：58 个，用例 681 个
+- 覆盖率：语句 95.99% / 分支 87.66% / 函数 81.49% / 行 95.99%
+- E2E 测试：3 个 spec，8 个用例
+- 契约测试：3 个用例（OpenAPI 契约）
 
-## 知识库 CRUD
+### CI/CD
 
-- [ ] `GET /api/qa/list` — 分页加载正常
-- [ ] `GET /api/qa/list?status=active` — 状态过滤
-- [ ] `GET /api/qa/list?category_l1=登录账号类` — 分类过滤
-- [ ] `POST /api/qa/search` — 关键词搜索匹配
-- [ ] `GET /api/qa/{id}` — 详情加载
-- [ ] `POST /api/add` — 新增后列表中可见
-- [ ] `PUT /api/qa/status` — 状态变更生效
-- [ ] `DELETE /api/qa/{id}` — 删除后列表中消失
+GitHub Actions 统一 CI（`.github/workflows/ci.yml`），9 个 job：
+后端 lint → 后端测试 → 前端 lint → 前端测试 → 前端类型检查 → E2E 测试 → 契约测试 → 基准测试 → 前端构建。
 
-## Agent 流水线
+---
 
-- [ ] `POST /api/agent/process` — 返回分类结果 (category_l1/category_l2)
-- [ ] `POST /api/agent/process` — 重复检测 (is_duplicate)
-- [ ] `POST /api/agent/process` — 审核标记 (needs_review)
+## 文档索引
 
-## 统计
+### 根目录
 
-- [ ] `GET /api/stats` — qa_total/active/deprecated 数字正确
-- [ ] `GET /api/stats` — work_order 统计正确
-- [ ] `GET /api/stats` — category_stats 包含所有分类
+| 文档 | 说明 |
+|------|------|
+| [CHANGELOG.md](CHANGELOG.md) | 变更日志 |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | 贡献指南 |
 
-## 分类
+### docs/architecture/ — 架构设计
 
-- [ ] `GET /api/categories` — 返回树形结构，与 qa_pairs 数据一致
+| 文档 | 说明 |
+|------|------|
+| [系统总体架构图.md](docs/architecture/系统总体架构图.md) | 系统总体架构（ASCII） |
+| [架构图-Mermaid.md](docs/architecture/架构图-Mermaid.md) | 架构图（Mermaid 渲染版） |
+| [后端架构图.md](docs/architecture/后端架构图.md) | 后端架构 |
+| [前端架构图.md](docs/architecture/前端架构图.md) | 前端架构 |
+| [后端技术设计.md](docs/architecture/后端技术设计.md) | 后端技术文档 |
+| [前端技术设计.md](docs/architecture/前端技术设计.md) | 前端技术文档 |
+| [后端目录结构.md](docs/architecture/后端目录结构.md) | 后端目录结构 |
+| [前端目录结构.md](docs/architecture/前端目录结构.md) | 前端目录结构 |
+| [高并发演进路线.md](docs/architecture/高并发演进路线.md) | 并发演进规划 |
+| [adr/](docs/architecture/adr/) | 架构决策记录（ADR-001~005） |
 
-## 工单
+### docs/api/ — API 文档
 
-- [ ] `GET /api/work_orders` — 分页列表正常
-- [ ] `GET /api/work_orders?status=submitted` — 状态过滤
+| 文档 | 说明 |
+|------|------|
+| [API接口文档.md](docs/api/API接口文档.md) | API 手写文档（52 端点） |
+| [openapi.json](docs/api/openapi.json) | OpenAPI Schema（自动生成） |
 
-## 配置管理
+### docs/database/ — 数据库设计
 
-- [ ] `GET /api/config/qa_statuses` — 返回状态列表
-- [ ] `PUT /api/config/qa_statuses` — 更新后 `GET` 读到新值
-- [ ] `POST /api/config/reload` — 缓存刷新
+| 文档 | 说明 |
+|------|------|
+| [数据库设计文档.md](docs/database/数据库设计文档.md) | 12 表 + Milvus 集合 |
 
-## Prompt 管理
+### docs/security/ — 安全设计
 
-- [ ] `GET /api/prompts` — 列出已有 prompt key
-- [ ] `POST /api/prompts/publish` — 发布新版本成功
-- [ ] `POST /api/prompts/rollback` — 回滚到指定版本
+| 文档 | 说明 |
+|------|------|
+| [安全设计文档.md](docs/security/安全设计文档.md) | RBAC + JWT + 模拟登录 + 数据安全 |
 
-## ASR (可选)
+### docs/ops/ — 运维手册
 
-- [ ] `GET /api/asr/health` — loaded=true (需下载模型)
-- [ ] `POST /api/asr` — 上传音频 → 返回识别文字
+| 文档 | 说明 |
+|------|------|
+| [运维手册.md](docs/ops/运维手册.md) | Runbook + 故障处理 + 告警规则 + 监控指标 |
 
-### 前端页面
+### docs/guides/ — 指南
 
-- [ ] 登录页: 3 种角色登录跳转正确
-- [ ] 智能问答工作台: 搜索 → 展示标准化问题 + 候选答案卡片
-- [ ] 智能问答工作台: 无匹配 → 提交 Agent 处理 → 展示处理结果
-- [ ] 数据看板: 4 个指标卡片 + 饼图展示真实数据
-- [ ] 分类管理: 加载真实分类树
-- [ ] CRM 工单列表: 分页加载 + 状态筛选
-- [ ] 待审核列表: 加载 deprecated 状态知识 + 入库/驳回操作
-- [ ] 审核详情: 展示完整知识信息 + 入库/驳回
-- [ ] 系统配置: 查看/编辑配置项 + 刷新缓存
+| 文档 | 说明 |
+|------|------|
+| [开发环境搭建.md](docs/guides/开发环境搭建.md) | 环境搭建 |
+| [部署指南.md](docs/guides/部署指南.md) | 部署指南 |
+| [交接清单.md](docs/guides/交接清单.md) | 交接清单 |
+
+### docs/standards/ — 规范
+
+| 文档 | 说明 |
+|------|------|
+| [开发规范.md](docs/standards/开发规范.md) | 代码规范 + Git 规范 |
+| [数据规范.md](docs/standards/数据规范.md) | 数据规范 |
+
+### docs/testing/ — 测试
+
+| 文档 | 说明 |
+|------|------|
+| [测试体系文档.md](docs/testing/测试体系文档.md) | 测试体系说明 |
+
+### docs/tutorials/ — 教程
+
+| 文档 | 说明 |
+|------|------|
+| [Docker使用教程.md](docs/tutorials/Docker使用教程.md) | Docker 使用指南 |
+| [Git使用教程.md](docs/tutorials/Git使用教程.md) | Git 使用指南 |
+| [AI交互脚本.md](docs/tutorials/AI交互脚本.md) | AI 交互脚本 |

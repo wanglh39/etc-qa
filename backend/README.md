@@ -91,12 +91,17 @@ docker compose up -d
 ## 测试
 
 ```bash
-# 单元测试（464 passed, 96%覆盖率）
+# 单元测试（1240 passed）
 python -m pytest tests/ -q --ignore=tests/integration
 
-# 集成测试（242 passed, 84%覆盖率）
+# 集成测试
 python -m pytest tests/integration/ -m integration -v
+
+# 基准测试
+python -m pytest tests/benchmark/ -q
 ```
+
+测试文件 59 个，测试用例 1240 个，集成测试 13 个文件，基准测试 5 个。
 
 ## 环境说明
 
@@ -119,9 +124,11 @@ etc_qa/
 ├── db/              # MySQL + Milvus 客户端
 ├── models/          # 本地模型文件（不入Git，不入Docker镜像）
 ├── rag/             # 召回 + Reranker + 阈值判定
-├── prompt/          # 提示词版本管理 + 影子测试
+├── prompt/          # 提示词模板管理
+├── scheduler/       # 定时任务调度
+├── alert/           # 异常告警 + 通知
 ├── scripts/         # 数据初始化/评估/维护脚本
-├── tests/           # 单元测试 + 集成测试
+├── tests/           # 单元测试 + 集成测试 + 基准测试
 ├── docs/            # 文档
 ├── docker-compose.dev.yml  # 开发环境
 ├── docker-compose.yml      # 生产环境
@@ -133,12 +140,14 @@ etc_qa/
 
 | 文档 | 说明 |
 |------|------|
-| [开发环境搭建.md](docs/开发环境搭建.md) | 队友上手指南 |
-| [Git使用教程.md](docs/Git使用教程.md) | Git 图形界面 + 命令行 |
-| [Docker使用教程.md](docs/Docker使用教程.md) | Docker 使用指南 |
-| [架构图.md](docs/架构图.md) | 系统架构、核心链路 |
-| [目录结构.md](docs/目录结构.md) | 目录结构 + 代码调用关系 |
-| [API接口文档.md](docs/API接口文档.md) | REST API 说明 |
-| [数据库设计文档.md](docs/数据库设计文档.md) | 表结构 + 字段说明 |
-| [开发规范.md](docs/开发规范.md) | 代码规范、提交规范 |
-| [交接清单.md](docs/交接清单.md) | 已完成/待开发/注意事项 |
+| [开发环境搭建.md](../docs/guides/开发环境搭建.md) | 队友上手指南 |
+| [Git使用教程.md](../docs/tutorials/Git使用教程.md) | Git 图形界面 + 命令行 |
+| [Docker使用教程.md](../docs/tutorials/Docker使用教程.md) | Docker 使用指南 |
+| [后端架构图.md](../docs/architecture/后端架构图.md) | 系统架构、核心链路 |
+| [后端目录结构.md](../docs/architecture/后端目录结构.md) | 目录结构 + 代码调用关系 |
+| [API接口文档.md](../docs/api/API接口文档.md) | REST API 说明 |
+| [数据库设计文档.md](../docs/database/数据库设计文档.md) | 表结构 + 字段说明 |
+| [开发规范.md](../docs/standards/开发规范.md) | 代码规范、提交规范 |
+| [交接清单.md](../docs/guides/交接清单.md) | 已完成/待开发/注意事项 |
+| [开发规范.md](../docs/开发规范.md) | 代码规范、提交规范 |
+| [交接清单.md](../docs/交接清单.md) | 已完成/待开发/注意事项 |

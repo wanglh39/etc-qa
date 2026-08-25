@@ -121,9 +121,9 @@
 - 菜单按角色硬编码在Layout.vue中（`v-if="currentRole === 'xxx'"`）
 
 ### 文档同步（前端）
-- `docs/前端目录结构.md`：前端目录结构
-- `docs/前端架构图.md`：前端框架/架构图
-- `docs/前端技术文稿.md`：前端技术文档
+- `docs/architecture/前端目录结构.md`：前端目录结构
+- `docs/architecture/前端架构图.md`：前端框架/架构图
+- `docs/architecture/前端技术设计.md`：前端技术文档
 - 改了页面/组件/路由/权限时同步更新对应文档
 
 ---
@@ -131,15 +131,15 @@
 ## 文档同步规则
 
 ### 后端改动
-- `docs/目录结构.md`：项目目录结构
-- `docs/架构图.md`：框架/架构图
-- `docs/挑战杯技术文稿.md`：后端技术文档
+- `docs/architecture/后端目录结构.md`：项目目录结构
+- `docs/architecture/后端架构图.md`：框架/架构图
+- `docs/architecture/后端技术设计.md`：后端技术文档
 - 三个文档和写代码同步改，改完主动告知用户改了哪些
 
 ### 前端改动
-- `docs/前端目录结构.md`：前端目录结构
-- `docs/前端架构图.md`：前端框架/架构图
-- `docs/前端技术文稿.md`：前端技术文档
+- `docs/architecture/前端目录结构.md`：前端目录结构
+- `docs/architecture/前端架构图.md`：前端框架/架构图
+- `docs/architecture/前端技术设计.md`：前端技术文档
 - 三个文档和写代码同步改，改完主动告知用户改了哪些
 
 ### 权限改动

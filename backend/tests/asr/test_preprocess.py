@@ -1,6 +1,9 @@
 from unittest.mock import MagicMock, patch
 
 import numpy as np
+import pytest
+
+pytest.importorskip("torch")
 
 import asr.preprocess as preprocess_module
 from asr.preprocess import AudioPreprocessor, get_preprocessor

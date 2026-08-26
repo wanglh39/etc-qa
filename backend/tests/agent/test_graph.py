@@ -38,19 +38,23 @@ class TestIngestAgent:
             raw_answer="核实后退款3个工作日到账",
         )
 
-        llm_json = json.dumps({
-            "question": "ETC重复扣费如何处理",
-            "answer": "核实后退款3个工作日到账",
-            "category_l1": "售后业务",
-            "category_l2": "账单类",
-            "internal_process": "核实扣费记录并处理退款",
-            "feedback_dept": "账单组",
-        })
+        llm_json = json.dumps(
+            {
+                "question": "ETC重复扣费如何处理",
+                "answer": "核实后退款3个工作日到账",
+                "category_l1": "售后业务",
+                "category_l2": "账单类",
+                "internal_process": "核实扣费记录并处理退款",
+                "feedback_dept": "账单组",
+            }
+        )
         mock_llm = MagicMock()
         mock_llm.invoke.return_value = MagicMock(content=llm_json)
 
-        with patch("agent.processors.structure_ingest.get_llm", return_value=mock_llm), \
-             patch("agent.processors.hyde_rewrite.get_llm", return_value=mock_llm):
+        with (
+            patch("agent.processors.structure_ingest.get_llm", return_value=mock_llm),
+            patch("agent.processors.hyde_rewrite.get_llm", return_value=mock_llm),
+        ):
             result = graph.invoke(state.model_dump())
             assert result["question"] == "ETC重复扣费如何处理"
             assert result["category_l1"] == "售后业务"

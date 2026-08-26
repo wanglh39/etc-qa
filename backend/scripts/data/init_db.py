@@ -25,7 +25,7 @@ _GRPC_OPTIONS = {
 }
 
 env = sys.argv[1] if len(sys.argv) > 1 else "test"
-os.environ['ETC_QA_ENV'] = env
+os.environ["ETC_QA_ENV"] = env
 
 from rag.siliconflow import get_embedding_client
 from utils.config import load_config
@@ -49,15 +49,13 @@ def init_mysql():
     print("\n=== 第1步：初始化MySQL ===")
 
     conn = pymysql.connect(
-        host=MYSQL_HOST,
-        port=MYSQL_PORT,
-        user=MYSQL_USER,
-        password=MYSQL_PASSWORD,
-        charset="utf8mb4"
+        host=MYSQL_HOST, port=MYSQL_PORT, user=MYSQL_USER, password=MYSQL_PASSWORD, charset="utf8mb4"
     )
     cursor = conn.cursor()
 
-    cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{MYSQL_DB}` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+    cursor.execute(
+        f"CREATE DATABASE IF NOT EXISTS `{MYSQL_DB}` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+    )
     cursor.execute(f"USE `{MYSQL_DB}`")
 
     cursor.execute("""
@@ -103,7 +101,10 @@ def init_mysql():
 
     conn.commit()
 
-    cursor.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME='qa_pairs'", (MYSQL_DB,))
+    cursor.execute(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME='qa_pairs'",
+        (MYSQL_DB,),
+    )
     existing_cols = {row[0] for row in cursor.fetchall()}
     if "status" not in existing_cols:
         print("  检测到旧表缺少status列，执行迁移...")
@@ -119,7 +120,10 @@ def init_mysql():
         cursor.execute("ALTER TABLE qa_pairs ADD COLUMN image_url VARCHAR(500)")
         conn.commit()
 
-    cursor.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME='prompt_templates'", (MYSQL_DB,))
+    cursor.execute(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME='prompt_templates'",
+        (MYSQL_DB,),
+    )
     pt_cols = {row[0] for row in cursor.fetchall()}
     if "status" not in pt_cols:
         print("  prompt_templates表缺少status列，执行迁移...")
@@ -256,50 +260,66 @@ def init_mysql():
         conn.rollback()
 
     from utils.password import hash_password
+
     default_pwd_hash = hash_password("123456")
 
     import json
+
     default_permissions = {
-        "superadmin": json.dumps([
-            "/workbench/admin/account", "/workbench/admin/role",
-            "/workbench/admin/operationLog", "/workbench/admin/impersonate"
-        ]),
-        "admin": json.dumps([
-            "/workbench/admin/dashboard", "/workbench/admin/auditList",
-            "/workbench/admin/auditHistory", "/workbench/admin/knowledge",
-            "/workbench/admin/category", "/workbench/admin/config"
-        ]),
-        "ops": json.dumps([
-            "/workbench/admin/status", "/workbench/admin/monitor",
-            "/workbench/admin/scheduler", "/workbench/admin/alert"
-        ]),
+        "superadmin": json.dumps(
+            [
+                "/workbench/admin/account",
+                "/workbench/admin/role",
+                "/workbench/admin/operationLog",
+                "/workbench/admin/impersonate",
+            ]
+        ),
+        "admin": json.dumps(
+            [
+                "/workbench/admin/dashboard",
+                "/workbench/admin/auditList",
+                "/workbench/admin/auditHistory",
+                "/workbench/admin/knowledge",
+                "/workbench/admin/category",
+                "/workbench/admin/config",
+            ]
+        ),
+        "ops": json.dumps(
+            [
+                "/workbench/admin/status",
+                "/workbench/admin/monitor",
+                "/workbench/admin/scheduler",
+                "/workbench/admin/alert",
+            ]
+        ),
         "service": json.dumps(["/service"]),
-        "dept": json.dumps([
-            "/dept/handle/aftersale", "/dept/handle/ops", "/dept/handle/finance"
-        ]),
+        "dept": json.dumps(["/dept/handle/aftersale", "/dept/handle/ops", "/dept/handle/finance"]),
     }
 
     cursor.executemany(
         "INSERT IGNORE INTO roles (role_key, role_name, description, permissions) VALUES (%s, %s, %s, %s)",
-         [("superadmin", "超级管理员", "系统全权限，含账号/角色管理", default_permissions["superadmin"]),
-          ("admin", "业务管理员", "业务管理+内容管理，不含账号/角色", default_permissions["admin"]),
-          ("ops", "运维工程师", "系统运维监控+定时任务+告警管理", default_permissions["ops"]),
-          ("service", "客服", "一线客服处理", default_permissions["service"]),
-          ("dept", "部门处理员", "业务部门工单处理", default_permissions["dept"])]
+        [
+            ("superadmin", "超级管理员", "系统全权限，含账号/角色管理", default_permissions["superadmin"]),
+            ("admin", "业务管理员", "业务管理+内容管理，不含账号/角色", default_permissions["admin"]),
+            ("ops", "运维工程师", "系统运维监控+定时任务+告警管理", default_permissions["ops"]),
+            ("service", "客服", "一线客服处理", default_permissions["service"]),
+            ("dept", "部门处理员", "业务部门工单处理", default_permissions["dept"]),
+        ],
     )
     for role_key, perms in default_permissions.items():
         cursor.execute(
-            "UPDATE roles SET permissions = %s WHERE role_key = %s AND (permissions IS NULL)",
-            (perms, role_key)
+            "UPDATE roles SET permissions = %s WHERE role_key = %s AND (permissions IS NULL)", (perms, role_key)
         )
     conn.commit()
     cursor.executemany(
         "INSERT IGNORE INTO users (username, password_hash, role, dept, status) VALUES (%s, %s, %s, %s, %s)",
-         [("superadmin", default_pwd_hash, "superadmin", "", "active"),
-          ("admin", default_pwd_hash, "admin", "", "active"),
-          ("ops", default_pwd_hash, "ops", "", "active"),
-          ("service", default_pwd_hash, "service", "", "active"),
-          ("dept", default_pwd_hash, "dept", "aftersale", "active")]
+        [
+            ("superadmin", default_pwd_hash, "superadmin", "", "active"),
+            ("admin", default_pwd_hash, "admin", "", "active"),
+            ("ops", default_pwd_hash, "ops", "", "active"),
+            ("service", default_pwd_hash, "service", "", "active"),
+            ("dept", default_pwd_hash, "dept", "aftersale", "active"),
+        ],
     )
     conn.commit()
 
@@ -310,8 +330,7 @@ def init_mysql():
 
 def init_work_orders_table():
     conn = pymysql.connect(
-        host=MYSQL_HOST, port=MYSQL_PORT, user=MYSQL_USER,
-        password=MYSQL_PASSWORD, charset="utf8mb4"
+        host=MYSQL_HOST, port=MYSQL_PORT, user=MYSQL_USER, password=MYSQL_PASSWORD, charset="utf8mb4"
     )
     cursor = conn.cursor()
     cursor.execute(f"USE `{MYSQL_DB}`")
@@ -328,7 +347,10 @@ def init_work_orders_table():
     """)
     conn.commit()
 
-    cursor.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME='work_orders'", (MYSQL_DB,))
+    cursor.execute(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME='work_orders'",
+        (MYSQL_DB,),
+    )
     wo_cols = {row[0] for row in cursor.fetchall()}
     if "dept" not in wo_cols:
         print("  work_orders表缺少dept列，执行迁移...")
@@ -343,12 +365,7 @@ def import_to_mysql():
     print("\n=== 第2步：导入数据到MySQL ===")
 
     conn = pymysql.connect(
-        host=MYSQL_HOST,
-        port=MYSQL_PORT,
-        user=MYSQL_USER,
-        password=MYSQL_PASSWORD,
-        database=MYSQL_DB,
-        charset="utf8mb4"
+        host=MYSQL_HOST, port=MYSQL_PORT, user=MYSQL_USER, password=MYSQL_PASSWORD, database=MYSQL_DB, charset="utf8mb4"
     )
     cursor = conn.cursor()
 
@@ -376,10 +393,9 @@ def import_to_mysql():
             image_url = row[7].strip() if len(row) > 7 else ""
 
             if question and answer and len(question) > 1:
-                qa_pairs.append((
-                    question, answer, category_l1, category_l2,
-                    internal_process, feedback_dept, image_url
-                ))
+                qa_pairs.append(
+                    (question, answer, category_l1, category_l2, internal_process, feedback_dept, image_url)
+                )
 
     sql = """
         INSERT INTO qa_pairs 
@@ -411,6 +427,7 @@ def init_milvus():
                 print("  Windows文件锁冲突，尝试删除数据库文件夹后重试...")
                 client.close()
                 import shutil
+
                 if os.path.exists(MILVUS_DB):
                     shutil.rmtree(MILVUS_DB, ignore_errors=True)
                 client = MilvusClient(MILVUS_DB, grpc_options=_GRPC_OPTIONS)
@@ -424,7 +441,11 @@ def init_milvus():
     schema.add_field(field_name="id", datatype=DataType.INT64, is_primary=True)
     schema.add_field(field_name="qa_id", datatype=DataType.INT64)
     schema.add_field(field_name="vector", datatype=DataType.FLOAT_VECTOR, dim=DIM)
-    schema.add_field(field_name="category_l1", datatype=DataType.VARCHAR, max_length=milvus_schema_cfg.get("category_l1_max_length", 50))
+    schema.add_field(
+        field_name="category_l1",
+        datatype=DataType.VARCHAR,
+        max_length=milvus_schema_cfg.get("category_l1_max_length", 50),
+    )
     schema.add_field(field_name="is_hyde", datatype=DataType.BOOL)
 
     index_params = client.prepare_index_params()
@@ -432,12 +453,10 @@ def init_milvus():
         field_name="vector",
         index_type=milvus_index_cfg.get("type", "HNSW"),
         metric_type="COSINE",
-        params={"M": milvus_index_cfg.get("M", 16), "efConstruction": milvus_index_cfg.get("ef_construction", 256)}
+        params={"M": milvus_index_cfg.get("M", 16), "efConstruction": milvus_index_cfg.get("ef_construction", 256)},
     )
 
-    client.create_collection(
-        collection_name=COLLECTION_NAME, schema=schema, index_params=index_params
-    )
+    client.create_collection(collection_name=COLLECTION_NAME, schema=schema, index_params=index_params)
     print(f"  Milvus Collection {COLLECTION_NAME} 创建完成")
     client.close()
 
@@ -446,12 +465,7 @@ def import_to_milvus():
     print("\n=== 第4步：编码向量并导入Milvus ===")
 
     conn = pymysql.connect(
-        host=MYSQL_HOST,
-        port=MYSQL_PORT,
-        user=MYSQL_USER,
-        password=MYSQL_PASSWORD,
-        database=MYSQL_DB,
-        charset="utf8mb4"
+        host=MYSQL_HOST, port=MYSQL_PORT, user=MYSQL_USER, password=MYSQL_PASSWORD, database=MYSQL_DB, charset="utf8mb4"
     )
     cursor = conn.cursor()
     cursor.execute("SELECT id, question, category_l1 FROM qa_pairs")
@@ -470,21 +484,23 @@ def import_to_milvus():
     total_inserted = 0
 
     for i in range(0, len(rows), batch_size):
-        batch = rows[i:i + batch_size]
+        batch = rows[i : i + batch_size]
         questions = [row[1] for row in batch]
 
-        print(f"  编码第 {i+1}-{i+len(batch)} 条问题...")
+        print(f"  编码第 {i + 1}-{i + len(batch)} 条问题...")
         vectors = embed_model.encode(questions, normalize_embeddings=True).tolist()
 
         data = []
         for j, row in enumerate(batch):
-            data.append({
-                "id": row[0],
-                "qa_id": row[0],
-                "vector": vectors[j],
-                "category_l1": row[2] if row[2] else "",
-                "is_hyde": False,
-            })
+            data.append(
+                {
+                    "id": row[0],
+                    "qa_id": row[0],
+                    "vector": vectors[j],
+                    "category_l1": row[2] if row[2] else "",
+                    "is_hyde": False,
+                }
+            )
 
         client.insert(collection_name=COLLECTION_NAME, data=data)
         total_inserted += len(data)

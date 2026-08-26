@@ -37,6 +37,7 @@ def main():
     cfg = load_config()
 
     import torch
+
     torch.set_num_threads(1)
 
     print("  加载Embedding模型...")
@@ -66,7 +67,7 @@ def main():
 
     for i, question in enumerate(test_questions, 1):
         print(f"\n{'#' * 60}")
-        print(f"  查询 {i}/{len(test_questions)}: \"{question}\"")
+        print(f'  查询 {i}/{len(test_questions)}: "{question}"')
         print(f"{'#' * 60}")
 
         query_vector = recall.encode_query(question)
@@ -82,7 +83,7 @@ def main():
         for qa_id, score in vec_results[:3]:
             r = mysql.get_by_id(qa_id)
             q_text = r["question"] if r else "?"
-            print(f"    - [{qa_id}] {score:.4f} \"{q_text}\"")
+            print(f'    - [{qa_id}] {score:.4f} "{q_text}"')
 
         t0 = time.time()
         bm25_results = recall.bm25_recall(question, active_qa_ids=active_ids)
@@ -91,7 +92,7 @@ def main():
         for qa_id, score in bm25_results[:3]:
             r = mysql.get_by_id(qa_id)
             q_text = r["question"] if r else "?"
-            print(f"    - [{qa_id}] {score:.4f} \"{q_text}\"")
+            print(f'    - [{qa_id}] {score:.4f} "{q_text}"')
 
         print(f"\n{SEP}")
         print("步骤2: RRF融合")
@@ -109,7 +110,7 @@ def main():
         for qa_id, score in reranked[:5]:
             r = mysql.get_by_id(qa_id)
             q_text = r["question"] if r else "?"
-            print(f"    - [{qa_id}] {score:.4f} \"{q_text}\"")
+            print(f'    - [{qa_id}] {score:.4f} "{q_text}"')
 
         print(f"\n{SEP}")
         print("步骤4: 阈值判定")

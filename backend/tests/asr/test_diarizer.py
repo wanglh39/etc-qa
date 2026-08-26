@@ -70,9 +70,7 @@ class TestSpeakerDiarizer:
 
     @patch("asr.diarizer.get_config")
     def test_diarize_with_mock_pipeline(self, mock_cfg):
-        mock_cfg.return_value = {
-            "asr": {"diarize": {"enabled": True, "device": "cpu"}}
-        }
+        mock_cfg.return_value = {"asr": {"diarize": {"enabled": True, "device": "cpu"}}}
         d = SpeakerDiarizer()
 
         mock_pipeline = MagicMock()
@@ -98,9 +96,7 @@ class TestSpeakerDiarizer:
 
     @patch("asr.diarizer.get_config")
     def test_diarize_passes_num_speakers(self, mock_cfg):
-        mock_cfg.return_value = {
-            "asr": {"diarize": {"enabled": True, "device": "cpu", "num_speakers": 2}}
-        }
+        mock_cfg.return_value = {"asr": {"diarize": {"enabled": True, "device": "cpu", "num_speakers": 2}}}
         d = SpeakerDiarizer()
         mock_pipeline = MagicMock()
         mock_pipeline.return_value.itertracks.return_value = []
@@ -111,9 +107,7 @@ class TestSpeakerDiarizer:
 
     @patch("asr.diarizer.get_config")
     def test_diarize_failure_returns_empty(self, mock_cfg):
-        mock_cfg.return_value = {
-            "asr": {"diarize": {"enabled": True, "device": "cpu"}}
-        }
+        mock_cfg.return_value = {"asr": {"diarize": {"enabled": True, "device": "cpu"}}}
         d = SpeakerDiarizer()
         d._pipeline = MagicMock()
         d._pipeline.side_effect = RuntimeError("pipeline error")
@@ -173,11 +167,14 @@ class TestLoadPipeline:
         mock_cfg.return_value = {"asr": {"diarize": {"enabled": True}}}
         d = SpeakerDiarizer()
         import builtins
+
         real_import = builtins.__import__
+
         def mock_import(name, *args, **kwargs):
             if name == "pyannote.audio":
                 raise ImportError("not installed")
             return real_import(name, *args, **kwargs)
+
         with patch("builtins.__import__", side_effect=mock_import):
             try:
                 d._load_pipeline()
@@ -205,7 +202,9 @@ class TestDiarizeWithModel:
 
     @patch("asr.diarizer.get_config")
     def test_diarize_with_min_max_speakers(self, mock_cfg):
-        mock_cfg.return_value = {"asr": {"diarize": {"enabled": True, "min_speakers": 1, "max_speakers": 3, "device": "cpu"}}}
+        mock_cfg.return_value = {
+            "asr": {"diarize": {"enabled": True, "min_speakers": 1, "max_speakers": 3, "device": "cpu"}}
+        }
         d = SpeakerDiarizer()
         mock_pipeline = MagicMock()
         mock_diarization = MagicMock()

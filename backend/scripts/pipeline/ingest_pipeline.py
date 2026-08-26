@@ -41,15 +41,19 @@ def load_csv(csv_path):
             a = (row.get("answer") or row.get("处理结果/备注") or row.get("对客话术") or "").strip()
             if not q or not a:
                 continue
-            items.append({
-                "question": q,
-                "answer": a,
-                "category_l1": (row.get("category_l1") or row.get("业务板块") or "").strip(),
-                "category_l2": (row.get("category_l2") or row.get("业务类型") or row.get("细分场景") or "").strip(),
-                "internal_process": (row.get("internal_process") or row.get("内部处理办法及流程") or "").strip(),
-                "feedback_dept": (row.get("feedback_dept") or row.get("涉及反馈部门/微信群/工单模板") or "").strip(),
-                "context": (row.get("context") or row.get("工单类型") or "").strip(),
-            })
+            items.append(
+                {
+                    "question": q,
+                    "answer": a,
+                    "category_l1": (row.get("category_l1") or row.get("业务板块") or "").strip(),
+                    "category_l2": (row.get("category_l2") or row.get("业务类型") or row.get("细分场景") or "").strip(),
+                    "internal_process": (row.get("internal_process") or row.get("内部处理办法及流程") or "").strip(),
+                    "feedback_dept": (
+                        row.get("feedback_dept") or row.get("涉及反馈部门/微信群/工单模板") or ""
+                    ).strip(),
+                    "context": (row.get("context") or row.get("工单类型") or "").strip(),
+                }
+            )
     return items
 
 
@@ -91,7 +95,7 @@ def step2_structure(items):
             item["error"] = result["error"]
         processed.append(item)
         if (i + 1) % 10 == 0:
-            print(f"  处理进度: {i+1}/{len(items)}")
+            print(f"  处理进度: {i + 1}/{len(items)}")
     print(f"  规整完成: {len(processed)}条, 需人工审核: {review_count}条")
     return processed
 
@@ -188,7 +192,8 @@ def step6_verify(inserted_ids, mysql, milvus):
     for qa_id in inserted_ids:
         try:
             results = milvus.search(
-                [0.0] * milvus.dim, top_k=1,
+                [0.0] * milvus.dim,
+                top_k=1,
             )
         except Exception:
             pass
@@ -221,11 +226,13 @@ def run_pipeline(csv_path=None, from_api=False, skip_llm=False, skip_hyde=False,
         items = []
         for wo in work_orders:
             raw = json.loads(wo["raw_data"]) if wo["raw_data"] else {}
-            items.append({
-                "question": raw.get("question", ""),
-                "answer": raw.get("answer", ""),
-                "context": raw.get("context", ""),
-            })
+            items.append(
+                {
+                    "question": raw.get("question", ""),
+                    "answer": raw.get("answer", ""),
+                    "context": raw.get("context", ""),
+                }
+            )
         print(f"  从work_orders表加载: {len(items)}条")
     else:
         print("  ❌ 请指定 --csv 或 --api")
@@ -249,6 +256,7 @@ def run_pipeline(csv_path=None, from_api=False, skip_llm=False, skip_hyde=False,
     mysql = MySQLClient()
     milvus = MilvusQA()
     from rag.siliconflow import get_embedding_client
+
     embed_model = get_embedding_client()
     bm25 = BM25Index()
     all_qa = mysql.get_all_questions()
@@ -285,4 +293,6 @@ if __name__ == "__main__":
     parser.add_argument("--limit", type=int, help="限制处理条数")
     args = parser.parse_args()
 
-    run_pipeline(csv_path=args.csv, from_api=args.api, skip_llm=args.skip_llm, skip_hyde=args.skip_hyde, limit=args.limit)
+    run_pipeline(
+        csv_path=args.csv, from_api=args.api, skip_llm=args.skip_llm, skip_hyde=args.skip_hyde, limit=args.limit
+    )

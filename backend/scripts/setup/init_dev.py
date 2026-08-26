@@ -24,6 +24,7 @@ def check_env_file():
         if os.path.exists(template_path):
             print("📋 未找到 .env 文件，从模板复制...")
             import shutil
+
             shutil.copy(template_path, env_path)
             print(f"  ✓ 已创建 .env，请编辑填入你的 DEEPSEEK_API_KEY")
             print(f"  路径: {env_path}")
@@ -83,10 +84,7 @@ def check_models():
 
 def check_docker():
     try:
-        result = subprocess.run(
-            ["docker", "--version"],
-            capture_output=True, text=True, timeout=10
-        )
+        result = subprocess.run(["docker", "--version"], capture_output=True, text=True, timeout=10)
         if result.returncode == 0:
             print(f"✓ Docker: {result.stdout.strip()}")
             return True
@@ -102,8 +100,9 @@ def start_mysql():
     print("\n=== 启动MySQL容器 ===")
     result = subprocess.run(
         ["docker", "compose", "-f", "docker-compose.dev.yml", "up", "-d", "mysql"],
-        capture_output=True, text=True,
-        cwd=PROJECT_ROOT
+        capture_output=True,
+        text=True,
+        cwd=PROJECT_ROOT,
     )
     if result.returncode != 0:
         print(f"❌ MySQL容器启动失败:\n{result.stderr}")
@@ -111,12 +110,27 @@ def start_mysql():
 
     print("  等待MySQL就绪...")
     import time
+
     for i in range(30):
         result = subprocess.run(
-            ["docker", "compose", "-f", "docker-compose.dev.yml", "exec", "mysql",
-             "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"],
-            capture_output=True, text=True,
-            cwd=PROJECT_ROOT
+            [
+                "docker",
+                "compose",
+                "-f",
+                "docker-compose.dev.yml",
+                "exec",
+                "mysql",
+                "mysqladmin",
+                "ping",
+                "-h",
+                "localhost",
+                "-u",
+                "root",
+                "-p123456",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=PROJECT_ROOT,
         )
         if result.returncode == 0:
             print("  ✓ MySQL已就绪")
@@ -133,10 +147,7 @@ def init_database():
     env["ETC_QA_ENV"] = "dev"
 
     result = subprocess.run(
-        [sys.executable, "scripts/data/init_db.py", "dev"],
-        capture_output=True, text=True,
-        cwd=PROJECT_ROOT,
-        env=env
+        [sys.executable, "scripts/data/init_db.py", "dev"], capture_output=True, text=True, cwd=PROJECT_ROOT, env=env
     )
     print(result.stdout)
     if result.returncode != 0:

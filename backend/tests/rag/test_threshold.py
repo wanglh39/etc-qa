@@ -7,9 +7,15 @@ def _make_config(mode="absolute"):
     return {
         "threshold": {
             "mode": mode,
-            "high": 0.8, "low": 0.5, "min": 0.2,
-            "gap_high": 0.15, "gap_mid": 0.08, "gap_low": 0.03,
-            "floor_high": 0.5, "floor_mid": 0.3, "floor_low": 0.15,
+            "high": 0.8,
+            "low": 0.5,
+            "min": 0.2,
+            "gap_high": 0.15,
+            "gap_mid": 0.08,
+            "gap_low": 0.03,
+            "floor_high": 0.5,
+            "floor_mid": 0.3,
+            "floor_low": 0.15,
         },
         "display": {"high_confidence": 3, "mid_confidence": 5, "low_confidence": 10},
     }

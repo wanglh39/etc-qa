@@ -50,11 +50,13 @@ class SchedulerManager:
         jobs = []
         if self._started:
             for job in self._scheduler.get_jobs():
-                jobs.append({
-                    "id": job.id,
-                    "next_run_time": job.next_run_time.isoformat() if job.next_run_time else None,
-                    "trigger": str(job.trigger),
-                })
+                jobs.append(
+                    {
+                        "id": job.id,
+                        "next_run_time": job.next_run_time.isoformat() if job.next_run_time else None,
+                        "trigger": str(job.trigger),
+                    }
+                )
         return {
             "running": self._started,
             "jobs": jobs,
@@ -104,6 +106,7 @@ class SchedulerManager:
             return
 
         from scheduler import tasks
+
         func_map = {
             "sync_and_ingest": tasks.sync_and_ingest_task,
             "cleanup": tasks.cleanup_task,

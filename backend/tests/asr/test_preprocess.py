@@ -38,6 +38,7 @@ class TestAudioPreprocessor:
         mock_cfg.return_value = {"asr": {"preprocess": {"vad_enabled": False}}}
         p = AudioPreprocessor()
         import numpy as np
+
         audio = np.zeros(16000)
         result, sr = p.apply_vad(audio, 16000)
         assert (result == audio).all()
@@ -47,15 +48,14 @@ class TestAudioPreprocessor:
         mock_cfg.return_value = {"asr": {"preprocess": {"denoise_enabled": False}}}
         p = AudioPreprocessor()
         import numpy as np
+
         audio = np.zeros(16000)
         result, sr = p.apply_denoise(audio, 16000)
         assert (result == audio).all()
 
     @patch("asr.preprocess.get_config")
     def test_health(self, mock_cfg):
-        mock_cfg.return_value = {
-            "asr": {"preprocess": {"vad_enabled": True, "denoise_enabled": True}}
-        }
+        mock_cfg.return_value = {"asr": {"preprocess": {"vad_enabled": True, "denoise_enabled": True}}}
         p = AudioPreprocessor()
         h = p.health()
         assert h["vad_enabled"] is True
@@ -67,6 +67,7 @@ class TestAudioPreprocessor:
         p = AudioPreprocessor()
         import os
         import tempfile
+
         fd, tmp = tempfile.mkstemp(suffix=".wav")
         os.close(fd)
         assert os.path.exists(tmp)
@@ -158,6 +159,7 @@ class TestApplyDenoiseEnabled:
         audio = np.random.randn(32000).astype(np.float32)
 
         import sys
+
         mock_nr = MagicMock()
         mock_nr.reduce_noise.return_value = audio * 0.5
         with patch.dict(sys.modules, {"noisereduce": mock_nr}):
@@ -180,7 +182,9 @@ class TestApplyDenoiseEnabled:
         audio = np.zeros(32000)
 
         import builtins
+
         real_import = builtins.__import__
+
         def mock_import(name, *args, **kwargs):
             if name == "noisereduce":
                 raise ImportError("not installed")

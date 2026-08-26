@@ -5,6 +5,7 @@ import pytest
 class TestL2AddKnowledge:
     def test_add_knowledge_full_chain(self, qa_service, mysql_conn, milvus_conn):
         from models.schemas import AddQARequest
+
         req = AddQARequest(
             question="集成测试添加知识_ETC设备故障怎么办",
             answer="请先检查OBU设备指示灯，若红灯闪烁需更换电池，联系客服95022",
@@ -26,6 +27,7 @@ class TestL2AddKnowledge:
         assert qa_id in active_ids
 
         from rag.siliconflow import get_embedding_client
+
         vector = get_embedding_client().encode(["ETC设备故障怎么办"], normalize_embeddings=True).tolist()[0]
         results = milvus_conn.search(vector, top_k=5)
         found = any(r[0] == qa_id for r in results)
@@ -40,6 +42,7 @@ class TestL2AddKnowledge:
             from pymilvus import MilvusClient
 
             from utils.config import get_config
+
             cfg = get_config()
             client = MilvusClient(cfg["milvus"]["db_path"])
             client.delete(cfg["milvus"]["collection_name"], filter=f"id == {qa_id}")
@@ -48,12 +51,15 @@ class TestL2AddKnowledge:
             pass
 
     def test_add_knowledge_via_api(self, real_client, mysql_conn):
-        resp = real_client.post("/api/v1/add", json={
-            "question": "集成测试API添加_ETC蓝牙连不上",
-            "answer": "请打开手机蓝牙和ETC APP，靠近设备重新配对",
-            "category_l1": "售后业务",
-            "category_l2": "设备异常",
-        })
+        resp = real_client.post(
+            "/api/v1/add",
+            json={
+                "question": "集成测试API添加_ETC蓝牙连不上",
+                "answer": "请打开手机蓝牙和ETC APP，靠近设备重新配对",
+                "category_l1": "售后业务",
+                "category_l2": "设备异常",
+            },
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert data["qa_id"] > 0
@@ -68,6 +74,7 @@ class TestL2AddKnowledge:
 
     def test_add_knowledge_query_immediately(self, qa_service, mysql_conn):
         from models.schemas import AddQARequest
+
         req = AddQARequest(
             question="集成测试即时查询_ETC发票怎么开",
             answer="登录ETC APP，进入发票管理，选择通行记录开具电子发票",
@@ -86,8 +93,10 @@ class TestL2AddKnowledge:
         mysql_conn.delete_qa(qa_id)
         try:
             from utils.config import get_config
+
             cfg = get_config()
             from pymilvus import MilvusClient
+
             client = MilvusClient(cfg["milvus"]["db_path"])
             client.delete(cfg["milvus"]["collection_name"], filter=f"id == {qa_id}")
             client.close()
@@ -96,6 +105,7 @@ class TestL2AddKnowledge:
 
     def test_add_knowledge_minimal_fields(self, qa_service, mysql_conn):
         from models.schemas import AddQARequest
+
         req = AddQARequest(
             question="集成测试最小字段_ETC客服电话",
             answer="ETC客服热线95022",
@@ -111,8 +121,10 @@ class TestL2AddKnowledge:
         mysql_conn.delete_qa(qa_id)
         try:
             from utils.config import get_config
+
             cfg = get_config()
             from pymilvus import MilvusClient
+
             client = MilvusClient(cfg["milvus"]["db_path"])
             client.delete(cfg["milvus"]["collection_name"], filter=f"id == {qa_id}")
             client.close()
@@ -121,6 +133,7 @@ class TestL2AddKnowledge:
 
     def test_add_knowledge_duplicate_question(self, qa_service, mysql_conn):
         from models.schemas import AddQARequest
+
         req1 = AddQARequest(
             question="集成测试重复问题_ETC怎么注销",
             answer="携带设备到营业厅办理注销",
@@ -141,8 +154,10 @@ class TestL2AddKnowledge:
             mysql_conn.delete_qa(qa_id)
             try:
                 from utils.config import get_config
+
                 cfg = get_config()
                 from pymilvus import MilvusClient
+
                 client = MilvusClient(cfg["milvus"]["db_path"])
                 client.delete(cfg["milvus"]["collection_name"], filter=f"id == {qa_id}")
                 client.close()

@@ -50,7 +50,9 @@ def get_category_tree() -> dict:
             if result:
                 _category_cache["tree"] = result
                 _category_cache["default_l1"] = next(iter(result))
-                _category_cache["default_l2"] = result[_category_cache["default_l1"]][0] if result[_category_cache["default_l1"]] else ""
+                _category_cache["default_l2"] = (
+                    result[_category_cache["default_l1"]][0] if result[_category_cache["default_l1"]] else ""
+                )
             else:
                 _category_cache["tree"] = {}
                 _category_cache["default_l1"] = ""
@@ -101,7 +103,9 @@ def get_reference_examples(count: int = 10) -> list[str]:
         max_len = cfg.get("max_length", 30)
         mysql = _get_mysql()
         all_qa = mysql.get_all_questions()
-        questions = [qa["question"] for qa in all_qa if qa.get("question") and min_len <= len(qa["question"]) <= max_len]
+        questions = [
+            qa["question"] for qa in all_qa if qa.get("question") and min_len <= len(qa["question"]) <= max_len
+        ]
         if len(questions) > count * 3:
             sampled = random.sample(questions, count * 3)
         else:
@@ -175,9 +179,9 @@ def _validate_rewrite(original: str, rewrite: str) -> tuple:
     return hallucination_kws, lost_kws
 
 
-def _apply_confidence_action(cat_conf: float, cat_l1: str, cat_l2: str,
-                              default_l1: str, default_l2: str,
-                              review_highlights: list) -> tuple:
+def _apply_confidence_action(
+    cat_conf: float, cat_l1: str, cat_l2: str, default_l1: str, default_l2: str, review_highlights: list
+) -> tuple:
     cfg = get_config().get("ingest_confidence", {})
     auto_th = cfg.get("auto", 0.8)
     review_th = cfg.get("review", 0.5)
@@ -243,7 +247,6 @@ def structure_ingest(state: AgentState) -> dict:
                 if isinstance(result, StructureIngestOutput):
                     return _process_structured_result(result, question, answer, tree, default_l1, default_l2, state)
             except Exception as e:
-
                 logger.warning(f"结构化输出调用失败，降级为JSON解析: {e}")
 
         llm = get_llm()
@@ -279,8 +282,15 @@ def structure_ingest(state: AgentState) -> dict:
     }
 
 
-def _process_structured_result(result: StructureIngestOutput, question: str, answer: str,
-                                tree: dict, default_l1: str, default_l2: str, state: AgentState) -> dict:
+def _process_structured_result(
+    result: StructureIngestOutput,
+    question: str,
+    answer: str,
+    tree: dict,
+    default_l1: str,
+    default_l2: str,
+    state: AgentState,
+) -> dict:
     cat_l1 = result.category_l1
     cat_l2 = result.category_l2
     if cat_l1 not in tree:
@@ -334,8 +344,9 @@ def _process_structured_result(result: StructureIngestOutput, question: str, ans
     return updates
 
 
-def _process_parsed_result(parsed: dict, question: str, answer: str,
-                            tree: dict, default_l1: str, default_l2: str, state: AgentState) -> dict:
+def _process_parsed_result(
+    parsed: dict, question: str, answer: str, tree: dict, default_l1: str, default_l2: str, state: AgentState
+) -> dict:
     cat_l1 = parsed.get("category_l1", default_l1)
     cat_l2 = parsed.get("category_l2", default_l2)
     if cat_l1 not in tree:

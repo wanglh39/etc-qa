@@ -12,9 +12,11 @@ logger = get_logger("rag.recall")
 try:
     from langsmith import traceable
 except ImportError:
+
     def traceable(name=None, run_type=None):
         def decorator(func):
             return func
+
         return decorator
 
 
@@ -46,12 +48,12 @@ class RecallEngine:
         self.vector_weight = cfg.get("vector_weight", 0.7)
         self.bm25_weight = cfg.get("bm25_weight", 0.3)
         self.query_prefix = get_config()["models"]["query_prefix"]
-        logger.info(f"RecallEngine配置已热更新: top_k=({self.vector_top_k},{self.bm25_top_k}) weight=({self.vector_weight},{self.bm25_weight})")
+        logger.info(
+            f"RecallEngine配置已热更新: top_k=({self.vector_top_k},{self.bm25_top_k}) weight=({self.vector_weight},{self.bm25_weight})"
+        )
 
     def encode_query(self, query_text: str):
-        return self.embed_model.encode(
-            [self.query_prefix + query_text], normalize_embeddings=True
-        ).tolist()[0]
+        return self.embed_model.encode([self.query_prefix + query_text], normalize_embeddings=True).tolist()[0]
 
     @traceable(name="vector_recall", run_type="retriever")
     def vector_recall(self, query_vector, top_k=None, use_hyde=True, active_qa_ids=None):
@@ -89,9 +91,7 @@ class RecallEngine:
         vec_future = self._executor.submit(
             self.vector_recall, query_vector, use_hyde=use_hyde, active_qa_ids=active_qa_ids
         )
-        bm25_future = self._executor.submit(
-            self.bm25_recall, query_text, active_qa_ids=active_qa_ids
-        )
+        bm25_future = self._executor.submit(self.bm25_recall, query_text, active_qa_ids=active_qa_ids)
         try:
             vec_results = vec_future.result(timeout=self._RECALL_TIMEOUT)
         except FutureTimeout:

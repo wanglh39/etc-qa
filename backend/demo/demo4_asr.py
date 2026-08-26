@@ -22,6 +22,7 @@ SEP = "=" * 60
 
 def init_rag_service(cfg):
     import torch
+
     torch.set_num_threads(1)
     from sentence_transformers import CrossEncoder, SentenceTransformer
 
@@ -52,30 +53,30 @@ def init_rag_service(cfg):
 
 
 def simulate_customer_call(asr_text, rag_service):
-    print(f"\n  客户说: \"{asr_text}\"")
+    print(f'\n  客户说: "{asr_text}"')
 
     t0 = time.time()
     rag_result = rag_service.query(asr_text)
     elapsed = time.time() - t0
 
     print(f"\n  系统检索完成 ({elapsed:.2f}s):")
-    print(f"  标准化: \"{rag_result.standardized_query}\"")
+    print(f'  标准化: "{rag_result.standardized_query}"')
     print(f"  置信度: {rag_result.confidence}")
 
     if rag_result.candidates:
         print(f"\n  给客服的候选提示:")
         for j, c in enumerate(rag_result.candidates[:3], 1):
             print(f"    [{j}] 分数={c.score:.4f} | {c.category_l1}/{c.category_l2}")
-            print(f"        问题: \"{c.question}\"")
-            print(f"        答案: \"{c.answer[:80]}{'...' if len(c.answer) > 80 else ''}\"")
+            print(f'        问题: "{c.question}"')
+            print(f'        答案: "{c.answer[:80]}{"..." if len(c.answer) > 80 else ""}"')
             if c.internal_process:
-                print(f"        内部流程: \"{c.internal_process[:60]}\"")
+                print(f'        内部流程: "{c.internal_process[:60]}"')
             if c.feedback_dept:
                 print(f"        反馈部门: {c.feedback_dept}")
 
         print(f"\n  客服审核: 选择候选 [1] 回答客户")
         top = rag_result.candidates[0]
-        print(f"  客服回答: \"{top.answer[:100]}\"")
+        print(f'  客服回答: "{top.answer[:100]}"')
     else:
         print(f"\n  未找到匹配答案，建议转人工处理")
 
@@ -98,6 +99,7 @@ def main():
 
     print("\n初始化ASR模型...")
     from asr.service import ASRService
+
     asr = ASRService()
 
     diarize_cfg = asr_cfg.get("diarize", {})
@@ -136,14 +138,14 @@ def main():
         t0 = time.time()
         result = asr.transcribe(wav_path)
         asr_time = time.time() - t0
-        print(f"  识别结果: \"{result.text}\"")
+        print(f'  识别结果: "{result.text}"')
         print(f"  置信度: {result.confidence} | 耗时: {asr_time:.2f}s")
 
         if result.segments:
             speakers = set(s.speaker for s in result.segments)
             print(f"  说话人分离: 检测到 {len(speakers)} 位说话人")
             for seg in result.segments:
-                print(f"    [{seg.start:.1f}s-{seg.end:.1f}s] {seg.speaker}: \"{seg.text}\"")
+                print(f'    [{seg.start:.1f}s-{seg.end:.1f}s] {seg.speaker}: "{seg.text}"')
 
         if not result.text.strip():
             print("  识别为空，跳过检索")

@@ -3,9 +3,11 @@ from utils.config import get_config
 try:
     from langsmith import traceable
 except ImportError:
+
     def traceable(name=None, run_type=None):
         def decorator(func):
             return func
+
         return decorator
 
 
@@ -49,4 +51,4 @@ class Reranker:
         scores = self.model.predict(pairs)
 
         ranked = sorted(zip(valid_ids, scores), key=lambda x: x[1], reverse=True)
-        return ranked[:self.top_k]
+        return ranked[: self.top_k]

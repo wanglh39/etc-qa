@@ -81,11 +81,9 @@ def impersonate(req: ImpersonateRequest, user: dict = Depends(require_role("supe
     logger.info(f"超管 {user['sub']} 模拟登录为 {target['role']}")
     try:
         from utils.jwt_utils import _mysql_client
+
         if _mysql_client is not None:
-            _mysql_client.insert_operation_log(
-                user["sub"], "impersonate", "auth", 0,
-                f"模拟登录为 {target['role']}"
-            )
+            _mysql_client.insert_operation_log(user["sub"], "impersonate", "auth", 0, f"模拟登录为 {target['role']}")
     except Exception as e:
         logger.warning(f"模拟登录操作日志写入失败: {e}")
     return ImpersonateResponse(

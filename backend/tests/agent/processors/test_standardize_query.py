@@ -89,10 +89,12 @@ class TestStructuredLLMBranches:
         mock_structured_llm.invoke.return_value = mock_result
         mock_pe = MagicMock()
         mock_pe.return_value.render.return_value = "prompt"
-        with patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)), \
-             patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe), \
-             patch("agent.processors.standardize_query.get_config", return_value=_mock_config()), \
-             patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()):
+        with (
+            patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)),
+            patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe),
+            patch("agent.processors.standardize_query.get_config", return_value=_mock_config()),
+            patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()),
+        ):
             result = standardize_query(state)
         assert result["rewrite_confidence"] == 1.0
 
@@ -106,10 +108,12 @@ class TestStructuredLLMBranches:
         mock_structured_llm.invoke.return_value = mock_result
         mock_pe = MagicMock()
         mock_pe.return_value.render.return_value = "prompt"
-        with patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)), \
-             patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe), \
-             patch("agent.processors.standardize_query.get_config", return_value=_mock_config()), \
-             patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()):
+        with (
+            patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)),
+            patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe),
+            patch("agent.processors.standardize_query.get_config", return_value=_mock_config()),
+            patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()),
+        ):
             result = standardize_query(state)
         assert result["question"] == "ETC注销流程是什么"
         assert result["rewrite_confidence"] == 0.9
@@ -124,10 +128,12 @@ class TestStructuredLLMBranches:
         mock_structured_llm.invoke.return_value = mock_result
         mock_pe = MagicMock()
         mock_pe.return_value.render.return_value = "prompt"
-        with patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)), \
-             patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe), \
-             patch("agent.processors.standardize_query.get_config", return_value=_mock_config()), \
-             patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()):
+        with (
+            patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)),
+            patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe),
+            patch("agent.processors.standardize_query.get_config", return_value=_mock_config()),
+            patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()),
+        ):
             result = standardize_query(state)
         assert "ETC注销" not in result["question"] or result["rewrite_confidence"] == 0.2
 
@@ -141,11 +147,13 @@ class TestStructuredLLMBranches:
         mock_llm.invoke.return_value = MagicMock(content=llm_json)
         mock_pe = MagicMock()
         mock_pe.return_value.render.return_value = "prompt"
-        with patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)), \
-             patch("agent.processors.standardize_query.get_llm", return_value=mock_llm), \
-             patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe), \
-             patch("agent.processors.standardize_query.get_config", return_value=_mock_config()), \
-             patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()):
+        with (
+            patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)),
+            patch("agent.processors.standardize_query.get_llm", return_value=mock_llm),
+            patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe),
+            patch("agent.processors.standardize_query.get_config", return_value=_mock_config()),
+            patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()),
+        ):
             result = standardize_query(state)
         assert result["current_step"] == "standardize_query"
 
@@ -161,11 +169,13 @@ class TestPlainLLMBranches:
         mock_llm.invoke.return_value = MagicMock(content=llm_json)
         mock_pe = MagicMock()
         mock_pe.return_value.render.return_value = "prompt"
-        with patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)), \
-             patch("agent.processors.standardize_query.get_llm", return_value=mock_llm), \
-             patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe), \
-             patch("agent.processors.standardize_query.get_config", return_value=_mock_config()), \
-             patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()):
+        with (
+            patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)),
+            patch("agent.processors.standardize_query.get_llm", return_value=mock_llm),
+            patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe),
+            patch("agent.processors.standardize_query.get_config", return_value=_mock_config()),
+            patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()),
+        ):
             result = standardize_query(state)
         assert result["rewrite_confidence"] == 1.0
 
@@ -179,11 +189,13 @@ class TestPlainLLMBranches:
         mock_llm.invoke.return_value = MagicMock(content=llm_json)
         mock_pe = MagicMock()
         mock_pe.return_value.render.return_value = "prompt"
-        with patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)), \
-             patch("agent.processors.standardize_query.get_llm", return_value=mock_llm), \
-             patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe), \
-             patch("agent.processors.standardize_query.get_config", return_value=_mock_config()), \
-             patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()):
+        with (
+            patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)),
+            patch("agent.processors.standardize_query.get_llm", return_value=mock_llm),
+            patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe),
+            patch("agent.processors.standardize_query.get_config", return_value=_mock_config()),
+            patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()),
+        ):
             result = standardize_query(state)
         assert result["rewrite_confidence"] == 0.5
 
@@ -197,11 +209,13 @@ class TestPlainLLMBranches:
         mock_llm.invoke.return_value = MagicMock(content=llm_json)
         mock_pe = MagicMock()
         mock_pe.return_value.render.return_value = "prompt"
-        with patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)), \
-             patch("agent.processors.standardize_query.get_llm", return_value=mock_llm), \
-             patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe), \
-             patch("agent.processors.standardize_query.get_config", return_value=_mock_config()), \
-             patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()):
+        with (
+            patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)),
+            patch("agent.processors.standardize_query.get_llm", return_value=mock_llm),
+            patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe),
+            patch("agent.processors.standardize_query.get_config", return_value=_mock_config()),
+            patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()),
+        ):
             result = standardize_query(state)
         assert "ETC" in result["question"]
 
@@ -215,11 +229,13 @@ class TestPlainLLMBranches:
         mock_llm.invoke.return_value = MagicMock(content=llm_json)
         mock_pe = MagicMock()
         mock_pe.return_value.render.return_value = "prompt"
-        with patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)), \
-             patch("agent.processors.standardize_query.get_llm", return_value=mock_llm), \
-             patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe), \
-             patch("agent.processors.standardize_query.get_config", return_value=_mock_config()), \
-             patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()):
+        with (
+            patch("agent.processors.standardize_query.get_structured_llm", return_value=(mock_structured_llm, True)),
+            patch("agent.processors.standardize_query.get_llm", return_value=mock_llm),
+            patch("agent.processors.standardize_query.get_prompt_engine", return_value=mock_pe),
+            patch("agent.processors.standardize_query.get_config", return_value=_mock_config()),
+            patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()),
+        ):
             result = standardize_query(state)
         assert result["question"] == "ETC注销的流程是什么呢"
         assert result["rewrite_confidence"] == 0.2
@@ -227,24 +243,32 @@ class TestPlainLLMBranches:
 
 class TestIsAlreadyStandard:
     def test_length_out_of_range(self):
-        with patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()), \
-             patch("agent.processors.standardize_query.get_config", return_value=_mock_config()):
+        with (
+            patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()),
+            patch("agent.processors.standardize_query.get_config", return_value=_mock_config()),
+        ):
             assert _is_already_standard("短") is False
             assert _is_already_standard("A" * 50) is False
 
     def test_no_subject_keyword(self):
-        with patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()), \
-             patch("agent.processors.standardize_query.get_config", return_value=_mock_config()):
+        with (
+            patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()),
+            patch("agent.processors.standardize_query.get_config", return_value=_mock_config()),
+        ):
             assert _is_already_standard("这个问题怎么处理") is False
 
     def test_standard_question(self):
-        with patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()), \
-             patch("agent.processors.standardize_query.get_config", return_value=_mock_config()):
+        with (
+            patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()),
+            patch("agent.processors.standardize_query.get_config", return_value=_mock_config()),
+        ):
             assert _is_already_standard("ETC扣费异常怎么处理") is True
 
     def test_multi_sentence_not_standard(self):
-        with patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()), \
-             patch("agent.processors.standardize_query.get_config", return_value=_mock_config()):
+        with (
+            patch("agent.processors.standardize_query.get_business_config", side_effect=_mock_business_config()),
+            patch("agent.processors.standardize_query.get_config", return_value=_mock_config()),
+        ):
             assert _is_already_standard("啊。ETC扣费异常怎么处理") is False
             assert _is_already_standard("ETC扣费异常。怎么处理") is False
             assert _is_already_standard("ETC扣费异常;怎么处理") is False
@@ -276,4 +300,4 @@ class TestParseJson:
         assert _parse_json("no json here") is None
 
     def test_extract_still_invalid(self):
-        assert _parse_json('prefix {broken} suffix') is None
+        assert _parse_json("prefix {broken} suffix") is None

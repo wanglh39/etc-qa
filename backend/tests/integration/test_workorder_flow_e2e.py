@@ -53,9 +53,9 @@ def info(msg):
 
 
 def step(n, title):
-    print(f"\n{BOLD}{'='*60}{RESET}")
+    print(f"\n{BOLD}{'=' * 60}{RESET}")
     print(f"{BOLD}Step {n}: {title}{RESET}")
-    print(f"{BOLD}{'='*60}{RESET}")
+    print(f"{BOLD}{'=' * 60}{RESET}")
 
 
 def login(base, username, password="123456"):
@@ -100,7 +100,7 @@ def main():
 
     step(2, "客服提交工单(转交售后部门)")
     try:
-        customer = f"测试客户{random.randint(1000,9999)}"
+        customer = f"测试客户{random.randint(1000, 9999)}"
         payload = {
             "service_id": "S001",
             "customer_name": customer,
@@ -186,9 +186,11 @@ def main():
         resp = requests.get(f"{base}/api/stats", headers=auth_header(token_admin))
         assert resp.status_code == 200, f"查询失败({resp.status_code}): {resp.text}"
         data = resp.json()
-        ok(f"查询成功 — 工单总数: {data.get('work_order_total', '?')}, "
-           f"已提交: {data.get('work_order_submitted', '?')}, "
-           f"已办结: {data.get('work_order_processed', '?')}")
+        ok(
+            f"查询成功 — 工单总数: {data.get('work_order_total', '?')}, "
+            f"已提交: {data.get('work_order_submitted', '?')}, "
+            f"已办结: {data.get('work_order_processed', '?')}"
+        )
     except Exception as e:
         fail(f"查询统计失败: {e}")
 
@@ -227,9 +229,9 @@ def main():
     except Exception as e:
         fail(f"验证失败: {e}")
 
-    print(f"\n{BOLD}{'='*60}{RESET}")
+    print(f"\n{BOLD}{'=' * 60}{RESET}")
     print(f"{BOLD}测试总结{RESET}")
-    print(f"{BOLD}{'='*60}{RESET}")
+    print(f"{BOLD}{'=' * 60}{RESET}")
     print(f"  {GREEN}通过: {passed}{RESET}  {RED}失败: {failed}{RESET}")
     if failed == 0:
         print(f"\n  {GREEN}{BOLD}全部通过! 工单流转链路正常。{RESET}")

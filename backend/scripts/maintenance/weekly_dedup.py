@@ -27,12 +27,14 @@ def weekly_dedup():
     questions = []
     for wo in processed:
         raw = json.loads(wo["raw_data"]) if wo["raw_data"] else {}
-        questions.append({
-            "id": wo["id"],
-            "external_id": wo["external_id"],
-            "question": raw.get("question", ""),
-            "answer": raw.get("answer", ""),
-        })
+        questions.append(
+            {
+                "id": wo["id"],
+                "external_id": wo["external_id"],
+                "question": raw.get("question", ""),
+                "answer": raw.get("answer", ""),
+            }
+        )
 
     deduped_ids = set()
 
@@ -78,7 +80,9 @@ def weekly_dedup():
                         else:
                             keep, reject = remaining[j], remaining[i]
                         print(f"  内部重复: {reject['question']} → 保留 {keep['question']}")
-                        mysql.update_work_order(reject["external_id"], json.dumps({"duplicate_of": keep["id"]}), "rejected")
+                        mysql.update_work_order(
+                            reject["external_id"], json.dumps({"duplicate_of": keep["id"]}), "rejected"
+                        )
                         deduped_ids.add(reject["id"])
 
     for q in questions:

@@ -1,9 +1,9 @@
 import os
 
-os.environ['ETC_QA_ENV'] = os.environ.get('ETC_QA_ENV', 'test')
+os.environ["ETC_QA_ENV"] = os.environ.get("ETC_QA_ENV", "test")
 import sys
 
-sys.path.insert(0, '.')
+sys.path.insert(0, ".")
 import argparse
 
 from agent.processors.hyde_rewrite import hyde_rewrite
@@ -40,6 +40,7 @@ def batch_import(dry_run=False):
                 continue
 
             import json
+
             try:
                 data = json.loads(raw_data)
             except json.JSONDecodeError:
@@ -62,9 +63,12 @@ def batch_import(dry_run=False):
                 continue
 
             qa_id = mysql.insert_qa(
-                question=question, answer=answer,
-                category_l1=category_l1, category_l2=category_l2,
-                internal_process=internal_process, feedback_dept=feedback_dept,
+                question=question,
+                answer=answer,
+                category_l1=category_l1,
+                category_l2=category_l2,
+                internal_process=internal_process,
+                feedback_dept=feedback_dept,
             )
 
             question_text = query_prefix + question

@@ -26,6 +26,7 @@ MOCK_TREE = {
 
 def _mock_tree():
     from agent.processors import structure_ingest as si_module
+
     si_module._category_cache["tree"] = MOCK_TREE
     si_module._category_cache["default_l1"] = "售后业务"
     si_module._category_cache["default_l2"] = "售后业务类"
@@ -37,6 +38,7 @@ def _mock_tree():
 
 def _reset_caches():
     from agent.processors import structure_ingest as si_module
+
     si_module._category_cache = {"tree": None, "tree_str": None, "default_l1": None, "default_l2": None}
     si_module._example_cache = {"examples": None}
 
@@ -51,14 +53,16 @@ class TestStructureIngest:
         state.question = "我那个ETC扣费扣多了怎么办啊"
         state.raw_answer = "请核实扣费记录后处理"
         mock_llm = MagicMock()
-        llm_json = json.dumps({
-            "question": "ETC扣费异常如何处理",
-            "answer": "请核实扣费记录",
-            "internal_process": "核实扣费记录",
-            "feedback_dept": "账单组",
-            "category_l1": "售后业务",
-            "category_l2": "账单类",
-        })
+        llm_json = json.dumps(
+            {
+                "question": "ETC扣费异常如何处理",
+                "answer": "请核实扣费记录",
+                "internal_process": "核实扣费记录",
+                "feedback_dept": "账单组",
+                "category_l1": "售后业务",
+                "category_l2": "账单类",
+            }
+        )
         mock_llm.invoke.return_value = MagicMock(content=llm_json)
         with patch("agent.processors.structure_ingest.get_llm", return_value=mock_llm):
             result = structure_ingest(state)
@@ -72,14 +76,16 @@ class TestStructureIngest:
         state = _make_state(raw_question="ETC扣费异常如何处理")
         state.question = "ETC扣费异常如何处理"
         mock_llm = MagicMock()
-        llm_json = json.dumps({
-            "question": "ETC扣费异常如何处理",
-            "answer": "",
-            "internal_process": "",
-            "feedback_dept": "",
-            "category_l1": "售后业务",
-            "category_l2": "账单类",
-        })
+        llm_json = json.dumps(
+            {
+                "question": "ETC扣费异常如何处理",
+                "answer": "",
+                "internal_process": "",
+                "feedback_dept": "",
+                "category_l1": "售后业务",
+                "category_l2": "账单类",
+            }
+        )
         mock_llm.invoke.return_value = MagicMock(content=llm_json)
         with patch("agent.processors.structure_ingest.get_llm", return_value=mock_llm):
             result = structure_ingest(state)
@@ -90,14 +96,16 @@ class TestStructureIngest:
         state = _make_state(raw_question="ETC问题")
         state.question = "ETC问题"
         mock_llm = MagicMock()
-        llm_json = json.dumps({
-            "question": "AB",
-            "answer": "",
-            "internal_process": "",
-            "feedback_dept": "",
-            "category_l1": "售后业务",
-            "category_l2": "售后业务类",
-        })
+        llm_json = json.dumps(
+            {
+                "question": "AB",
+                "answer": "",
+                "internal_process": "",
+                "feedback_dept": "",
+                "category_l1": "售后业务",
+                "category_l2": "售后业务类",
+            }
+        )
         mock_llm.invoke.return_value = MagicMock(content=llm_json)
         with patch("agent.processors.structure_ingest.get_llm", return_value=mock_llm):
             result = structure_ingest(state)
@@ -117,14 +125,16 @@ class TestStructureIngest:
         state = _make_state(raw_question="ETC扣费异常", raw_answer="原始答案")
         state.question = "ETC扣费异常"
         mock_llm = MagicMock()
-        llm_json = json.dumps({
-            "question": "ETC扣费异常如何处理",
-            "answer": "标准答案",
-            "internal_process": "",
-            "feedback_dept": "",
-            "category_l1": "售后业务",
-            "category_l2": "账单类",
-        })
+        llm_json = json.dumps(
+            {
+                "question": "ETC扣费异常如何处理",
+                "answer": "标准答案",
+                "internal_process": "",
+                "feedback_dept": "",
+                "category_l1": "售后业务",
+                "category_l2": "账单类",
+            }
+        )
         mock_llm.invoke.return_value = MagicMock(content=llm_json)
         with patch("agent.processors.structure_ingest.get_llm", return_value=mock_llm):
             result = structure_ingest(state)
@@ -136,14 +146,16 @@ class TestStructureIngest:
         state.question = "周卡账单逾期已对公结清"
         state.work_order_context = "工单类型=收款对账-划扣，流转至=支持岗，车牌号=津A13389"
         mock_llm = MagicMock()
-        llm_json = json.dumps({
-            "question": "周卡逾期对公结清如何处理",
-            "answer": "已收到您的对公转账，核实后将为您结清账单并恢复ETC使用",
-            "internal_process": "核实对公账户到账→手动结清账单→手动解黑",
-            "feedback_dept": "支持岗",
-            "category_l1": "售后业务",
-            "category_l2": "账单类",
-        })
+        llm_json = json.dumps(
+            {
+                "question": "周卡逾期对公结清如何处理",
+                "answer": "已收到您的对公转账，核实后将为您结清账单并恢复ETC使用",
+                "internal_process": "核实对公账户到账→手动结清账单→手动解黑",
+                "feedback_dept": "支持岗",
+                "category_l1": "售后业务",
+                "category_l2": "账单类",
+            }
+        )
         mock_llm.invoke.return_value = MagicMock(content=llm_json)
         with patch("agent.processors.structure_ingest.get_llm", return_value=mock_llm):
             result = structure_ingest(state)
@@ -157,14 +169,16 @@ class TestStructureIngest:
         state = _make_state(raw_question="申请开通车队权限")
         state.question = "申请开通车队权限"
         mock_llm = MagicMock()
-        llm_json = json.dumps({
-            "question": "解悠ETC实名认证如何更换？",
-            "answer": "在解悠小程序中操作",
-            "internal_process": "",
-            "feedback_dept": "",
-            "category_l1": "售后业务",
-            "category_l2": "更换设备类",
-        })
+        llm_json = json.dumps(
+            {
+                "question": "解悠ETC实名认证如何更换？",
+                "answer": "在解悠小程序中操作",
+                "internal_process": "",
+                "feedback_dept": "",
+                "category_l1": "售后业务",
+                "category_l2": "更换设备类",
+            }
+        )
         mock_llm.invoke.return_value = MagicMock(content=llm_json)
         with patch("agent.processors.structure_ingest.get_llm", return_value=mock_llm):
             result = structure_ingest(state)
@@ -176,14 +190,16 @@ class TestStructureIngest:
         state = _make_state(raw_question="ETC设备不存电，申请更换新设备，已支付押金")
         state.question = "ETC设备不存电，申请更换新设备，已支付押金"
         mock_llm = MagicMock()
-        llm_json = json.dumps({
-            "question": "ETC设备更换如何办理？",
-            "answer": "安排寄出新设备",
-            "internal_process": "核实押金到账→寄出新设备",
-            "feedback_dept": "支持岗",
-            "category_l1": "售后业务",
-            "category_l2": "更换设备类",
-        })
+        llm_json = json.dumps(
+            {
+                "question": "ETC设备更换如何办理？",
+                "answer": "安排寄出新设备",
+                "internal_process": "核实押金到账→寄出新设备",
+                "feedback_dept": "支持岗",
+                "category_l1": "售后业务",
+                "category_l2": "更换设备类",
+            }
+        )
         mock_llm.invoke.return_value = MagicMock(content=llm_json)
         with patch("agent.processors.structure_ingest.get_llm", return_value=mock_llm):
             result = structure_ingest(state)
@@ -194,14 +210,16 @@ class TestStructureIngest:
         state = _make_state(raw_question="ETC扣费异常")
         state.question = "ETC扣费异常"
         mock_llm = MagicMock()
-        llm_json = json.dumps({
-            "question": "ETC扣费异常如何处理",
-            "answer": "核实扣费记录",
-            "internal_process": "",
-            "feedback_dept": "",
-            "category_l1": "售前业务",
-            "category_l2": "新办实名报错",
-        })
+        llm_json = json.dumps(
+            {
+                "question": "ETC扣费异常如何处理",
+                "answer": "核实扣费记录",
+                "internal_process": "",
+                "feedback_dept": "",
+                "category_l1": "售前业务",
+                "category_l2": "新办实名报错",
+            }
+        )
         mock_llm.invoke.return_value = MagicMock(content=llm_json)
         with patch("agent.processors.structure_ingest.get_llm", return_value=mock_llm):
             result = structure_ingest(state)
@@ -234,6 +252,7 @@ class TestGetCategoryTree:
             tree = get_category_tree()
         assert tree == {}
         from agent.processors import structure_ingest as si_module
+
         assert si_module._category_cache["default_l1"] == ""
         assert si_module._category_cache["default_l2"] == ""
 
@@ -288,6 +307,7 @@ class TestGetCategoryTreeStr:
 
     def test_uses_cached_tree_str(self):
         from agent.processors import structure_ingest as si_module
+
         si_module._category_cache["tree_str"] = "cached"
         tree_str = get_category_tree_str()
         assert tree_str == "cached"
@@ -299,6 +319,7 @@ class TestInvalidateCaches:
 
     def test_invalidate_category_cache(self):
         from agent.processors import structure_ingest as si_module
+
         si_module._category_cache["tree"] = {"x": ["y"]}
         si_module._category_cache["tree_str"] = "x: y"
         si_module._category_cache["default_l1"] = "x"
@@ -311,6 +332,7 @@ class TestInvalidateCaches:
 
     def test_invalidate_example_cache(self):
         from agent.processors import structure_ingest as si_module
+
         si_module._example_cache["examples"] = ["q1", "q2"]
         invalidate_example_cache()
         assert si_module._example_cache["examples"] is None
@@ -328,33 +350,41 @@ class TestGetReferenceExamples:
         ]
         mock_cfg = MagicMock()
         mock_cfg.get.return_value = {"min_length": 5, "max_length": 30}
-        with patch("agent.processors.structure_ingest._get_mysql", return_value=mock_mysql), \
-             patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg):
+        with (
+            patch("agent.processors.structure_ingest._get_mysql", return_value=mock_mysql),
+            patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg),
+        ):
             examples = get_reference_examples(10)
         assert len(examples) == 1
 
     def test_db_exception_returns_empty(self):
         mock_mysql = MagicMock()
         mock_mysql.get_all_questions.side_effect = Exception("DB error")
-        with patch("agent.processors.structure_ingest._get_mysql", return_value=mock_mysql), \
-             patch("agent.processors.structure_ingest.get_config", return_value={}):
+        with (
+            patch("agent.processors.structure_ingest._get_mysql", return_value=mock_mysql),
+            patch("agent.processors.structure_ingest.get_config", return_value={}),
+        ):
             examples = get_reference_examples(10)
         assert examples == []
 
     def test_uses_cached_examples(self):
         from agent.processors import structure_ingest as si_module
+
         si_module._example_cache["examples"] = ["q1", "q2", "q3"]
         examples = get_reference_examples(2)
         assert examples == ["q1", "q2"]
 
 
 class TestApplyConfidenceAction:
-    @pytest.mark.parametrize("cat_conf,expected_review,expected_default,expected_highlight", [
-        (0.9, False, False, False),
-        (0.6, True, False, False),
-        (0.35, True, False, True),
-        (0.1, True, True, True),
-    ])
+    @pytest.mark.parametrize(
+        "cat_conf,expected_review,expected_default,expected_highlight",
+        [
+            (0.9, False, False, False),
+            (0.6, True, False, False),
+            (0.35, True, False, True),
+            (0.1, True, True, True),
+        ],
+    )
     def test_confidence_thresholds(self, cat_conf, expected_review, expected_default, expected_highlight):
         highlights = []
         mock_cfg = MagicMock()
@@ -396,13 +426,24 @@ class TestStructureIngestStructuredLLM:
         mock_structured_llm.invoke.return_value = mock_result
         mock_pe = MagicMock()
         mock_pe.return_value.render.return_value = "prompt"
-        with patch("agent.processors.structure_ingest.get_structured_llm", return_value=(mock_structured_llm, True)), \
-             patch("agent.processors.structure_ingest.get_prompt_engine", return_value=mock_pe), \
-             patch("agent.processors.structure_ingest.get_config", return_value={"ingest_confidence": {"auto": 0.8, "review": 0.5, "highlight": 0.3}}), \
-             patch("agent.processors.structure_ingest.get_business_config", side_effect=lambda k, d=None: {
-                 "forbidden_new_kws": [], "must_preserve_kws": [], "reference_sample_count": 0,
-                 "classify_examples": "示例", "standardize": {},
-             }.get(k, d)):
+        with (
+            patch("agent.processors.structure_ingest.get_structured_llm", return_value=(mock_structured_llm, True)),
+            patch("agent.processors.structure_ingest.get_prompt_engine", return_value=mock_pe),
+            patch(
+                "agent.processors.structure_ingest.get_config",
+                return_value={"ingest_confidence": {"auto": 0.8, "review": 0.5, "highlight": 0.3}},
+            ),
+            patch(
+                "agent.processors.structure_ingest.get_business_config",
+                side_effect=lambda k, d=None: {
+                    "forbidden_new_kws": [],
+                    "must_preserve_kws": [],
+                    "reference_sample_count": 0,
+                    "classify_examples": "示例",
+                    "standardize": {},
+                }.get(k, d),
+            ),
+        ):
             result = structure_ingest(state)
         assert result["question"] == "ETC扣费异常如何处理"
         assert result["answer"] == "核实扣费记录后退款"
@@ -416,26 +457,39 @@ class TestStructureIngestStructuredLLM:
         mock_structured_llm = MagicMock()
         mock_structured_llm.invoke.side_effect = Exception("structured error")
         mock_llm = MagicMock()
-        llm_json = json.dumps({
-            "question": "ETC扣费异常如何处理",
-            "answer": "核实退款",
-            "category_l1": "售后业务",
-            "category_l2": "账单类",
-            "internal_process": "",
-            "feedback_dept": "",
-            "category_confidence": 0.8,
-        })
+        llm_json = json.dumps(
+            {
+                "question": "ETC扣费异常如何处理",
+                "answer": "核实退款",
+                "category_l1": "售后业务",
+                "category_l2": "账单类",
+                "internal_process": "",
+                "feedback_dept": "",
+                "category_confidence": 0.8,
+            }
+        )
         mock_llm.invoke.return_value = MagicMock(content=llm_json)
         mock_pe = MagicMock()
         mock_pe.return_value.render.return_value = "prompt"
-        with patch("agent.processors.structure_ingest.get_structured_llm", return_value=(mock_structured_llm, True)), \
-             patch("agent.processors.structure_ingest.get_llm", return_value=mock_llm), \
-             patch("agent.processors.structure_ingest.get_prompt_engine", return_value=mock_pe), \
-             patch("agent.processors.structure_ingest.get_config", return_value={"ingest_confidence": {"auto": 0.8, "review": 0.5, "highlight": 0.3}}), \
-             patch("agent.processors.structure_ingest.get_business_config", side_effect=lambda k, d=None: {
-                 "forbidden_new_kws": [], "must_preserve_kws": [], "reference_sample_count": 0,
-                 "classify_examples": "示例", "standardize": {},
-             }.get(k, d)):
+        with (
+            patch("agent.processors.structure_ingest.get_structured_llm", return_value=(mock_structured_llm, True)),
+            patch("agent.processors.structure_ingest.get_llm", return_value=mock_llm),
+            patch("agent.processors.structure_ingest.get_prompt_engine", return_value=mock_pe),
+            patch(
+                "agent.processors.structure_ingest.get_config",
+                return_value={"ingest_confidence": {"auto": 0.8, "review": 0.5, "highlight": 0.3}},
+            ),
+            patch(
+                "agent.processors.structure_ingest.get_business_config",
+                side_effect=lambda k, d=None: {
+                    "forbidden_new_kws": [],
+                    "must_preserve_kws": [],
+                    "reference_sample_count": 0,
+                    "classify_examples": "示例",
+                    "standardize": {},
+                }.get(k, d),
+            ),
+        ):
             result = structure_ingest(state)
         assert result["question"] == "ETC扣费异常如何处理"
 
@@ -450,14 +504,25 @@ class TestStructureIngestStructuredLLM:
         mock_llm.invoke.return_value = MagicMock(content="not json at all")
         mock_pe = MagicMock()
         mock_pe.return_value.render.return_value = "prompt"
-        with patch("agent.processors.structure_ingest.get_structured_llm", return_value=(mock_structured_llm, True)), \
-             patch("agent.processors.structure_ingest.get_llm", return_value=mock_llm), \
-             patch("agent.processors.structure_ingest.get_prompt_engine", return_value=mock_pe), \
-             patch("agent.processors.structure_ingest.get_config", return_value={"ingest_confidence": {"auto": 0.8, "review": 0.5, "highlight": 0.3}}), \
-             patch("agent.processors.structure_ingest.get_business_config", side_effect=lambda k, d=None: {
-                 "forbidden_new_kws": [], "must_preserve_kws": [], "reference_sample_count": 0,
-                 "classify_examples": "示例", "standardize": {},
-             }.get(k, d)):
+        with (
+            patch("agent.processors.structure_ingest.get_structured_llm", return_value=(mock_structured_llm, True)),
+            patch("agent.processors.structure_ingest.get_llm", return_value=mock_llm),
+            patch("agent.processors.structure_ingest.get_prompt_engine", return_value=mock_pe),
+            patch(
+                "agent.processors.structure_ingest.get_config",
+                return_value={"ingest_confidence": {"auto": 0.8, "review": 0.5, "highlight": 0.3}},
+            ),
+            patch(
+                "agent.processors.structure_ingest.get_business_config",
+                side_effect=lambda k, d=None: {
+                    "forbidden_new_kws": [],
+                    "must_preserve_kws": [],
+                    "reference_sample_count": 0,
+                    "classify_examples": "示例",
+                    "standardize": {},
+                }.get(k, d),
+            ),
+        ):
             result = structure_ingest(state)
         assert result["question"] == "ETC扣费异常"
         assert result["category_confidence"] == 0.3
@@ -482,11 +547,20 @@ class TestProcessStructuredResult:
         state.question = "ETC扣费异常怎么处理"
         mock_cfg = MagicMock()
         mock_cfg.get.return_value = {"auto": 0.8, "review": 0.5, "highlight": 0.3}
-        with patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg), \
-             patch("agent.processors.structure_ingest.get_business_config", side_effect=lambda k, d=None: {
-                 "forbidden_new_kws": ["实名认证"], "must_preserve_kws": ["ETC"], "standardize": {},
-             }.get(k, d)):
-            out = _process_structured_result(result, "ETC扣费异常怎么处理", "答案", MOCK_TREE, "售后业务", "售后业务类", state)
+        with (
+            patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg),
+            patch(
+                "agent.processors.structure_ingest.get_business_config",
+                side_effect=lambda k, d=None: {
+                    "forbidden_new_kws": ["实名认证"],
+                    "must_preserve_kws": ["ETC"],
+                    "standardize": {},
+                }.get(k, d),
+            ),
+        ):
+            out = _process_structured_result(
+                result, "ETC扣费异常怎么处理", "答案", MOCK_TREE, "售后业务", "售后业务类", state
+            )
         assert out["question"] == "ETC扣费异常怎么处理"
         assert out["needs_review"] is True
         assert out["category_l1"] == "售后业务"
@@ -506,10 +580,17 @@ class TestProcessStructuredResult:
         state = _make_state(raw_question="ETC问题")
         mock_cfg = MagicMock()
         mock_cfg.get.return_value = {"auto": 0.8, "review": 0.5, "highlight": 0.3}
-        with patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg), \
-             patch("agent.processors.structure_ingest.get_business_config", side_effect=lambda k, d=None: {
-                 "forbidden_new_kws": [], "must_preserve_kws": [], "standardize": {},
-             }.get(k, d)):
+        with (
+            patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg),
+            patch(
+                "agent.processors.structure_ingest.get_business_config",
+                side_effect=lambda k, d=None: {
+                    "forbidden_new_kws": [],
+                    "must_preserve_kws": [],
+                    "standardize": {},
+                }.get(k, d),
+            ),
+        ):
             out = _process_structured_result(result, "ETC问题", "答案", MOCK_TREE, "售后业务", "售后业务类", state)
         assert out["category_l1"] == "售后业务"
         assert out["category_l2"] == "售后业务类"
@@ -528,10 +609,17 @@ class TestProcessStructuredResult:
         state = _make_state(raw_question="ETC问题")
         mock_cfg = MagicMock()
         mock_cfg.get.return_value = {"auto": 0.8, "review": 0.5, "highlight": 0.3}
-        with patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg), \
-             patch("agent.processors.structure_ingest.get_business_config", side_effect=lambda k, d=None: {
-                 "forbidden_new_kws": [], "must_preserve_kws": [], "standardize": {},
-             }.get(k, d)):
+        with (
+            patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg),
+            patch(
+                "agent.processors.structure_ingest.get_business_config",
+                side_effect=lambda k, d=None: {
+                    "forbidden_new_kws": [],
+                    "must_preserve_kws": [],
+                    "standardize": {},
+                }.get(k, d),
+            ),
+        ):
             out = _process_structured_result(result, "ETC问题", "答案", MOCK_TREE, "售后业务", "售后业务类", state)
         assert out["category_l2"] == "售后业务类"
 
@@ -550,10 +638,17 @@ class TestProcessStructuredResult:
         state.question = "ETC怎么办理"
         mock_cfg = MagicMock()
         mock_cfg.get.return_value = {"auto": 0.8, "review": 0.5, "highlight": 0.3}
-        with patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg), \
-             patch("agent.processors.structure_ingest.get_business_config", side_effect=lambda k, d=None: {
-                 "forbidden_new_kws": ["实名认证"], "must_preserve_kws": [], "standardize": {},
-             }.get(k, d)):
+        with (
+            patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg),
+            patch(
+                "agent.processors.structure_ingest.get_business_config",
+                side_effect=lambda k, d=None: {
+                    "forbidden_new_kws": ["实名认证"],
+                    "must_preserve_kws": [],
+                    "standardize": {},
+                }.get(k, d),
+            ),
+        ):
             out = _process_structured_result(result, "ETC怎么办理", "答案", MOCK_TREE, "售后业务", "售后业务类", state)
         assert out["question"] == "ETC怎么办理"
         assert out["needs_review"] is True
@@ -578,10 +673,17 @@ class TestProcessParsedResult:
         state = _make_state(raw_question="ETC问题")
         mock_cfg = MagicMock()
         mock_cfg.get.return_value = {"auto": 0.8, "review": 0.5, "highlight": 0.3}
-        with patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg), \
-             patch("agent.processors.structure_ingest.get_business_config", side_effect=lambda k, d=None: {
-                 "forbidden_new_kws": [], "must_preserve_kws": [], "standardize": {},
-             }.get(k, d)):
+        with (
+            patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg),
+            patch(
+                "agent.processors.structure_ingest.get_business_config",
+                side_effect=lambda k, d=None: {
+                    "forbidden_new_kws": [],
+                    "must_preserve_kws": [],
+                    "standardize": {},
+                }.get(k, d),
+            ),
+        ):
             out = _process_parsed_result(parsed, "ETC问题", "答案", MOCK_TREE, "售后业务", "售后业务类", state)
         assert out["category_l2"] == "售后业务类"
 
@@ -597,10 +699,17 @@ class TestProcessParsedResult:
         state = _make_state(raw_question="ETC问题")
         mock_cfg = MagicMock()
         mock_cfg.get.return_value = {"auto": 0.8, "review": 0.5, "highlight": 0.3}
-        with patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg), \
-             patch("agent.processors.structure_ingest.get_business_config", side_effect=lambda k, d=None: {
-                 "forbidden_new_kws": [], "must_preserve_kws": [], "standardize": {},
-             }.get(k, d)):
+        with (
+            patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg),
+            patch(
+                "agent.processors.structure_ingest.get_business_config",
+                side_effect=lambda k, d=None: {
+                    "forbidden_new_kws": [],
+                    "must_preserve_kws": [],
+                    "standardize": {},
+                }.get(k, d),
+            ),
+        ):
             out = _process_parsed_result(parsed, "ETC问题", "答案", MOCK_TREE, "售后业务", "售后业务类", state)
         assert out["category_confidence"] == 0.3
 
@@ -618,10 +727,17 @@ class TestProcessParsedResult:
         state = _make_state(raw_question="ETC问题")
         mock_cfg = MagicMock()
         mock_cfg.get.return_value = {"auto": 0.8, "review": 0.5, "highlight": 0.3}
-        with patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg), \
-             patch("agent.processors.structure_ingest.get_business_config", side_effect=lambda k, d=None: {
-                 "forbidden_new_kws": [], "must_preserve_kws": [], "standardize": {},
-             }.get(k, d)):
+        with (
+            patch("agent.processors.structure_ingest.get_config", return_value=mock_cfg),
+            patch(
+                "agent.processors.structure_ingest.get_business_config",
+                side_effect=lambda k, d=None: {
+                    "forbidden_new_kws": [],
+                    "must_preserve_kws": [],
+                    "standardize": {},
+                }.get(k, d),
+            ),
+        ):
             out = _process_parsed_result(parsed, "ETC问题", "答案", MOCK_TREE, "售后业务", "售后业务类", state)
         assert out["category_l1"] == "售后业务"
         assert out["category_l2"] == "售后业务类"
@@ -639,4 +755,4 @@ class TestParseJson:
         assert _parse_json("no json here") is None
 
     def test_extract_still_invalid(self):
-        assert _parse_json('prefix {broken json} suffix') is None
+        assert _parse_json("prefix {broken json} suffix") is None

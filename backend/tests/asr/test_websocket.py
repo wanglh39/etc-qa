@@ -10,9 +10,7 @@ if asyncio.get_event_loop_policy().__class__.__name__ != "WindowsSelectorEventLo
 
 import pytest
 
-pytestmark = pytest.mark.filterwarnings(
-    "ignore::pytest.PytestUnraisableExceptionWarning"
-)
+pytestmark = pytest.mark.filterwarnings("ignore::pytest.PytestUnraisableExceptionWarning")
 
 from fastapi import WebSocketDisconnect
 
@@ -252,6 +250,7 @@ class TestDiarizeTriggerLogic:
 class TestSendQueryResult:
     def test_cache_hit_sends_cached(self):
         import asyncio
+
         mock_ws = AsyncMock()
         cache = QueryCache(similarity_threshold=0.8, min_interval=5.0)
         cache.record("ETC扣费", {"confidence": "high"})
@@ -263,6 +262,7 @@ class TestSendQueryResult:
 
     def test_no_cache_calls_query(self):
         import asyncio
+
         mock_ws = AsyncMock()
         with patch("asr.websocket._do_query", return_value={"query": "ETC扣费"}):
             asyncio.run(_send_query_result(mock_ws, "ETC扣费"))
@@ -270,6 +270,7 @@ class TestSendQueryResult:
 
     def test_service_none_no_send(self):
         import asyncio
+
         mock_ws = AsyncMock()
         with patch("asr.websocket._do_query", return_value=None):
             asyncio.run(_send_query_result(mock_ws, "ETC扣费"))
@@ -594,6 +595,7 @@ class TestWSAudio:
 class TestWSChannelMode:
     def test_channel_extract(self):
         import numpy as np
+
         stereo = np.array([[100, 200], [300, 400]], dtype=np.int16)
         _run(_make_cfg(speaker_mode="channel"), [{"bytes": stereo.tobytes()}])
 
@@ -607,7 +609,9 @@ class TestWSVAD:
     def test_vad_enabled(self):
         ws = MockWebSocket()
         ws.receive_queue = [{"bytes": b"\x00" * 3200}, WebSocketDisconnect()]
-        with patch("asr.websocket.get_config", return_value=_make_cfg(vad_trigger_enabled=True, vad_silence_threshold=0.05)):
+        with patch(
+            "asr.websocket.get_config", return_value=_make_cfg(vad_trigger_enabled=True, vad_silence_threshold=0.05)
+        ):
             with patch("asr.streaming.get_streaming_service") as mock_get:
                 with patch("asr.websocket.VADSilenceDetector._load_model", return_value=None):
                     with patch("asr.websocket.VADSilenceDetector.feed_audio"):
@@ -624,16 +628,18 @@ class TestWSVAD:
 
 class TestWSMultiple:
     def test_multi_messages(self):
-        _run(_make_cfg(), [
-            {"text": '{"type": "config", "category_l1": "ETC业务"}'},
-            {"bytes": b"\x00" * 3200},
-            {"text": '{"type": "clear_cache"}'},
-            {"text": '{"type": "clear_context"}'},
-        ])
+        _run(
+            _make_cfg(),
+            [
+                {"text": '{"type": "config", "category_l1": "ETC业务"}'},
+                {"bytes": b"\x00" * 3200},
+                {"text": '{"type": "clear_cache"}'},
+                {"text": '{"type": "clear_context"}'},
+            ],
+        )
 
 
-def _run_callback(cfg_overrides, final_texts=None, partial_texts=None, error_text=None,
-                  drain=0.05):
+def _run_callback(cfg_overrides, final_texts=None, partial_texts=None, error_text=None, drain=0.05):
     ws = MockWebSocket()
     cfg = _make_cfg(auto_query=True, **cfg_overrides)
     captured = {}
@@ -719,7 +725,10 @@ class TestWSCallbackFinalTooShort:
 
 class TestWSCallbackFinalCorrection:
     def test_final_correction(self):
-        ws = _run_callback({}, final_texts=["ETC扣费"], )
+        ws = _run_callback(
+            {},
+            final_texts=["ETC扣费"],
+        )
         ws2 = _run_callback({}, final_texts=["不对"])
         types2 = [m["type"] for m in ws2.sent]
         assert "corrected" in types2
@@ -775,8 +784,9 @@ class TestWSCallbackFinalCoreference:
 
 class TestWSCallbackFinalAccumulate:
     def test_final_accumulate(self):
-        ws = _run_callback({"accumulate_mode": "accumulate", "accumulate_max_sentences": 2},
-                           final_texts=["ETC扣费", "OBU设备"])
+        ws = _run_callback(
+            {"accumulate_mode": "accumulate", "accumulate_max_sentences": 2}, final_texts=["ETC扣费", "OBU设备"]
+        )
         types = [m["type"] for m in ws.sent]
         assert "query_result" in types
 
@@ -842,7 +852,9 @@ class TestWSFlushWithData:
 
 class TestWSConfigSpeakerFilter:
     def test_config_with_speaker_filter(self):
-        ws = _run(_make_cfg(), [{"text": '{"type": "config", "category_l1": "ETC业务", "speaker_filter": "SPEAKER_01"}'}])
+        ws = _run(
+            _make_cfg(), [{"text": '{"type": "config", "category_l1": "ETC业务", "speaker_filter": "SPEAKER_01"}'}]
+        )
         assert ws.sent[0]["type"] == "ready"
 
 
@@ -964,11 +976,14 @@ class TestWSAudioStateTransition:
 
 class TestWSStateMachineFullCycle:
     def test_audio_then_select_answer_then_reset(self):
-        ws = _run(_make_cfg(), [
-            {"bytes": b"\x00" * 3200},
-            {"text": '{"type": "select_answer", "qa_id": 1}'},
-            {"text": '{"type": "reset"}'},
-        ])
+        ws = _run(
+            _make_cfg(),
+            [
+                {"bytes": b"\x00" * 3200},
+                {"text": '{"type": "select_answer", "qa_id": 1}'},
+                {"text": '{"type": "reset"}'},
+            ],
+        )
         types = [m["type"] for m in ws.sent]
         assert "answer_selected" in types
         assert "reset_done" in types
@@ -1210,8 +1225,7 @@ class TestOnErrorExceptBranch:
 
 
 class TestVADTriggerDiarize:
-    def _run_vad_diarize(self, segments_return, speaker_map_label=None,
-                        diarize_default_customer="SPEAKER_00"):
+    def _run_vad_diarize(self, segments_return, speaker_map_label=None, diarize_default_customer="SPEAKER_00"):
         ws = MockWebSocket()
         cfg = _make_cfg(
             vad_trigger_enabled=True,
@@ -1239,13 +1253,19 @@ class TestVADTriggerDiarize:
         receive_queue = []
         if speaker_map_label is not None:
             receive_queue.append(
-                {"text": json.dumps({"type": "label_speaker", "speaker": speaker_map_label[0], "label": speaker_map_label[1]})}
+                {
+                    "text": json.dumps(
+                        {"type": "label_speaker", "speaker": speaker_map_label[0], "label": speaker_map_label[1]}
+                    )
+                }
             )
-        receive_queue.extend([
-            {"bytes": b"\x00" * 3200},
-            {"bytes": b"\x00" * 3200},
-            WebSocketDisconnect(),
-        ])
+        receive_queue.extend(
+            [
+                {"bytes": b"\x00" * 3200},
+                {"bytes": b"\x00" * 3200},
+                WebSocketDisconnect(),
+            ]
+        )
 
         with patch("asr.websocket.get_config", return_value=cfg):
             with patch("asr.streaming.get_streaming_service") as mock_get:

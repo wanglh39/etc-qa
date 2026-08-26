@@ -29,7 +29,10 @@ def _run_isolated(test_name):
 
     result = subprocess.run(
         [_PYTHON, _RUNNER, test_name],
-        capture_output=True, text=True, timeout=600, env=env,
+        capture_output=True,
+        text=True,
+        timeout=600,
+        env=env,
         cwd=project_root,
     )
     if result.returncode != 0 and not result.stdout.strip():
@@ -72,6 +75,7 @@ def _merge_asr_coverage():
         return
     try:
         import coverage
+
         main_data = os.path.join(project_root, ".coverage")
         main_cov = coverage.Coverage(data_file=main_data)
         main_cov.load()
@@ -82,6 +86,7 @@ def _merge_asr_coverage():
         main_cov.save()
     except Exception as e:
         import warnings
+
         warnings.warn(f"ASR subprocess coverage merge failed: {e}")
 
 
@@ -89,6 +94,7 @@ def _merge_asr_coverage():
 class TestL2ASRRecognition:
     def test_asr_service_enabled(self):
         from utils.config import get_config
+
         cfg = get_config()
         assert cfg.get("asr", {}).get("enabled") is True
 
@@ -100,6 +106,7 @@ class TestL2ASRRecognition:
 
     def test_asr_corrections_applied(self):
         from asr.service import _apply_corrections
+
         corrections = {"一体机": "ETC", "蓝呀": "蓝牙"}
         text = "一体机蓝呀连接不上"
         corrected = _apply_corrections(text, corrections)
@@ -112,6 +119,7 @@ class TestL2ASRRecognition:
 
     def test_asr_health(self):
         from asr.service import ASRService
+
         svc = ASRService()
         health = svc.health()
         assert isinstance(health.loaded, bool)
@@ -119,6 +127,7 @@ class TestL2ASRRecognition:
 
     def test_asr_file_not_found(self):
         from asr.service import ASRService
+
         svc = ASRService()
         with pytest.raises(FileNotFoundError):
             svc.transcribe("/nonexistent/path.wav")
@@ -131,6 +140,7 @@ class TestL2ASRRecognition:
 
     def test_asr_load_corrections_from_config(self):
         from asr.service import _load_corrections
+
         corrections = _load_corrections()
         assert isinstance(corrections, dict)
         if corrections:
@@ -138,6 +148,7 @@ class TestL2ASRRecognition:
 
     def test_asr_transcribe_disabled(self):
         from asr.service import ASRService
+
         svc = ASRService()
         svc._enabled = False
         with pytest.raises(RuntimeError, match="ASR未启用"):
@@ -145,6 +156,7 @@ class TestL2ASRRecognition:
 
     def test_asr_reload(self):
         from asr.service import ASRService
+
         svc = ASRService()
         svc._model = object()
         svc.reload()
@@ -152,18 +164,21 @@ class TestL2ASRRecognition:
 
     def test_asr_get_corrections(self):
         from asr.service import ASRService
+
         svc = ASRService()
         corrections = svc._get_corrections()
         assert isinstance(corrections, dict)
 
     def test_asr_service_singleton(self):
         from asr.service import get_asr_service
+
         svc1 = get_asr_service()
         svc2 = get_asr_service()
         assert svc1 is svc2
 
     def test_asr_health_details(self):
         from asr.service import ASRService
+
         svc = ASRService()
         health = svc.health()
         assert hasattr(health, "device")
@@ -208,15 +223,17 @@ class TestL2ASRRecognition:
                     matched += 1
                     found = True
                     break
-                if any(expected[i:i+2] in combined for i in range(len(expected) - 1)):
+                if any(expected[i : i + 2] in combined for i in range(len(expected) - 1)):
                     matched += 1
                     found = True
                     break
 
             if not found:
                 top = query_result.candidates[0]
-                print(f"  [未匹配] ASR='{recognized}' keyword='{keyword}' "
-                      f"-> top_question='{top.question[:30]}' answer='{top.answer[:30]}'")
+                print(
+                    f"  [未匹配] ASR='{recognized}' keyword='{keyword}' "
+                    f"-> top_question='{top.question[:30]}' answer='{top.answer[:30]}'"
+                )
 
         match_rate = matched / total if total > 0 else 0
         assert match_rate >= 0.4, f"语音→检索匹配率{match_rate:.0%}低于40%阈值 (matched={matched}/{total})"
@@ -261,11 +278,13 @@ class TestL2ASRRecognition:
 class TestL2APIRoutesASRError:
     def test_asr_disabled_returns_503(self, real_client):
         from asr.service import get_asr_service
+
         svc = get_asr_service()
         original_enabled = svc._enabled
         svc._enabled = False
         try:
             import tempfile
+
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
                 f.write(b"fake audio")
                 tmp_path = f.name
@@ -278,12 +297,14 @@ class TestL2APIRoutesASRError:
 
     def test_asr_file_not_found_returns_404(self, real_client):
         from asr.service import get_asr_service
+
         svc = get_asr_service()
         original_enabled = svc._enabled
         svc._enabled = True
         try:
-            with patch.object(svc, 'transcribe', side_effect=FileNotFoundError("文件不存在")):
+            with patch.object(svc, "transcribe", side_effect=FileNotFoundError("文件不存在")):
                 import tempfile
+
                 with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
                     f.write(b"fake audio")
                     tmp_path = f.name
@@ -296,9 +317,11 @@ class TestL2APIRoutesASRError:
 
     def test_asr_runtime_error_returns_503(self, real_client):
         from asr.service import get_asr_service
+
         svc = get_asr_service()
-        with patch.object(svc, 'transcribe', side_effect=RuntimeError("模型未加载")):
+        with patch.object(svc, "transcribe", side_effect=RuntimeError("模型未加载")):
             import tempfile
+
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
                 f.write(b"fake audio")
                 tmp_path = f.name

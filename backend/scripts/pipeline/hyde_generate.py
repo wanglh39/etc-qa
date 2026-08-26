@@ -1,9 +1,9 @@
 import os
 
-os.environ['ETC_QA_ENV'] = os.environ.get('ETC_QA_ENV', 'test')
+os.environ["ETC_QA_ENV"] = os.environ.get("ETC_QA_ENV", "test")
 import sys
 
-sys.path.insert(0, '.')
+sys.path.insert(0, ".")
 import json
 
 from agent.processors.hyde_rewrite import hyde_rewrite
@@ -22,7 +22,7 @@ all_qa = mysql.get_all_questions()
 
 cache_path = os.path.join(os.path.dirname(__file__), "..", "..", "output", "hyde_cache.json")
 if os.path.exists(cache_path):
-    with open(cache_path, encoding='utf-8') as f:
+    with open(cache_path, encoding="utf-8") as f:
         cache = json.load(f)
     print(f"Loaded existing cache: {len(cache)} entries")
 else:
@@ -83,11 +83,11 @@ for i, qa in enumerate(todo):
         }
 
     if (i + 1) % 20 == 0:
-        with open(cache_path, 'w', encoding='utf-8') as f:
+        with open(cache_path, "w", encoding="utf-8") as f:
             json.dump(cache, f, ensure_ascii=False)
-        print(f"  [{i+1}/{len(todo)}] generated={generated}, skipped={skipped}, cache={len(cache)}")
+        print(f"  [{i + 1}/{len(todo)}] generated={generated}, skipped={skipped}, cache={len(cache)}")
 
-with open(cache_path, 'w', encoding='utf-8') as f:
+with open(cache_path, "w", encoding="utf-8") as f:
     json.dump(cache, f, ensure_ascii=False)
 
 print(f"Done. Cache: {len(cache)} entries -> {cache_path}")

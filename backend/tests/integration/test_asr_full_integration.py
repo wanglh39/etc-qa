@@ -12,6 +12,7 @@ ASR_SAMPLES_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..",
 class TestASRQueryAPIIntegration:
     def test_asr_query_success_with_real_audio(self, real_client):
         from asr.service import get_asr_service
+
         svc = get_asr_service()
         original_enabled = svc._enabled
         svc._enabled = True
@@ -39,6 +40,7 @@ class TestASRQueryAPIIntegration:
 
     def test_asr_query_with_category_filter(self, real_client):
         from asr.service import get_asr_service
+
         svc = get_asr_service()
         original_enabled = svc._enabled
         svc._enabled = True
@@ -58,6 +60,7 @@ class TestASRQueryAPIIntegration:
 
     def test_asr_query_second_sample(self, real_client):
         from asr.service import get_asr_service
+
         svc = get_asr_service()
         original_enabled = svc._enabled
         svc._enabled = True
@@ -81,6 +84,7 @@ class TestASRQueryAPIIntegration:
 class TestAudioPreprocessorIntegration:
     def test_process_real_audio_no_preprocess(self):
         from asr.preprocess import AudioPreprocessor
+
         sample_path = os.path.join(ASR_SAMPLES_DIR, "sample_01.wav")
         if not os.path.exists(sample_path):
             pytest.skip("音频样本不存在")
@@ -94,15 +98,18 @@ class TestAudioPreprocessorIntegration:
 
     def test_health_reflects_real_config(self):
         from asr.preprocess import AudioPreprocessor
+
         pp = AudioPreprocessor()
         h = pp.health()
         from utils.config import get_config
+
         cfg = get_config().get("asr", {}).get("preprocess", {})
         assert h["vad_enabled"] == cfg.get("vad_enabled", False)
         assert h["denoise_enabled"] == cfg.get("denoise_enabled", False)
 
     def test_get_preprocessor_singleton(self):
         from asr.preprocess import get_preprocessor
+
         pp1 = get_preprocessor()
         pp2 = get_preprocessor()
         assert pp1 is pp2
@@ -112,12 +119,14 @@ class TestAudioPreprocessorIntegration:
 class TestWebSocketASRStreamIntegration:
     def test_ws_streaming_connection(self):
         from utils.config import get_config
+
         cfg = get_config()
         streaming_enabled = cfg.get("asr", {}).get("streaming", {}).get("enabled", False)
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
 
         from asr.websocket import router as ws_router
+
         app = FastAPI()
         app.include_router(ws_router, prefix="/api/v1")
         client = TestClient(app)

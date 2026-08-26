@@ -16,6 +16,7 @@ _cov = None
 if os.environ.get("COVERAGE_PROCESS_START"):
     try:
         import coverage
+
         cov_file = os.environ.get("COVERAGE_FILE", os.path.join(_project_root, ".coverage"))
         _cov = coverage.Coverage(data_file=cov_file, config_file=os.environ["COVERAGE_PROCESS_START"])
         _cov.start()
@@ -39,6 +40,7 @@ def _run_test(name, func):
 
 def test_model_load():
     from asr.service import ASRService
+
     svc = ASRService()
     assert svc._enabled is True
     svc._load_model()
@@ -47,6 +49,7 @@ def test_model_load():
 
 def test_transcribe_single():
     from asr.service import ASRService
+
     svc = ASRService()
     metadata_path = os.path.normpath(os.path.join(ASR_SAMPLES_DIR, "metadata.json"))
     with open(metadata_path, encoding="utf-8") as f:
@@ -63,6 +66,7 @@ def test_transcribe_single():
 
 def test_batch_accuracy():
     from asr.service import ASRService
+
     svc = ASRService()
     metadata_path = os.path.normpath(os.path.join(ASR_SAMPLES_DIR, "metadata.json"))
     with open(metadata_path, encoding="utf-8") as f:
@@ -121,7 +125,7 @@ def test_streaming_recognize():
     pcm_bytes = audio_data.tobytes()
     chunk_size = sr * 2 // 10
     for i in range(0, len(pcm_bytes), chunk_size):
-        svc.send_audio(pcm_bytes[i:i + chunk_size])
+        svc.send_audio(pcm_bytes[i : i + chunk_size])
 
     svc.stop_stream()
     all_text = "".join(cb.finals) + "".join(cb.partials)
@@ -131,6 +135,7 @@ def test_streaming_recognize():
 
 def test_asr_to_query():
     from asr.service import ASRService
+
     svc = ASRService()
     metadata_path = os.path.normpath(os.path.join(ASR_SAMPLES_DIR, "metadata.json"))
     with open(metadata_path, encoding="utf-8") as f:
@@ -142,13 +147,15 @@ def test_asr_to_query():
         if not os.path.exists(audio_path):
             continue
         result = svc.transcribe(audio_path)
-        results.append({
-            "filename": sample["filename"],
-            "expected": sample["final_question"],
-            "recognized": result.text,
-            "keyword": sample.get("keyword", ""),
-            "category_l1": sample.get("category_l1", ""),
-        })
+        results.append(
+            {
+                "filename": sample["filename"],
+                "expected": sample["final_question"],
+                "recognized": result.text,
+                "keyword": sample.get("keyword", ""),
+                "category_l1": sample.get("category_l1", ""),
+            }
+        )
     assert len(results) > 0, "没有可测试的音频样本"
     return results
 

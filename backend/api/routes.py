@@ -100,6 +100,7 @@ def _current_operator(request: Request) -> str:
     if auth.startswith("Bearer "):
         try:
             from utils.jwt_utils import verify_token
+
             payload = verify_token(auth[7:])
             return payload.get("sub", "admin")
         except Exception:
@@ -164,12 +165,14 @@ def _build_category_tree() -> list[dict]:
     rows = mysql_client.list_categories()
     if rows:
         for r in rows:
-            nodes.append({
-                "id": r["id"],
-                "label": r["label"],
-                "parentId": r.get("parent_id"),
-                "description": r.get("description") or "",
-            })
+            nodes.append(
+                {
+                    "id": r["id"],
+                    "label": r["label"],
+                    "parentId": r.get("parent_id"),
+                    "description": r.get("description") or "",
+                }
+            )
     else:
         derived = mysql_client.get_category_tree()
         next_id = 1
@@ -239,7 +242,9 @@ def agent_process(req: AgentProcessRequest, user: dict = Depends(get_current_use
     )
 
 
-@router.put("/qa/status", response_model=UpdateStatusResponse, dependencies=[Depends(require_role("admin", "superadmin"))])
+@router.put(
+    "/qa/status", response_model=UpdateStatusResponse, dependencies=[Depends(require_role("admin", "superadmin"))]
+)
 def update_qa_status(req: UpdateStatusRequest, request: Request):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -283,15 +288,17 @@ def reload_config():
 
 
 @router.get("/qa/list", response_model=QAListResponse)
-def list_qa(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
-            category_l1: str | None = None, status: str | None = None):
+def list_qa(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    category_l1: str | None = None,
+    status: str | None = None,
+):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
-    result = mysql_client.get_qa_list(page=page, page_size=page_size,
-                                      category_l1=category_l1, status=status)
+    result = mysql_client.get_qa_list(page=page, page_size=page_size, category_l1=category_l1, status=status)
     items = [QAListItem(**_serialize_row(row)) for row in result["items"]]
-    return QAListResponse(items=items, total=result["total"],
-                          page=result["page"], page_size=result["page_size"])
+    return QAListResponse(items=items, total=result["total"], page=result["page"], page_size=result["page_size"])
 
 
 @router.get("/qa/{qa_id}", response_model=QADetailResponse)
@@ -320,12 +327,11 @@ def delete_qa(qa_id: int):
 def search_qa(req: QASearchRequest):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
-    result = mysql_client.search_qa(keyword=req.keyword, page=req.page,
-                                    page_size=req.page_size,
-                                    category_l1=req.category_l1, status=req.status)
+    result = mysql_client.search_qa(
+        keyword=req.keyword, page=req.page, page_size=req.page_size, category_l1=req.category_l1, status=req.status
+    )
     items = [QAListItem(**_serialize_row(row)) for row in result["items"]]
-    return QASearchResponse(items=items, total=result["total"],
-                            page=result["page"], page_size=result["page_size"])
+    return QASearchResponse(items=items, total=result["total"], page=result["page"], page_size=result["page_size"])
 
 
 @router.get("/stats", response_model=StatsResponse, dependencies=[Depends(require_role("admin", "superadmin", "ops"))])
@@ -382,22 +388,24 @@ def delete_category(cat_id: int):
     return {"id": cat_id, "message": "分类已删除"}
 
 
-@router.get("/audit/history", response_model=AuditLogListResponse, dependencies=[Depends(require_role("admin", "superadmin"))])
+@router.get(
+    "/audit/history", response_model=AuditLogListResponse, dependencies=[Depends(require_role("admin", "superadmin"))]
+)
 def audit_history(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100)):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
     result = mysql_client.get_audit_history(page=page, page_size=page_size)
     items = [AuditLogItem(**_serialize_row(row)) for row in result["items"]]
-    return AuditLogListResponse(items=items, total=result["total"],
-                                page=result["page"], page_size=result["page_size"])
+    return AuditLogListResponse(items=items, total=result["total"], page=result["page"], page_size=result["page_size"])
 
 
-@router.get("/stats/trend", response_model=TrendResponse, dependencies=[Depends(require_role("admin", "superadmin", "ops"))])
+@router.get(
+    "/stats/trend", response_model=TrendResponse, dependencies=[Depends(require_role("admin", "superadmin", "ops"))]
+)
 def stats_trend(days: int = Query(7, ge=1, le=90)):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
-    dates = [(datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
-             for i in range(days - 1, -1, -1)]
+    dates = [(datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(days - 1, -1, -1)]
 
     wo_rows = mysql_client.get_trend(days)
     wo_by_date = {str(r["d"]): r["cnt"] for r in wo_rows["items"]}
@@ -411,18 +419,20 @@ def stats_trend(days: int = Query(7, ge=1, le=90)):
 
 
 @router.get("/work_orders", response_model=WorkOrderListResponse)
-def list_work_orders(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
-                     status: str | None = None, dept: str | None = None,
-                     user: dict = Depends(get_current_user)):
+def list_work_orders(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    status: str | None = None,
+    dept: str | None = None,
+    user: dict = Depends(get_current_user),
+):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
     if user.get("role") == "dept":
         dept = user.get("dept")
-    result = mysql_client.get_work_order_list(page=page, page_size=page_size,
-                                              status=status, dept=dept)
+    result = mysql_client.get_work_order_list(page=page, page_size=page_size, status=status, dept=dept)
     items = [WorkOrderListItem(**_serialize_row(row)) for row in result["items"]]
-    return WorkOrderListResponse(items=items, total=result["total"],
-                                 page=result["page"], page_size=result["page_size"])
+    return WorkOrderListResponse(items=items, total=result["total"], page=result["page"], page_size=result["page_size"])
 
 
 @router.get("/work_orders/stats")
@@ -442,10 +452,15 @@ def create_work_order(req: WorkOrderCreateRequest):
     external_id = f"WO-{datetime.now().strftime('%Y%m%d')}-{random.randint(1000, 9999)}"
     raw_data = json.dumps(req.model_dump(), ensure_ascii=False)
     wo_id = mysql_client.insert_work_order_full(external_id, req.next_dept, raw_data)
-    return _work_order_to_detail({
-        "id": wo_id, "external_id": external_id, "raw_data": raw_data,
-        "status": "submitted", "dept": req.next_dept,
-    })
+    return _work_order_to_detail(
+        {
+            "id": wo_id,
+            "external_id": external_id,
+            "raw_data": raw_data,
+            "status": "submitted",
+            "dept": req.next_dept,
+        }
+    )
 
 
 @router.get("/work_orders/{wo_id}", response_model=WorkOrderDetailResponse)
@@ -513,7 +528,9 @@ def asr_health():
 
 
 @router.post("/asr/query", response_model=ASRQueryResponse)
-async def asr_query(file: UploadFile = File(...), category_l1: str | None = None, user: dict = Depends(get_current_user)):
+async def asr_query(
+    file: UploadFile = File(...), category_l1: str | None = None, user: dict = Depends(get_current_user)
+):
     if not limiter.check(f"asr_query:{user.get('sub')}", 10, 60):
         raise HTTPException(status_code=429, detail="请求过于频繁，请稍后再试")
     asr_service = get_asr_service()
@@ -567,10 +584,13 @@ async def asr_query(file: UploadFile = File(...), category_l1: str | None = None
         os.unlink(tmp_path)
 
 
-
 @router.get("/users", response_model=UserListResponse, dependencies=[Depends(require_role("superadmin"))])
-def list_users(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=999),
-               role: str | None = None, status: str | None = None):
+def list_users(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=999),
+    role: str | None = None,
+    status: str | None = None,
+):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
     result = mysql_client.list_users(page=page, page_size=page_size, role=role, status=status)
@@ -589,7 +609,9 @@ def create_user(req: UserCreateRequest, user: dict = Depends(require_role("super
     if req.role not in valid_roles:
         raise HTTPException(status_code=400, detail=f"角色不存在，可选: {valid_roles}")
     user_id = mysql_client.create_user(req.username, hash_password(req.password), req.role, req.dept, req.status)
-    mysql_client.insert_operation_log(user["sub"], "create", "user", user_id, f"创建账号 {req.username} 角色={req.role}")
+    mysql_client.insert_operation_log(
+        user["sub"], "create", "user", user_id, f"创建账号 {req.username} 角色={req.role}"
+    )
     return {"user_id": user_id, "message": "账号创建成功"}
 
 
@@ -600,7 +622,9 @@ def update_user(user_id: int, req: UserUpdateRequest, user: dict = Depends(requi
     ok = mysql_client.update_user(user_id, role=req.role, dept=req.dept, status=req.status)
     if not ok:
         raise HTTPException(status_code=404, detail="用户不存在或无更新字段")
-    mysql_client.insert_operation_log(user["sub"], "update", "user", user_id, f"修改账号 role={req.role} status={req.status}")
+    mysql_client.insert_operation_log(
+        user["sub"], "update", "user", user_id, f"修改账号 role={req.role} status={req.status}"
+    )
     return {"user_id": user_id, "message": "账号已更新"}
 
 
@@ -638,6 +662,7 @@ def get_my_permissions(user: dict = Depends(get_current_user)):
             perms = row.get("permissions") or []
             if isinstance(perms, str):
                 import json as _json
+
                 perms = _json.loads(perms)
             return {"permissions": perms}
     return {"permissions": []}
@@ -667,7 +692,9 @@ def create_role(req: RoleCreateRequest, user: dict = Depends(require_role("super
 def update_role(role_id: int, req: RoleUpdateRequest, user: dict = Depends(require_role("superadmin"))):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
-    ok = mysql_client.update_role(role_id, role_name=req.role_name, description=req.description, permissions=req.permissions)
+    ok = mysql_client.update_role(
+        role_id, role_name=req.role_name, description=req.description, permissions=req.permissions
+    )
     if not ok:
         raise HTTPException(status_code=404, detail="角色不存在或无更新字段")
     mysql_client.insert_operation_log(user["sub"], "update", "role", role_id, "修改角色")
@@ -686,13 +713,19 @@ def delete_role(role_id: int, user: dict = Depends(require_role("superadmin"))):
 
 
 @router.get("/operations", response_model=OperationLogListResponse, dependencies=[Depends(require_role("superadmin"))])
-def list_operations(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
-                    operator: str | None = None, action: str | None = None):
+def list_operations(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    operator: str | None = None,
+    action: str | None = None,
+):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
     result = mysql_client.list_operation_logs(page=page, page_size=page_size, operator=operator, action=action)
     items = [OperationLogItem(**_serialize_row(row)) for row in result["items"]]
-    return OperationLogListResponse(items=items, total=result["total"], page=result["page"], page_size=result["page_size"])
+    return OperationLogListResponse(
+        items=items, total=result["total"], page=result["page"], page_size=result["page_size"]
+    )
 
 
 @router.get("/scheduler/status", dependencies=[Depends(require_role("admin", "superadmin", "ops"))])
@@ -736,8 +769,12 @@ def get_scheduler_logs(page: int = Query(1, ge=1), page_size: int = Query(20, ge
 
 
 @router.get("/alerts", dependencies=[Depends(require_role("admin", "superadmin", "ops"))])
-def list_alerts(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
-                status: str | None = None, severity: str | None = None):
+def list_alerts(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    status: str | None = None,
+    severity: str | None = None,
+):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
     result = mysql_client.get_alert_events(page=page, page_size=page_size, status=status, severity=severity)
@@ -758,6 +795,7 @@ def ack_alert(alert_id: int, request: Request):
     if auth.startswith("Bearer "):
         try:
             from utils.jwt_utils import verify_token
+
             payload = verify_token(auth[7:])
             acked_by = payload.get("sub", "unknown")
         except Exception:
@@ -771,12 +809,14 @@ def ack_alert(alert_id: int, request: Request):
 @router.get("/alerts/metrics", dependencies=[Depends(require_role("admin", "superadmin", "ops"))])
 def get_alert_metrics():
     from alert.monitor import get_all_metrics
+
     return get_all_metrics()
 
 
 @router.get("/system/status", dependencies=[Depends(require_role("superadmin", "ops"))])
 def get_system_status():
     import time
+
     components = []
 
     components.append({"name": "API服务", "status": "healthy", "latency_ms": 0, "detail": "FastAPI运行中"})
@@ -816,10 +856,13 @@ def get_system_status():
 
     try:
         from asr.service import get_asr_service
+
         asr = get_asr_service()
         asr_h = asr.health()
         if asr_h.loaded:
-            components.append({"name": "ASR模型", "status": "healthy", "latency_ms": 0, "detail": f"已加载({asr_h.model})"})
+            components.append(
+                {"name": "ASR模型", "status": "healthy", "latency_ms": 0, "detail": f"已加载({asr_h.model})"}
+            )
         else:
             components.append({"name": "ASR模型", "status": "standby", "latency_ms": 0, "detail": "未加载(按需启动)"})
     except Exception:
@@ -827,17 +870,27 @@ def get_system_status():
 
     if scheduler_manager is not None:
         sched_status = scheduler_manager.get_status()
-        components.append({"name": "定时调度器", "status": "healthy" if sched_status.get("running") else "stopped",
-                           "latency_ms": 0, "detail": f"运行中{len(sched_status.get('jobs', []))}个任务" if sched_status.get("running") else "已停止"})
+        components.append(
+            {
+                "name": "定时调度器",
+                "status": "healthy" if sched_status.get("running") else "stopped",
+                "latency_ms": 0,
+                "detail": f"运行中{len(sched_status.get('jobs', []))}个任务"
+                if sched_status.get("running")
+                else "已停止",
+            }
+        )
     else:
         components.append({"name": "定时调度器", "status": "unhealthy", "latency_ms": 0, "detail": "未初始化"})
 
     try:
         from alert.monitor import get_all_metrics
+
         metrics = get_all_metrics()
         active_alerts = 0
-        components.append({"name": "告警监控", "status": "healthy", "latency_ms": 0,
-                           "detail": f"监控{len(metrics)}项指标"})
+        components.append(
+            {"name": "告警监控", "status": "healthy", "latency_ms": 0, "detail": f"监控{len(metrics)}项指标"}
+        )
     except Exception:
         components.append({"name": "告警监控", "status": "unhealthy", "latency_ms": 0, "detail": "异常"})
 
@@ -880,6 +933,3 @@ def get_system_logs(lines: int = Query(100, ge=1, le=500), level: str = Query(No
         result.append({"line": line, "level": log_level})
 
     return {"logs": result, "total": len(result)}
-
-
-

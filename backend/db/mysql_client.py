@@ -63,9 +63,15 @@ class MySQLClient:
         results = self.get_by_ids([qa_id])
         return results[0] if results else None
 
-    def insert_qa(self, question: str, answer: str, category_l1: str = "",
-                  category_l2: str = "", internal_process: str = "",
-                  feedback_dept: str = "") -> int:
+    def insert_qa(
+        self,
+        question: str,
+        answer: str,
+        category_l1: str = "",
+        category_l2: str = "",
+        internal_process: str = "",
+        feedback_dept: str = "",
+    ) -> int:
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
@@ -185,9 +191,9 @@ class MySQLClient:
             self._reset_conn()
             raise
 
-    def get_qa_list(self, page: int = 1, page_size: int = 20,
-                    category_l1: str | None = None,
-                    status: str | None = None) -> dict:
+    def get_qa_list(
+        self, page: int = 1, page_size: int = 20, category_l1: str | None = None, status: str | None = None
+    ) -> dict:
         conn = self._get_conn()
         try:
             cursor = conn.cursor(pymysql.cursors.DictCursor)
@@ -216,9 +222,14 @@ class MySQLClient:
             self._reset_conn()
             raise
 
-    def search_qa(self, keyword: str, page: int = 1, page_size: int = 20,
-                   category_l1: str | None = None,
-                   status: str | None = None) -> dict:
+    def search_qa(
+        self,
+        keyword: str,
+        page: int = 1,
+        page_size: int = 20,
+        category_l1: str | None = None,
+        status: str | None = None,
+    ) -> dict:
         conn = self._get_conn()
         try:
             cursor = conn.cursor(pymysql.cursors.DictCursor)
@@ -286,14 +297,10 @@ class MySQLClient:
         conn = self._get_conn()
         try:
             cursor = conn.cursor(pymysql.cursors.DictCursor)
-            cursor.execute(
-                "SELECT status, COUNT(*) as cnt FROM work_orders WHERE dept=%s GROUP BY status",
-                (dept,)
-            )
+            cursor.execute("SELECT status, COUNT(*) as cnt FROM work_orders WHERE dept=%s GROUP BY status", (dept,))
             rows = cursor.fetchall()
             cursor.execute(
-                "SELECT COUNT(*) as cnt FROM work_orders WHERE dept=%s AND DATE(created_at)=CURDATE()",
-                (dept,)
+                "SELECT COUNT(*) as cnt FROM work_orders WHERE dept=%s AND DATE(created_at)=CURDATE()", (dept,)
             )
             today_row = cursor.fetchone()
             cursor.close()
@@ -324,9 +331,16 @@ class MySQLClient:
             self._reset_conn()
             raise
 
-    def insert_qa_with_status(self, question: str, answer: str, category_l1: str = "",
-                              category_l2: str = "", internal_process: str = "",
-                              feedback_dept: str = "", status: str = "deprecated") -> int:
+    def insert_qa_with_status(
+        self,
+        question: str,
+        answer: str,
+        category_l1: str = "",
+        category_l2: str = "",
+        internal_process: str = "",
+        feedback_dept: str = "",
+        status: str = "deprecated",
+    ) -> int:
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
@@ -409,9 +423,9 @@ class MySQLClient:
             self._reset_conn()
             raise
 
-    def get_work_order_list(self, page: int = 1, page_size: int = 20,
-                            status: str | None = None,
-                            dept: str | None = None) -> dict:
+    def get_work_order_list(
+        self, page: int = 1, page_size: int = 20, status: str | None = None, dept: str | None = None
+    ) -> dict:
         conn = self._get_conn()
         try:
             cursor = conn.cursor(pymysql.cursors.DictCursor)
@@ -444,8 +458,7 @@ class MySQLClient:
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO work_orders (external_id, raw_data, status, dept) "
-                "VALUES (%s, %s, 'submitted', %s)",
+                "INSERT INTO work_orders (external_id, raw_data, status, dept) VALUES (%s, %s, 'submitted', %s)",
                 (external_id, raw_data, dept),
             )
             conn.commit()
@@ -462,8 +475,7 @@ class MySQLClient:
         try:
             cursor = conn.cursor(pymysql.cursors.DictCursor)
             cursor.execute(
-                "SELECT id, external_id, raw_data, status, dept, created_at, updated_at "
-                "FROM work_orders WHERE id=%s",
+                "SELECT id, external_id, raw_data, status, dept, created_at, updated_at FROM work_orders WHERE id=%s",
                 (wo_id,),
             )
             row = cursor.fetchone()
@@ -488,14 +500,12 @@ class MySQLClient:
             self._reset_conn()
             raise
 
-    def insert_audit_log(self, qa_id: int, question: str, answer: str,
-                         result: str, operator: str):
+    def insert_audit_log(self, qa_id: int, question: str, answer: str, result: str, operator: str):
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO audit_log (qa_id, question, answer, result, operator) "
-                "VALUES (%s, %s, %s, %s, %s)",
+                "INSERT INTO audit_log (qa_id, question, answer, result, operator) VALUES (%s, %s, %s, %s, %s)",
                 (qa_id, question, answer, result, operator),
             )
             conn.commit()
@@ -528,9 +538,7 @@ class MySQLClient:
         conn = self._get_conn()
         try:
             cursor = conn.cursor(pymysql.cursors.DictCursor)
-            cursor.execute(
-                "SELECT id, label, parent_id, description FROM categories ORDER BY id"
-            )
+            cursor.execute("SELECT id, label, parent_id, description FROM categories ORDER BY id")
             rows = cursor.fetchall()
             cursor.close()
             return rows
@@ -538,8 +546,7 @@ class MySQLClient:
             self._reset_conn()
             raise
 
-    def create_category(self, label: str, parent_id: int | None,
-                        description: str = "") -> int:
+    def create_category(self, label: str, parent_id: int | None, description: str = "") -> int:
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
@@ -556,8 +563,7 @@ class MySQLClient:
             self._reset_conn()
             raise
 
-    def update_category(self, cat_id: int, label: str,
-                        parent_id: int | None, description: str = "") -> bool:
+    def update_category(self, cat_id: int, label: str, parent_id: int | None, description: str = "") -> bool:
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
@@ -668,6 +674,7 @@ class MySQLClient:
 
     def set_config(self, key: str, value, description: str = ""):
         import json
+
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
@@ -725,8 +732,9 @@ class MySQLClient:
             self._reset_conn()
             raise
 
-    def list_users(self, page: int = 1, page_size: int = 20,
-                   role: str | None = None, status: str | None = None) -> dict:
+    def list_users(
+        self, page: int = 1, page_size: int = 20, role: str | None = None, status: str | None = None
+    ) -> dict:
         conn = self._get_conn()
         try:
             cursor = conn.cursor(pymysql.cursors.DictCursor)
@@ -768,14 +776,12 @@ class MySQLClient:
             self._reset_conn()
             raise
 
-    def create_user(self, username: str, password_hash: str, role: str,
-                    dept: str = "", status: str = "active") -> int:
+    def create_user(self, username: str, password_hash: str, role: str, dept: str = "", status: str = "active") -> int:
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO users (username, password_hash, role, dept, status) "
-                "VALUES (%s, %s, %s, %s, %s)",
+                "INSERT INTO users (username, password_hash, role, dept, status) VALUES (%s, %s, %s, %s, %s)",
                 (username, password_hash, role, dept, status),
             )
             conn.commit()
@@ -787,8 +793,9 @@ class MySQLClient:
             self._reset_conn()
             raise
 
-    def update_user(self, user_id: int, role: str | None = None,
-                    dept: str | None = None, status: str | None = None) -> bool:
+    def update_user(
+        self, user_id: int, role: str | None = None, dept: str | None = None, status: str | None = None
+    ) -> bool:
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
@@ -848,13 +855,16 @@ class MySQLClient:
         conn = self._get_conn()
         try:
             cursor = conn.cursor(pymysql.cursors.DictCursor)
-            cursor.execute("SELECT id, role_key, role_name, description, permissions, created_at FROM roles ORDER BY id ASC")
+            cursor.execute(
+                "SELECT id, role_key, role_name, description, permissions, created_at FROM roles ORDER BY id ASC"
+            )
             rows = cursor.fetchall()
             for row in rows:
                 if row.get("permissions") is None:
                     row["permissions"] = []
                 elif isinstance(row["permissions"], str):
                     import json as _json
+
                     row["permissions"] = _json.loads(row["permissions"])
             cursor.close()
             return rows
@@ -862,12 +872,14 @@ class MySQLClient:
             self._reset_conn()
             raise
 
-    def create_role(self, role_key: str, role_name: str, description: str = "",
-                    permissions: list[str] | None = None) -> int:
+    def create_role(
+        self, role_key: str, role_name: str, description: str = "", permissions: list[str] | None = None
+    ) -> int:
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
             import json as _json
+
             perms_json = _json.dumps(permissions or [])
             cursor.execute(
                 "INSERT INTO roles (role_key, role_name, description, permissions) VALUES (%s, %s, %s, %s)",
@@ -882,9 +894,13 @@ class MySQLClient:
             self._reset_conn()
             raise
 
-    def update_role(self, role_id: int, role_name: str | None = None,
-                    description: str | None = None,
-                    permissions: list[str] | None = None) -> bool:
+    def update_role(
+        self,
+        role_id: int,
+        role_name: str | None = None,
+        description: str | None = None,
+        permissions: list[str] | None = None,
+    ) -> bool:
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
@@ -897,6 +913,7 @@ class MySQLClient:
                 params.append(description)
             if permissions is not None:
                 import json as _json
+
                 sets.append("permissions = %s")
                 params.append(_json.dumps(permissions))
             if not sets:
@@ -927,9 +944,15 @@ class MySQLClient:
             self._reset_conn()
             raise
 
-    def insert_operation_log(self, operator: str, action: str,
-                             target_type: str = "", target_id: int | None = None,
-                             detail: str = "", ip: str = ""):
+    def insert_operation_log(
+        self,
+        operator: str,
+        action: str,
+        target_type: str = "",
+        target_id: int | None = None,
+        detail: str = "",
+        ip: str = "",
+    ):
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
@@ -944,8 +967,9 @@ class MySQLClient:
             conn.rollback()
             self._reset_conn()
 
-    def list_operation_logs(self, page: int = 1, page_size: int = 20,
-                            operator: str | None = None, action: str | None = None) -> dict:
+    def list_operation_logs(
+        self, page: int = 1, page_size: int = 20, operator: str | None = None, action: str | None = None
+    ) -> dict:
         conn = self._get_conn()
         try:
             cursor = conn.cursor(pymysql.cursors.DictCursor)
@@ -973,8 +997,9 @@ class MySQLClient:
             self._reset_conn()
             raise
 
-    def insert_alert_event(self, rule_id: str, severity: str, message: str,
-                           current_value: float, threshold_value: float):
+    def insert_alert_event(
+        self, rule_id: str, severity: str, message: str, current_value: float, threshold_value: float
+    ):
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
@@ -990,8 +1015,9 @@ class MySQLClient:
             self._reset_conn()
             raise
 
-    def get_alert_events(self, page: int = 1, page_size: int = 20,
-                         status: str | None = None, severity: str | None = None) -> dict:
+    def get_alert_events(
+        self, page: int = 1, page_size: int = 20, status: str | None = None, severity: str | None = None
+    ) -> dict:
         conn = self._get_conn()
         try:
             cursor = conn.cursor(pymysql.cursors.DictCursor)

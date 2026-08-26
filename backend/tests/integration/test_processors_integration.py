@@ -49,9 +49,7 @@ class TestL3ProcessorsWithLLM:
         from agent.processors.standardize_query import standardize_query
         from agent.state import AgentState
 
-        state = AgentState(
-            raw_question="我想问一下重复扣费了怎么申请退款啊这个钱能退回来吗"
-        )
+        state = AgentState(raw_question="我想问一下重复扣费了怎么申请退款啊这个钱能退回来吗")
         result = standardize_query(state)
         assert "question" in result
         assert result["current_step"] == "standardize_query"
@@ -208,7 +206,9 @@ class TestL3ProcessorsWithLLM:
     def test_category_tree_with_empty_l2(self, mysql_conn):
         from agent.processors.structure_ingest import get_category_tree, invalidate_category_cache
 
-        qa_id = mysql_conn.insert_qa(question="集成测试空l2分类", answer="答案", category_l1="测试分类L1", category_l2="")
+        qa_id = mysql_conn.insert_qa(
+            question="集成测试空l2分类", answer="答案", category_l1="测试分类L1", category_l2=""
+        )
         mysql_conn.update_qa_status(qa_id, "active")
         invalidate_category_cache()
         tree = get_category_tree()
@@ -299,50 +299,59 @@ class TestL3ProcessorsWithLLM:
 
     def test_parse_json_valid(self):
         from agent.processors.hyde_rewrite import _parse_json
+
         result = _parse_json('{"need_rewrite": true, "reason": "test"}')
         assert result is not None
         assert result["need_rewrite"] is True
 
     def test_parse_json_with_surrounding_text(self):
         from agent.processors.hyde_rewrite import _parse_json
+
         result = _parse_json('some text {"need_rewrite": false} more text')
         assert result is not None
         assert result["need_rewrite"] is False
 
     def test_parse_json_invalid(self):
         from agent.processors.hyde_rewrite import _parse_json
+
         result = _parse_json("not json at all")
         assert result is None
 
     def test_parse_json_structure_ingest(self):
         from agent.processors.structure_ingest import _parse_json
+
         result = _parse_json('{"question": "ETC扣费", "category_l1": "售后"}')
         assert result is not None
         assert result["question"] == "ETC扣费"
 
     def test_parse_json_standardize(self):
         from agent.processors.standardize_query import _parse_json
+
         result = _parse_json('{"need_rewrite": true, "rewritten": "ETC退款"}')
         assert result is not None
 
     def test_preserves_keywords(self):
         from agent.processors.standardize_query import _preserves_keywords
+
         assert _preserves_keywords("ETC扣费异常", "ETC扣费异常怎么处理") is True
         assert _preserves_keywords("ETC扣费异常", "扣费异常怎么处理") is False
 
     def test_parse_json_nested_failure(self):
         from agent.processors.structure_ingest import _parse_json
-        result = _parse_json('{invalid json content}')
+
+        result = _parse_json("{invalid json content}")
         assert result is None
 
     def test_parse_json_standardize_fallback(self):
         from agent.processors.standardize_query import _parse_json
+
         result = _parse_json('text {"bad": } json')
         assert result is None
 
     def test_parse_json_hyde_nested_failure(self):
         from agent.processors.hyde_rewrite import _parse_json
-        result = _parse_json('{broken')
+
+        result = _parse_json("{broken")
         assert result is None
 
     def test_process_parsed_result_lost_keywords(self, mysql_conn):
@@ -442,7 +451,9 @@ class TestL2StructureIngestStructuredResult:
         )
         state = AgentState(raw_question="ETC设备故障", raw_answer="请检查OBU设备")
         tree = {"售后业务": ["设备异常", "账单问题"]}
-        result = _process_structured_result(mock_result, "ETC设备故障", "请检查OBU设备", tree, "售后业务", "设备异常", state)
+        result = _process_structured_result(
+            mock_result, "ETC设备故障", "请检查OBU设备", tree, "售后业务", "设备异常", state
+        )
         assert result["category_l1"] == "售后业务"
         assert result["category_l2"] == "设备异常"
 
@@ -462,7 +473,9 @@ class TestL2StructureIngestStructuredResult:
         )
         state = AgentState(raw_question="ETC扣费异常", raw_answer="请查看账单")
         tree = {"售后业务": ["设备异常", "账单问题"]}
-        result = _process_structured_result(mock_result, "ETC扣费异常", "请查看账单", tree, "售后业务", "设备异常", state)
+        result = _process_structured_result(
+            mock_result, "ETC扣费异常", "请查看账单", tree, "售后业务", "设备异常", state
+        )
         assert result["category_l1"] == "售后业务"
         assert result["category_l2"] == "设备异常"
 
@@ -482,8 +495,10 @@ class TestL2StructureIngestStructuredResult:
         )
         state = AgentState(raw_question="ETC设备故障", raw_answer="请检查OBU设备")
         tree = {"售后业务": ["设备异常"]}
-        with patch('agent.processors.structure_ingest._get_kw_lists', return_value=(["银行卡", "退款"], ["ETC"])):
-            result = _process_structured_result(mock_result, "ETC设备故障", "请检查OBU设备", tree, "售后业务", "设备异常", state)
+        with patch("agent.processors.structure_ingest._get_kw_lists", return_value=(["银行卡", "退款"], ["ETC"])):
+            result = _process_structured_result(
+                mock_result, "ETC设备故障", "请检查OBU设备", tree, "售后业务", "设备异常", state
+            )
         assert result["question"] == "ETC设备故障"
         assert result["needs_review"] is True
 
@@ -503,8 +518,10 @@ class TestL2StructureIngestStructuredResult:
         )
         state = AgentState(raw_question="ETC设备故障", raw_answer="请检查OBU设备")
         tree = {"售后业务": ["设备异常"]}
-        with patch('agent.processors.structure_ingest._get_kw_lists', return_value=(["银行卡"], ["ETC"])):
-            result = _process_structured_result(mock_result, "ETC设备故障", "请检查OBU设备", tree, "售后业务", "设备异常", state)
+        with patch("agent.processors.structure_ingest._get_kw_lists", return_value=(["银行卡"], ["ETC"])):
+            result = _process_structured_result(
+                mock_result, "ETC设备故障", "请检查OBU设备", tree, "售后业务", "设备异常", state
+            )
         assert result["needs_review"] is True
 
     def test_process_structured_result_short_rewrite(self):
@@ -523,8 +540,10 @@ class TestL2StructureIngestStructuredResult:
         )
         state = AgentState(raw_question="ETC设备故障", raw_answer="请检查OBU设备")
         tree = {"售后业务": ["设备异常"]}
-        with patch('agent.processors.structure_ingest._get_kw_lists', return_value=(["银行卡"], ["ETC"])):
-            result = _process_structured_result(mock_result, "ETC设备故障", "请检查OBU设备", tree, "售后业务", "设备异常", state)
+        with patch("agent.processors.structure_ingest._get_kw_lists", return_value=(["银行卡"], ["ETC"])):
+            result = _process_structured_result(
+                mock_result, "ETC设备故障", "请检查OBU设备", tree, "售后业务", "设备异常", state
+            )
         assert result["question"] == "ETC设备故障"
         assert result["needs_review"] is True
 
@@ -544,6 +563,8 @@ class TestL2StructureIngestStructuredResult:
         )
         state = AgentState(raw_question="ETC设备故障", raw_answer="请检查OBU设备")
         tree = {"售后业务": ["设备异常"]}
-        with patch('agent.processors.structure_ingest._get_kw_lists', return_value=(["银行卡"], ["ETC"])):
-            result = _process_structured_result(mock_result, "ETC设备故障", "请检查OBU设备", tree, "售后业务", "设备异常", state)
+        with patch("agent.processors.structure_ingest._get_kw_lists", return_value=(["银行卡"], ["ETC"])):
+            result = _process_structured_result(
+                mock_result, "ETC设备故障", "请检查OBU设备", tree, "售后业务", "设备异常", state
+            )
         assert result["needs_review"] is True

@@ -27,13 +27,13 @@ def demo_clean_text(question):
     print(f"\n{SEP}")
     print("步骤1: clean_text（防御性清洗）")
     print(SEP)
-    print(f"  输入: \"{question}\"")
+    print(f'  输入: "{question}"')
 
     state = AgentState(raw_question=question)
     result = clean_text(state)
     cleaned = result["question"]
 
-    print(f"  输出: \"{cleaned}\"")
+    print(f'  输出: "{cleaned}"')
 
     if cleaned != question:
         print("  变化: ✅ 有清洗效果")
@@ -50,7 +50,7 @@ def demo_standardize_query(question):
     print(f"\n{SEP}")
     print("步骤2: standardize_query（智能规整）")
     print(SEP)
-    print(f"  输入: \"{question}\"")
+    print(f'  输入: "{question}"')
     print("  策略: 规则优先 + LLM兜底")
 
     state = AgentState(raw_question=question, question=question)
@@ -62,7 +62,7 @@ def demo_standardize_query(question):
     need_rewrite = result.get("need_rewrite", None)
     rewrite_confidence = result.get("rewrite_confidence", None)
 
-    print(f"  输出: \"{standardized}\"")
+    print(f'  输出: "{standardized}"')
     if need_rewrite is not None:
         print(f"  是否改写: {need_rewrite}")
     if rewrite_confidence is not None:
@@ -98,13 +98,13 @@ def main():
     for i, raw_q in enumerate(test_cases, 1):
         print(f"\n{'#' * 60}")
         print(f"  测试用例 {i}/{len(test_cases)}")
-        print(f"  原始问题: \"{raw_q}\"")
+        print(f'  原始问题: "{raw_q}"')
         print(f"{'#' * 60}")
 
         cleaned = demo_clean_text(raw_q)
         standardized = demo_standardize_query(cleaned)
 
-        print(f"\n  📌 最终结果: \"{raw_q}\" → \"{standardized}\"")
+        print(f'\n  📌 最终结果: "{raw_q}" → "{standardized}"')
 
         if i < len(test_cases):
             input(f"\n>>> 按回车继续下一个用例 ({i}/{len(test_cases)}) ...")

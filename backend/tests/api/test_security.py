@@ -31,7 +31,11 @@ class TestWorkOrderDeptIsolation:
     def _set_order(self, dept):
         mock_mysql = MagicMock()
         mock_mysql.get_work_order_detail.return_value = {
-            "id": 1, "external_id": "WO-1", "status": "submitted", "dept": dept, "raw_data": None,
+            "id": 1,
+            "external_id": "WO-1",
+            "status": "submitted",
+            "dept": dept,
+            "raw_data": None,
         }
         routes.set_mysql_client(mock_mysql)
         return mock_mysql
@@ -47,8 +51,9 @@ class TestWorkOrderDeptIsolation:
         mock_mysql = MagicMock()
         mock_mysql.get_work_order_list.return_value = {"items": [], "total": 0, "page": 1, "page_size": 20}
         routes.set_mysql_client(mock_mysql)
-        routes.list_work_orders(page=1, page_size=20, dept="finance",
-                                user={"sub": "service", "role": "service", "dept": ""})
+        routes.list_work_orders(
+            page=1, page_size=20, dept="finance", user={"sub": "service", "role": "service", "dept": ""}
+        )
         mock_mysql.get_work_order_list.assert_called_once_with(page=1, page_size=20, status=None, dept="finance")
 
     def test_get_work_order_dept_mismatch_403(self):

@@ -253,6 +253,7 @@ class TestSessionState:
 
     def test_state_is_enum(self):
         from enum import Enum
+
         assert isinstance(SessionState.IDLE, Enum)
         assert isinstance(SessionState.LISTENING, SessionState)
 

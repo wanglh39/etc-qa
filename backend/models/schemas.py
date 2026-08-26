@@ -1,4 +1,3 @@
-
 from pydantic import BaseModel, Field
 
 
@@ -147,7 +146,6 @@ class WorkOrderListResponse(BaseModel):
     total: int
     page: int
     page_size: int
-
 
 
 class WorkOrderCreateRequest(BaseModel):

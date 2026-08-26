@@ -8,6 +8,7 @@ os.environ.setdefault("ETC_QA_ENV", "test")
 def _noop_decorator(name=None, run_type=None):
     def decorator(func):
         return func
+
     return decorator
 
 

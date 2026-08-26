@@ -3,7 +3,7 @@ import statistics
 import sys
 import time
 
-os.environ['ETC_QA_ENV'] = os.environ.get('ETC_QA_ENV', 'test')
+os.environ["ETC_QA_ENV"] = os.environ.get("ETC_QA_ENV", "test")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import argparse
@@ -61,6 +61,7 @@ def init_rag_service():
 
     embed_path = cfg["models"]["embed"]["path"]
     from sentence_transformers import CrossEncoder, SentenceTransformer
+
     embed_model = SentenceTransformer(embed_path)
     print(f"  Embedding模型加载: {embed_path}")
 
@@ -74,12 +75,11 @@ def init_rag_service():
     qa_service = QAService(recall_eng, threshold, reranker, mysql)
 
     t1 = time.perf_counter()
-    print(f"RAG服务初始化完成: {t1-t0:.2f}s\n")
+    print(f"RAG服务初始化完成: {t1 - t0:.2f}s\n")
     return qa_service, recall_eng, reranker, threshold, mysql
 
 
-def run_perf_benchmark(qa_service, recall_eng, reranker, threshold, mysql,
-                       queries, iterations, warmup):
+def run_perf_benchmark(qa_service, recall_eng, reranker, threshold, mysql, queries, iterations, warmup):
     timings = defaultdict(list)
 
     if warmup > 0:
@@ -92,7 +92,7 @@ def run_perf_benchmark(qa_service, recall_eng, reranker, threshold, mysql,
                 print(f"  预热异常(忽略): {e}")
         print("预热完成\n")
 
-    print(f"开始测速: {len(queries)}个问题 × {iterations}轮 = {len(queries)*iterations}次查询\n")
+    print(f"开始测速: {len(queries)}个问题 × {iterations}轮 = {len(queries) * iterations}次查询\n")
 
     for round_num in range(iterations):
         for q in queries:
@@ -210,7 +210,7 @@ def _print_report(timings, total_queries):
     for i, (name, ms) in enumerate(step_times):
         pct = ms / total_mean * 100 if total_mean > 0 else 0
         bar = "█" * int(pct / 2)
-        print(f"  {i+1}. {name:<20} {ms:>7.1f}ms ({pct:>5.1f}%) {bar}")
+        print(f"  {i + 1}. {name:<20} {ms:>7.1f}ms ({pct:>5.1f}%) {bar}")
 
     print()
     errors = timings.get("standardize_errors", [])
@@ -228,8 +228,7 @@ def main():
     queries = args.queries if args.queries else TEST_QUERIES
 
     qa_service, recall_eng, reranker, threshold, mysql = init_rag_service()
-    run_perf_benchmark(qa_service, recall_eng, reranker, threshold, mysql,
-                       queries, args.iterations, args.warmup)
+    run_perf_benchmark(qa_service, recall_eng, reranker, threshold, mysql, queries, args.iterations, args.warmup)
 
 
 if __name__ == "__main__":

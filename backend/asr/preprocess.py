@@ -31,11 +31,13 @@ class AudioPreprocessor:
     def _load_audio(self, audio_path: str):
         import librosa
         import numpy as np
+
         audio, sr = librosa.load(audio_path, sr=self._sample_rate)
         return audio, sr
 
     def _save_audio(self, audio, sr: int, path: str):
         import soundfile as sf
+
         sf.write(path, audio, sr)
 
     def apply_vad(self, audio, sr: int) -> tuple:
@@ -44,6 +46,7 @@ class AudioPreprocessor:
 
         try:
             import torch
+
             model, utils = torch.hub.load(
                 repo_or_dir="snakers4/silero-vad",
                 model="silero_vad",
@@ -75,7 +78,7 @@ class AudioPreprocessor:
 
         segments = []
         for ts in timestamps:
-            segments.append(audio[ts["start"]:ts["end"]])
+            segments.append(audio[ts["start"] : ts["end"]])
 
         trimmed = np.concatenate(segments) if segments else audio
         original_duration = len(audio) / sr

@@ -10,11 +10,13 @@ class TestMilvusQA:
             "models": {"embed": {"dim": 1024}},
         }
         import utils.config as cfg_module
+
         self._original_get = getattr(cfg_module, "get_config", None)
         cfg_module.get_config = lambda: self.mock_config
 
     def teardown_method(self):
         import utils.config as cfg_module
+
         if self._original_get:
             cfg_module.get_config = self._original_get
 
@@ -92,11 +94,13 @@ class TestMilvusQANewBranches:
             "models": {"embed": {"dim": 1024}},
         }
         import utils.config as cfg_module
+
         self._original_get = getattr(cfg_module, "get_config", None)
         cfg_module.get_config = lambda: self.mock_config
 
     def teardown_method(self):
         import utils.config as cfg_module
+
         if self._original_get:
             cfg_module.get_config = self._original_get
 
@@ -304,7 +308,7 @@ class TestMilvusQANewBranches:
         milvus._collection_loaded = True
         result = milvus.search([0.1] * 1024, top_k=5, category_filter="售后业务")
         call_args = mock_client.search.call_args
-        assert '售后业务' in call_args[1]["filter"]
+        assert "售后业务" in call_args[1]["filter"]
 
     @patch("db.milvus_client.MilvusClient")
     def test_search_no_hyde_filter(self, mock_milvus_class):

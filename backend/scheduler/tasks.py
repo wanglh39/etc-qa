@@ -145,6 +145,7 @@ def alert_check_task():
     logger.info("定时任务开始: alert_check")
     try:
         from alert.checker import check_alerts
+
         triggered = check_alerts()
         logger.info(f"告警检查完成, 触发{triggered}条告警")
         return {"triggered": triggered}

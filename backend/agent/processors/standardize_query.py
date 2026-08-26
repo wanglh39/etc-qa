@@ -124,7 +124,11 @@ def standardize_query(state: AgentState) -> dict:
                 result = structured_llm.invoke([HumanMessage(content=prompt)])
                 if isinstance(result, StandardizeOutput):
                     if not result.need_rewrite:
-                        return {"question": standardized, "rewrite_confidence": 1.0, "current_step": "standardize_query"}
+                        return {
+                            "question": standardized,
+                            "rewrite_confidence": 1.0,
+                            "current_step": "standardize_query",
+                        }
                     rewritten = result.rewritten.strip().strip("。？！")
                     _, _, rewrite_min_len = _get_standardize_limits()
                     rw_conf = result.rewrite_confidence
@@ -134,9 +138,12 @@ def standardize_query(state: AgentState) -> dict:
                             standardized = rewritten
                         else:
                             logger.warning(f"改写置信度低({rw_conf:.2f})，拒绝LLM改写，使用规则结果")
-                    return {"question": standardized, "rewrite_confidence": rw_conf, "current_step": "standardize_query"}
+                    return {
+                        "question": standardized,
+                        "rewrite_confidence": rw_conf,
+                        "current_step": "standardize_query",
+                    }
             except Exception as e:
-
                 logger.warning(f"结构化输出调用失败，降级为JSON解析: {e}")
 
         llm = get_llm()
@@ -190,7 +197,7 @@ def _is_already_standard(text: str) -> bool:
     min_len, max_len, _ = _get_standardize_limits()
     if len(text) < min_len or len(text) > max_len:
         return False
-    if re.search(r'[。.；;]', text):
+    if re.search(r"[。.；;]", text):
         return False
     has_subject = any(kw in text for kw in brand_keywords + subject_keywords)
     has_question_word = any(kw in text for kw in question_words)

@@ -1,6 +1,6 @@
 import os
 
-os.environ['ETC_QA_ENV'] = os.environ.get('ETC_QA_ENV', 'test')
+os.environ["ETC_QA_ENV"] = os.environ.get("ETC_QA_ENV", "test")
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -93,9 +93,7 @@ def eval_hyde(case: dict) -> dict:
     if "hyde_count_min" in expected:
         checks["hyde_count"] = len(actual_hyde) >= expected["hyde_count_min"]
     if "must_preserve" in expected:
-        checks["preserve_keywords"] = all(
-            any(kw in hq for hq in actual_hyde) for kw in expected["must_preserve"]
-        )
+        checks["preserve_keywords"] = all(any(kw in hq for hq in actual_hyde) for kw in expected["must_preserve"])
 
     return {
         "pass": all(checks.values()) if checks else True,
@@ -136,7 +134,7 @@ def eval_rag(case: dict, qa_service: QAService) -> dict:
     question = case["input"]["question"]
     try:
         result = qa_service.query(question)
-        candidates = result.candidates if hasattr(result, 'candidates') else []
+        candidates = result.candidates if hasattr(result, "candidates") else []
         top_ids = [c.qa_id for c in candidates] if candidates else []
     except Exception as e:
         return {"pass": False, "error": str(e), "actual": {}}
@@ -220,26 +218,28 @@ def run_evaluation(golden: list[dict], pipelines: list[str] = None) -> dict:
             results["by_pipeline"][pipeline]["failed"] += 1
             results["failed"] += 1
 
-        results["cases"].append({
-            "id": case["id"],
-            "pipeline": pipeline,
-            "input": case["input"],
-            "expected": case["expected"],
-            "result": eval_result,
-        })
+        results["cases"].append(
+            {
+                "id": case["id"],
+                "pipeline": pipeline,
+                "input": case["input"],
+                "expected": case["expected"],
+                "result": eval_result,
+            }
+        )
 
     return results
 
 
 def format_report(results: dict, label: str = "") -> str:
     lines = []
-    lines.append(f"{'='*60}")
+    lines.append(f"{'=' * 60}")
     lines.append(f"提示词评估报告 {label}")
     lines.append(f"时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    lines.append(f"{'='*60}")
+    lines.append(f"{'=' * 60}")
     lines.append(f"总计: {results['total']} | 通过: {results['passed']} | 失败: {results['failed']}")
-    if results['total'] > 0:
-        lines.append(f"通过率: {results['passed']/results['total']*100:.1f}%")
+    if results["total"] > 0:
+        lines.append(f"通过率: {results['passed'] / results['total'] * 100:.1f}%")
     lines.append("")
 
     for pipeline, stats in results["by_pipeline"].items():
@@ -265,9 +265,9 @@ def format_report(results: dict, label: str = "") -> str:
 
 def format_diff(before: dict, after: dict) -> str:
     lines = []
-    lines.append(f"{'='*60}")
+    lines.append(f"{'=' * 60}")
     lines.append("DIFF 报告（新版 vs 旧版）")
-    lines.append(f"{'='*60}")
+    lines.append(f"{'=' * 60}")
 
     before_rate = before["passed"] / before["total"] * 100 if before["total"] > 0 else 0
     after_rate = after["passed"] / after["total"] * 100 if after["total"] > 0 else 0

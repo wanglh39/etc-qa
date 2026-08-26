@@ -1,9 +1,9 @@
 import os
 
-os.environ['ETC_QA_ENV'] = os.environ.get('ETC_QA_ENV', 'test')
+os.environ["ETC_QA_ENV"] = os.environ.get("ETC_QA_ENV", "test")
 import sys
 
-sys.path.insert(0, '.')
+sys.path.insert(0, ".")
 import csv
 
 from agent.graph import ingest_agent
@@ -12,7 +12,11 @@ from utils.config import load_config
 
 _cfg = load_config()
 PROJECT_ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
-CSV_PATH = sys.argv[1] if len(sys.argv) > 1 else os.path.join(PROJECT_ROOT, _cfg.get("data", {}).get("work_order_csv", "data/eval/work_orders_200.csv"))
+CSV_PATH = (
+    sys.argv[1]
+    if len(sys.argv) > 1
+    else os.path.join(PROJECT_ROOT, _cfg.get("data", {}).get("work_order_csv", "data/eval/work_orders_200.csv"))
+)
 MAX_ROWS = int(sys.argv[2]) if len(sys.argv) > 2 else 10
 DRY_RUN = "--commit" not in sys.argv
 
@@ -25,7 +29,7 @@ with open(CSV_PATH, encoding="utf-8-sig") as f:
 rows = rows[:MAX_ROWS]
 
 out_path = os.path.join(os.path.dirname(__file__), "import_work_orders_output.txt")
-with open(out_path, 'w', encoding='utf-8') as f:
+with open(out_path, "w", encoding="utf-8") as f:
     f.write(f"input: {CSV_PATH}\n")
     f.write(f"rows: {len(rows)}, max: {MAX_ROWS}, dry_run: {DRY_RUN}\n\n")
 
@@ -68,7 +72,7 @@ with open(out_path, 'w', encoding='utf-8') as f:
             cat = ""
             error = str(e)
 
-        f.write(f"[{i+1}] {order_id}\n")
+        f.write(f"[{i + 1}] {order_id}\n")
         f.write(f"  raw_q: {question[:60]}\n")
         f.write(f"  raw_a: {answer[:60]}\n")
         f.write(f"  std_q: {std_q}\n")
@@ -81,7 +85,7 @@ with open(out_path, 'w', encoding='utf-8') as f:
         f.write("\n")
 
         if (i + 1) % 5 == 0:
-            f.write(f"  --- {i+1}/{len(rows)} ---\n")
+            f.write(f"  --- {i + 1}/{len(rows)} ---\n")
             f.flush()
 
     f.write(f"\nDone. {len(rows)} work orders processed.\n")

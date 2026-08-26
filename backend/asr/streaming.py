@@ -83,6 +83,7 @@ class LocalStreamingBackend(StreamingBackend):
             return
 
         import numpy as np
+
         audio_data = np.frombuffer(chunk, dtype=np.int16).astype(np.float32) / 32768.0
 
         is_final = False
@@ -110,6 +111,7 @@ class LocalStreamingBackend(StreamingBackend):
         self._running = False
         if self._model and self._cache is not None:
             import numpy as np
+
             audio_data = np.zeros(1, dtype=np.float32)
             result = self._model.generate(
                 input=audio_data,
@@ -222,7 +224,7 @@ class PseudoStreamingBackend(StreamingBackend):
         with self._lock:
             self._audio_buffer.extend(chunk)
             audio_np = np.frombuffer(chunk, dtype=np.int16).astype(np.float32) / 32768.0
-            rms = np.sqrt(np.mean(audio_np ** 2)) if len(audio_np) > 0 else 0.0
+            rms = np.sqrt(np.mean(audio_np**2)) if len(audio_np) > 0 else 0.0
 
             if rms < self._silence_threshold:
                 self._silence_samples += len(audio_np)
@@ -274,7 +276,6 @@ class AliCloudStreamingBackend(StreamingBackend):
         if self._callback:
             self._callback.on_final("", is_end=True)
         logger.info("阿里云流式ASR连接关闭")
-
 
 
 class StreamingASRService:

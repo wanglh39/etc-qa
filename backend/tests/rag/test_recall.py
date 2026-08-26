@@ -10,19 +10,24 @@ class TestRecallEngine:
         self.mock_bm25 = MagicMock()
         self.mock_config = {
             "recall": {
-                "vector_top_k": 10, "bm25_top_k": 10,
-                "merge_method": "rrf", "rrf_k": 60,
-                "vector_weight": 0.7, "bm25_weight": 0.3,
+                "vector_top_k": 10,
+                "bm25_top_k": 10,
+                "merge_method": "rrf",
+                "rrf_k": 60,
+                "vector_weight": 0.7,
+                "bm25_weight": 0.3,
             },
             "models": {"query_prefix": "为这个句子生成表示以用于检索相关文章："},
         }
         import utils.config as cfg_module
+
         self._original_get = getattr(cfg_module, "get_config", None)
         cfg_module.get_config = lambda: self.mock_config
         self.engine = RecallEngine(self.mock_embed, self.mock_milvus, self.mock_bm25)
 
     def teardown_method(self):
         import utils.config as cfg_module
+
         if self._original_get:
             cfg_module.get_config = self._original_get
 

@@ -62,7 +62,10 @@ class TestSyncAndIngestTask:
     @patch("scheduler.tasks.ingest_agent")
     @patch("scheduler.tasks.get_config")
     def test_no_work_orders(self, mock_cfg, mock_agent, mock_wo, mock_mysql, mock_log):
-        mock_cfg.return_value = {"work_order": {"use_mock": True}, "scheduler": {"jobs": {"sync_and_ingest": {"dedup_threshold": 0.85}}}}
+        mock_cfg.return_value = {
+            "work_order": {"use_mock": True},
+            "scheduler": {"jobs": {"sync_and_ingest": {"dedup_threshold": 0.85}}},
+        }
         mock_mysql_inst = MagicMock()
         mock_mysql.return_value = mock_mysql_inst
         mock_mysql_inst.get_work_orders_by_status.return_value = []
@@ -83,14 +86,29 @@ class TestSyncAndIngestTask:
     @patch("scheduler.tasks.ingest_agent")
     @patch("scheduler.tasks.get_config")
     def test_full_flow_with_dedup(self, mock_cfg, mock_agent, mock_wo, mock_mysql, mock_log):
-        mock_cfg.return_value = {"work_order": {"use_mock": True}, "scheduler": {"jobs": {"sync_and_ingest": {"dedup_threshold": 0.85}}}}
+        mock_cfg.return_value = {
+            "work_order": {"use_mock": True},
+            "scheduler": {"jobs": {"sync_and_ingest": {"dedup_threshold": 0.85}}},
+        }
         mock_mysql_inst = MagicMock()
         mock_mysql.return_value = mock_mysql_inst
 
         mock_mysql_inst.get_work_orders_by_status.side_effect = [
             [],
-            [{"id": 1, "external_id": "WO-001", "raw_data": json.dumps({"question": "ETC扣费异常", "answer": "检查设备"})}],
-            [{"id": 1, "external_id": "WO-001", "raw_data": json.dumps({"question": "ETC扣费异常", "answer": "检查设备", "category_l1": "扣费"})}],
+            [
+                {
+                    "id": 1,
+                    "external_id": "WO-001",
+                    "raw_data": json.dumps({"question": "ETC扣费异常", "answer": "检查设备"}),
+                }
+            ],
+            [
+                {
+                    "id": 1,
+                    "external_id": "WO-001",
+                    "raw_data": json.dumps({"question": "ETC扣费异常", "answer": "检查设备", "category_l1": "扣费"}),
+                }
+            ],
         ]
         mock_mysql_inst.get_all_questions.return_value = [{"question": "高速公路限速是多少"}]
         mock_mysql_inst.insert_qa_with_status.return_value = 99
@@ -115,14 +133,22 @@ class TestSyncAndIngestTask:
     @patch("scheduler.tasks.ingest_agent")
     @patch("scheduler.tasks.get_config")
     def test_duplicate_rejected(self, mock_cfg, mock_agent, mock_wo, mock_mysql, mock_log):
-        mock_cfg.return_value = {"work_order": {"use_mock": True}, "scheduler": {"jobs": {"sync_and_ingest": {"dedup_threshold": 0.85}}}}
+        mock_cfg.return_value = {
+            "work_order": {"use_mock": True},
+            "scheduler": {"jobs": {"sync_and_ingest": {"dedup_threshold": 0.85}}},
+        }
         mock_mysql_inst = MagicMock()
         mock_mysql.return_value = mock_mysql_inst
 
         mock_mysql_inst.get_work_orders_by_status.side_effect = [
             [],
-
-            [{"id": 1, "external_id": "WO-001", "raw_data": json.dumps({"question": "ETC扣费异常怎么处理", "answer": "检查设备"})}],
+            [
+                {
+                    "id": 1,
+                    "external_id": "WO-001",
+                    "raw_data": json.dumps({"question": "ETC扣费异常怎么处理", "answer": "检查设备"}),
+                }
+            ],
         ]
         mock_mysql_inst.get_all_questions.return_value = [{"question": "ETC扣费异常怎么处理"}]
 

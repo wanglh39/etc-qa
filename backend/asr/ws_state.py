@@ -124,6 +124,7 @@ class VADSilenceDetector:
             return
         try:
             import torch
+
             model, utils = torch.hub.load(
                 repo_or_dir="snakers4/silero-vad",
                 model="silero_vad",
@@ -139,6 +140,7 @@ class VADSilenceDetector:
         try:
             import numpy as np
             import torch
+
             audio_data = np.frombuffer(audio_chunk, dtype=np.int16).astype(np.float32) / 32768.0
             if len(audio_data) == 0:
                 return
@@ -147,7 +149,9 @@ class VADSilenceDetector:
                 return
             audio_tensor = torch.from_numpy(audio_data).float()
             timestamps = self._get_speech_timestamps(
-                audio_tensor, self._model, sampling_rate=16000,
+                audio_tensor,
+                self._model,
+                sampling_rate=16000,
                 min_speech_duration_ms=100,
                 min_silence_duration_ms=int(self._silence_threshold * 1000),
                 speech_pad_ms=200,

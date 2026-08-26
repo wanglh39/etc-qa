@@ -5,6 +5,7 @@
   2. python scripts/generate_asr_samples.py
 输出：data/asr_samples/ 目录下10个wav文件 + 1个metadata.json
 """
+
 import asyncio
 import json
 import os
@@ -32,6 +33,7 @@ VOICE = "zh-CN-XiaoxiaoNeural"
 
 async def synthesize(text: str, output_path: str):
     import edge_tts
+
     communicate = edge_tts.Communicate(text, VOICE)
     await communicate.save(output_path)
 
@@ -55,6 +57,7 @@ async def main():
 
         try:
             from pydub import AudioSegment
+
             audio = AudioSegment.from_mp3(mp3_path)
             audio.export(filepath, format="wav")
             os.remove(mp3_path)
@@ -62,11 +65,13 @@ async def main():
             if os.path.exists(mp3_path):
                 os.rename(mp3_path, filepath)
 
-        metadata.append({
-            "filename": filename,
-            "text": question,
-            "sample_id": i,
-        })
+        metadata.append(
+            {
+                "filename": filename,
+                "text": question,
+                "sample_id": i,
+            }
+        )
 
     meta_path = os.path.join(OUTPUT_DIR, "metadata.json")
     with open(meta_path, "w", encoding="utf-8") as f:
@@ -75,7 +80,7 @@ async def main():
     print(f"\n完成！共生成 {len(metadata)} 个音频文件到 {OUTPUT_DIR}")
     print(f"元数据: {meta_path}")
     print("\n演示命令:")
-    print(f"  curl -X POST http://localhost:8000/api/v1/asr -F \"file=@{OUTPUT_DIR}/sample_01.wav\"")
+    print(f'  curl -X POST http://localhost:8000/api/v1/asr -F "file=@{OUTPUT_DIR}/sample_01.wav"')
 
 
 if __name__ == "__main__":

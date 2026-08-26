@@ -18,10 +18,12 @@ def prepare_data(audio_dir: str, label_file: str, output_dir: str):
     for item in labels:
         audio_path = os.path.join(audio_dir, item["audio"])
         if os.path.exists(audio_path):
-            samples.append({
-                "audio": audio_path,
-                "text": item["text"],
-            })
+            samples.append(
+                {
+                    "audio": audio_path,
+                    "text": item["text"],
+                }
+            )
 
     output_file = os.path.join(output_dir, "train_data.json")
     with open(output_file, "w", encoding="utf-8") as f:

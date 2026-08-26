@@ -178,7 +178,13 @@ class TestAlertFlowAllRules:
             assert rule.id
             assert rule.name
             assert rule.metric
-            assert rule.check_type in ("failure_rate", "failure_count", "p95_latency", "avg_latency", "consecutive_failure")
+            assert rule.check_type in (
+                "failure_rate",
+                "failure_count",
+                "p95_latency",
+                "avg_latency",
+                "consecutive_failure",
+            )
             assert rule.window > 0
             assert rule.threshold >= 0
             assert rule.severity in ("P0", "P1", "P2")

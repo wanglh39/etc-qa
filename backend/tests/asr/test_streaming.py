@@ -77,9 +77,7 @@ class TestAliCloudStreamingBackend:
         assert cb.finals[-1]["is_end"] is True
 
     def test_send_audio_not_running(self):
-        backend = AliCloudStreamingBackend(
-            app_key="test", access_key_id="test", access_key_secret="test"
-        )
+        backend = AliCloudStreamingBackend(app_key="test", access_key_id="test", access_key_secret="test")
         backend.send_audio(b"\x00" * 100)
 
 
@@ -92,9 +90,7 @@ class TestStreamingASRService:
 
     @patch("asr.streaming.get_config")
     def test_enabled_local(self, mock_cfg):
-        mock_cfg.return_value = {
-            "asr": {"streaming": {"enabled": True, "mode": "local", "device": "cpu"}}
-        }
+        mock_cfg.return_value = {"asr": {"streaming": {"enabled": True, "mode": "local", "device": "cpu"}}}
         svc = StreamingASRService()
         assert svc.enabled is True
         assert svc.mode == "local"
@@ -129,9 +125,7 @@ class TestStreamingASRService:
 
     @patch("asr.streaming.get_config")
     def test_health(self, mock_cfg):
-        mock_cfg.return_value = {
-            "asr": {"streaming": {"enabled": True, "mode": "local"}}
-        }
+        mock_cfg.return_value = {"asr": {"streaming": {"enabled": True, "mode": "local"}}}
         svc = StreamingASRService()
         h = svc.health()
         assert h["enabled"] is True
@@ -139,9 +133,7 @@ class TestStreamingASRService:
 
     @patch("asr.streaming.get_config")
     def test_start_stream_reuses_backend(self, mock_cfg):
-        mock_cfg.return_value = {
-            "asr": {"streaming": {"enabled": True, "mode": "local"}}
-        }
+        mock_cfg.return_value = {"asr": {"streaming": {"enabled": True, "mode": "local"}}}
         svc = StreamingASRService()
         mock_backend = MagicMock()
         svc._create_backend = MagicMock(return_value=mock_backend)
@@ -156,9 +148,7 @@ class TestStreamingASRService:
 
     @patch("asr.streaming.get_config")
     def test_stop_stream_preserves_backend(self, mock_cfg):
-        mock_cfg.return_value = {
-            "asr": {"streaming": {"enabled": True, "mode": "local"}}
-        }
+        mock_cfg.return_value = {"asr": {"streaming": {"enabled": True, "mode": "local"}}}
         svc = StreamingASRService()
         mock_backend = MagicMock()
         svc._create_backend = MagicMock(return_value=mock_backend)
@@ -171,9 +161,7 @@ class TestStreamingASRService:
 
     @patch("asr.streaming.get_config")
     def test_start_stream_creates_backend_only_once_across_stop(self, mock_cfg):
-        mock_cfg.return_value = {
-            "asr": {"streaming": {"enabled": True, "mode": "local"}}
-        }
+        mock_cfg.return_value = {"asr": {"streaming": {"enabled": True, "mode": "local"}}}
         svc = StreamingASRService()
         mock_backend = MagicMock()
         svc._create_backend = MagicMock(return_value=mock_backend)
@@ -228,11 +216,14 @@ class TestLocalStreamingLoadModel:
         mock_cfg.return_value = {"asr": {"streaming": {}}}
         backend = LocalStreamingBackend()
         import builtins
+
         real_import = builtins.__import__
+
         def mock_import(name, *args, **kwargs):
             if name == "funasr":
                 raise ImportError("not installed")
             return real_import(name, *args, **kwargs)
+
         with patch("builtins.__import__", side_effect=mock_import):
             try:
                 backend._load_model()
@@ -334,9 +325,7 @@ class TestStreamingBackendWarmup:
             mock_load.assert_called_once()
 
     def test_alicloud_backend_warmup_noop(self):
-        backend = AliCloudStreamingBackend(
-            app_key="test", access_key_id="test", access_key_secret="test"
-        )
+        backend = AliCloudStreamingBackend(app_key="test", access_key_id="test", access_key_secret="test")
         backend.warmup()
 
 
@@ -434,11 +423,14 @@ class TestPseudoStreamingLoadModel:
         mock_cfg.return_value = {"asr": {}}
         backend = PseudoStreamingBackend()
         import builtins
+
         real_import = builtins.__import__
+
         def mock_import(name, *args, **kwargs):
             if name == "funasr":
                 raise ImportError("not installed")
             return real_import(name, *args, **kwargs)
+
         with patch("builtins.__import__", side_effect=mock_import):
             try:
                 backend._load_model()
@@ -486,9 +478,7 @@ class TestPseudoStreamingProcessUtterance:
     @patch("asr.streaming.get_config")
     def test_with_hotwords(self, mock_cfg):
         mock_cfg.return_value = {"asr": {}}
-        backend = PseudoStreamingBackend(
-            min_utterance_ms=300, sample_rate=16000, hotwords=["ETC", "OBU"]
-        )
+        backend = PseudoStreamingBackend(min_utterance_ms=300, sample_rate=16000, hotwords=["ETC", "OBU"])
         backend._audio_buffer = bytearray(b"\x00" * 9600)
         backend._model = MagicMock()
         backend._model.generate.return_value = []

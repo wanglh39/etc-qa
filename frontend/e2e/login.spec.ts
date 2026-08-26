@@ -1,12 +1,15 @@
 import { test, expect, type Page } from '@playwright/test'
 
+const MOCK_TOKEN =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjk5OTk5OTk5OTksInJvbGUiOiJhZG1pbiIsInN1YiI6ImFkbWluIn0.mock'
+
 async function mockAuthApis(page: Page) {
   await page.route('**/api/auth/login', (route) => {
     route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        access_token: 'mock-token',
+        access_token: MOCK_TOKEN,
         role: 'admin',
         dept: '',
         username: 'admin',

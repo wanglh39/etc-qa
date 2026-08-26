@@ -95,6 +95,7 @@ def create_service():
     if asr_enabled:
         logger.info("预热流式ASR模型...")
         from asr.streaming import get_streaming_service
+
         get_streaming_service().warmup()
     else:
         logger.info("ASR未启用，跳过模型预热")

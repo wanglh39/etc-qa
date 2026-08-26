@@ -23,10 +23,7 @@ class WorkOrderClient:
 
     def fetch_processed_work_orders(self, since: str = "") -> list[dict]:
         if self.use_mock:
-            return [
-                v for v in self._mock_store.values()
-                if v["status"] == "processed"
-            ]
+            return [v for v in self._mock_store.values() if v["status"] == "processed"]
         return self._real_fetch(since)
 
     def _real_create(self, question: str, category: str) -> str:

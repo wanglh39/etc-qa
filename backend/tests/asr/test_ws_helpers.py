@@ -113,12 +113,14 @@ class TestCharOverlapRatio:
 class TestGetRecentAudio:
     def test_returns_all_when_under_window(self):
         from collections import deque
+
         chunks = deque([b"\x00" * 1600, b"\x00" * 1600], maxlen=500)
         result = _get_recent_audio(chunks, window_seconds=1.0, sample_rate=16000)
         assert len(result) == 2
 
     def test_truncates_to_window(self):
         from collections import deque
+
         chunks = deque([b"\x00" * 32000] * 10, maxlen=500)
         result = _get_recent_audio(chunks, window_seconds=0.5, sample_rate=16000)
         total = sum(len(c) for c in result)
@@ -127,12 +129,14 @@ class TestGetRecentAudio:
 
     def test_empty_chunks(self):
         from collections import deque
+
         chunks = deque(maxlen=500)
         result = _get_recent_audio(chunks, window_seconds=1.0, sample_rate=16000)
         assert result == []
 
     def test_preserves_order(self):
         from collections import deque
+
         chunks = deque([b"AAA", b"BBB", b"CCC"], maxlen=500)
         result = _get_recent_audio(chunks, window_seconds=1.0, sample_rate=16000)
         assert b"".join(result) == b"AAABBBCCC"
@@ -141,6 +145,7 @@ class TestGetRecentAudio:
 class TestExtractChannel:
     def test_extract_left_channel(self):
         import numpy as np
+
         stereo = np.array([[100, 200], [300, 400], [500, 600]], dtype=np.int16)
         audio_bytes = stereo.tobytes()
         result = _extract_channel(audio_bytes, "left")
@@ -149,6 +154,7 @@ class TestExtractChannel:
 
     def test_extract_right_channel(self):
         import numpy as np
+
         stereo = np.array([[100, 200], [300, 400], [500, 600]], dtype=np.int16)
         audio_bytes = stereo.tobytes()
         result = _extract_channel(audio_bytes, "right")
@@ -161,12 +167,14 @@ class TestExtractChannel:
 
     def test_odd_samples_returns_original(self):
         import numpy as np
+
         mono = np.array([100, 200, 300], dtype=np.int16)
         audio_bytes = mono.tobytes()
         assert _extract_channel(audio_bytes, "left") == audio_bytes
 
     def test_silence_channel(self):
         import numpy as np
+
         stereo = np.array([[0, 500], [0, 600]], dtype=np.int16)
         result = _extract_channel(stereo.tobytes(), "left")
         result_np = np.frombuffer(result, dtype=np.int16)
@@ -176,6 +184,7 @@ class TestExtractChannel:
 class TestDoQuery:
     def test_returns_none_when_service_none(self):
         import sys
+
         mock_mod = MagicMock()
         mock_mod.service = None
         with patch.dict(sys.modules, {"api.routes": mock_mod}):
@@ -186,6 +195,7 @@ class TestDoQuery:
         import sys
 
         from models.schemas import QueryResponse
+
         mock_mod = MagicMock()
         mock_mod.service.query.return_value = QueryResponse(
             query="ETC扣费", confidence="high", candidates=[], total_candidates=0
@@ -197,6 +207,7 @@ class TestDoQuery:
 
     def test_returns_none_on_exception(self):
         import sys
+
         mock_mod = MagicMock()
         mock_mod.service.query.side_effect = RuntimeError("fail")
         with patch.dict(sys.modules, {"api.routes": mock_mod}):

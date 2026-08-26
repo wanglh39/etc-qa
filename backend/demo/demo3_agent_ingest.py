@@ -27,14 +27,14 @@ def demo_clean_text(question, answer):
     print(f"\n{SEP}")
     print("步骤1: clean_text（防御性清洗）")
     print(SEP)
-    print(f"  问题输入: \"{question}\"")
-    print(f"  答案输入: \"{answer}\"")
+    print(f'  问题输入: "{question}"')
+    print(f'  答案输入: "{answer}"')
 
     state = AgentState(raw_question=question, raw_answer=answer)
     result = clean_text(state)
 
-    print(f"  问题输出: \"{result['question']}\"")
-    print(f"  答案输出: \"{result['answer']}\"")
+    print(f'  问题输出: "{result["question"]}"')
+    print(f'  答案输出: "{result["answer"]}"')
 
     return result["question"], result["answer"]
 
@@ -46,17 +46,17 @@ def demo_structure_ingest(question, answer):
     print(f"\n{SEP}")
     print("步骤2: structure_ingest（结构化规整+分类）")
     print(SEP)
-    print(f"  输入: \"{question}\"")
+    print(f'  输入: "{question}"')
 
     state = AgentState(raw_question=question, question=question, answer=answer)
     t0 = time.time()
     result = structure_ingest(state)
     elapsed = time.time() - t0
 
-    print(f"  改写后问题: \"{result.get('question', question)}\"")
-    print(f"  结构化答案: \"{result.get('answer', '')}\"")
-    print(f"  内部流程: \"{result.get('internal_process', '')}\"")
-    print(f"  反馈部门: \"{result.get('feedback_dept', '')}\"")
+    print(f'  改写后问题: "{result.get("question", question)}"')
+    print(f'  结构化答案: "{result.get("answer", "")}"')
+    print(f'  内部流程: "{result.get("internal_process", "")}"')
+    print(f'  反馈部门: "{result.get("feedback_dept", "")}"')
     print(f"  一级分类: {result.get('category_l1', '')}")
     print(f"  二级分类: {result.get('category_l2', '')}")
     print(f"  分类置信度: {result.get('category_confidence', 'N/A')}")
@@ -73,7 +73,7 @@ def demo_hyde_rewrite(question, answer):
     print(f"\n{SEP}")
     print("步骤3: hyde_rewrite（条件改写）")
     print(SEP)
-    print(f"  输入: \"{question}\"")
+    print(f'  输入: "{question}"')
     print("  判断是否需要HyDE改写...")
 
     state = AgentState(raw_question=question, question=question, answer=answer)
@@ -89,7 +89,7 @@ def demo_hyde_rewrite(question, answer):
     if need_rewrite and hyde_questions:
         print(f"  生成的假设性问题:")
         for j, hq in enumerate(hyde_questions, 1):
-            print(f"    {j}. \"{hq}\"")
+            print(f'    {j}. "{hq}"')
     elif not need_rewrite:
         print("  跳过改写（问题已足够标准）")
     print(f"  耗时: {elapsed:.2f}s")
@@ -119,8 +119,8 @@ def main():
     for i, tc in enumerate(test_cases, 1):
         print(f"\n{'#' * 60}")
         print(f"  测试用例 {i}/{len(test_cases)}")
-        print(f"  工单问题: \"{tc['question']}\"")
-        print(f"  工单答案: \"{tc['answer']}\"")
+        print(f'  工单问题: "{tc["question"]}"')
+        print(f'  工单答案: "{tc["answer"]}"')
         print(f"{'#' * 60}")
 
         cleaned_q, cleaned_a = demo_clean_text(tc["question"], tc["answer"])
@@ -131,8 +131,8 @@ def main():
         )
 
         print(f"\n  📌 最终入库条目:")
-        print(f"    问题: \"{ingest_result.get('question', cleaned_q)}\"")
-        print(f"    答案: \"{ingest_result.get('answer', cleaned_a)}\"")
+        print(f'    问题: "{ingest_result.get("question", cleaned_q)}"')
+        print(f'    答案: "{ingest_result.get("answer", cleaned_a)}"')
         print(f"    分类: {ingest_result.get('category_l1', '')}/{ingest_result.get('category_l2', '')}")
 
         if i < len(test_cases):

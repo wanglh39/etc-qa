@@ -1,9 +1,9 @@
 import os
 
-os.environ['ETC_QA_ENV'] = os.environ.get('ETC_QA_ENV', 'test')
+os.environ["ETC_QA_ENV"] = os.environ.get("ETC_QA_ENV", "test")
 import sys
 
-sys.path.insert(0, '.')
+sys.path.insert(0, ".")
 import csv
 
 from agent.processors.standardize_query import standardize_query
@@ -117,29 +117,36 @@ for i, item in enumerate(test_data):
         hits[name]["mrr"] += mrr
 
         config_results[name] = {
-            "h1": h1, "h3": h3, "mrr": mrr,
+            "h1": h1,
+            "h3": h3,
+            "mrr": mrr,
             "top1_id": top_ids[0] if top_ids else None,
             "top1_q": qa_pairs_dict.get(top_ids[0], {}).get("question", "") if top_ids else "",
             "top1_score": top_scores[0] if top_scores else 0,
         }
 
-    per_query_results.append({
-        "raw": raw, "std": std, "expected_id": expected_id,
-        "expected_q": expected_question, "configs": config_results,
-    })
+    per_query_results.append(
+        {
+            "raw": raw,
+            "std": std,
+            "expected_id": expected_id,
+            "expected_q": expected_question,
+            "configs": config_results,
+        }
+    )
 
     if (i + 1) % 50 == 0:
-        print(f"  {i+1}/{len(test_data)}", end=" ")
+        print(f"  {i + 1}/{len(test_data)}", end=" ")
         for name, _, _ in configs:
-            print(f"{name}:R@1={hits[name]['h1']/total:.4f}", end=" ")
+            print(f"{name}:R@1={hits[name]['h1'] / total:.4f}", end=" ")
         print()
 
 out_dir = os.path.join(os.path.dirname(__file__), "..", "..", "output")
 os.makedirs(out_dir, exist_ok=True)
 out_path = os.path.join(out_dir, "eval_rag_report.txt")
-with open(out_path, 'w', encoding='utf-8') as f:
+with open(out_path, "w", encoding="utf-8") as f:
     f.write("RAG Evaluation Report\n")
-    f.write(f"{'='*80}\n")
+    f.write(f"{'=' * 80}\n")
     f.write(f"Test: {len(test_data)}, Valid: {total}, Missed: {missed}\n")
     f.write(f"Reranker: enabled ({cfg['models']['rerank']['name']})\n\n")
 
@@ -169,9 +176,11 @@ with open(out_path, 'w', encoding='utf-8') as f:
         f.write(f"  Got: [{bl['top1_id']}] {bl['top1_q']} (score={bl['top1_score']:.4f})\n")
         f.write(f"  In top3: {'Yes' if bl['h3'] else 'No'}\n\n")
 
-    improved = [r for r in per_query_results
-                if not r["configs"]["baseline"]["h3"]
-                and any(r["configs"][n]["h3"] for n, _, _ in configs if n != "baseline")]
+    improved = [
+        r
+        for r in per_query_results
+        if not r["configs"]["baseline"]["h3"] and any(r["configs"][n]["h3"] for n, _, _ in configs if n != "baseline")
+    ]
     if improved:
         f.write(f"--- Cases baseline missed but enhanced hit (R@3): {len(improved)} ---\n")
         for r in improved[:20]:

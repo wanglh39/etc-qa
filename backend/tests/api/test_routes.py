@@ -141,21 +141,30 @@ class TestAgentProcessAPI:
         assert exc.value.status_code == 429
 
 
-
 class TestQAListAPI:
     def test_list_qa(self):
         mock_mysql = MagicMock()
         mock_mysql.get_qa_list.return_value = {
             "items": [
-                {"id": 1, "question": "ETC扣费异常", "answer": "核实退款",
-                 "category_l1": "账单问题", "category_l2": "ETC扣费",
-                 "status": "active", "created_at": "2024-01-01", "updated_at": "2024-01-01"},
+                {
+                    "id": 1,
+                    "question": "ETC扣费异常",
+                    "answer": "核实退款",
+                    "category_l1": "账单问题",
+                    "category_l2": "ETC扣费",
+                    "status": "active",
+                    "created_at": "2024-01-01",
+                    "updated_at": "2024-01-01",
+                },
             ],
-            "total": 1, "page": 1, "page_size": 20,
+            "total": 1,
+            "page": 1,
+            "page_size": 20,
         }
         set_mysql_client(mock_mysql)
 
         from api.routes import list_qa
+
         result = list_qa(page=1, page_size=20)
         assert result.total == 1
         assert len(result.items) == 1
@@ -163,6 +172,7 @@ class TestQAListAPI:
     def test_list_qa_no_service(self):
         set_mysql_client(None)
         from api.routes import list_qa
+
         with pytest.raises(Exception):
             list_qa()
 
@@ -171,14 +181,21 @@ class TestQADetailAPI:
     def test_get_qa_detail(self):
         mock_mysql = MagicMock()
         mock_mysql.get_qa_detail.return_value = {
-            "id": 1, "question": "ETC扣费异常", "answer": "核实退款",
-            "category_l1": "账单问题", "category_l2": "ETC扣费",
-            "internal_process": "核实", "feedback_dept": "账单组",
-            "status": "active", "created_at": "2024-01-01", "updated_at": "2024-01-01",
+            "id": 1,
+            "question": "ETC扣费异常",
+            "answer": "核实退款",
+            "category_l1": "账单问题",
+            "category_l2": "ETC扣费",
+            "internal_process": "核实",
+            "feedback_dept": "账单组",
+            "status": "active",
+            "created_at": "2024-01-01",
+            "updated_at": "2024-01-01",
         }
         set_mysql_client(mock_mysql)
 
         from api.routes import get_qa_detail
+
         result = get_qa_detail(1)
         assert result.id == 1
 
@@ -188,6 +205,7 @@ class TestQADetailAPI:
         set_mysql_client(mock_mysql)
 
         from api.routes import get_qa_detail
+
         with pytest.raises(Exception):
             get_qa_detail(999)
 
@@ -201,6 +219,7 @@ class TestDeleteQAAPI:
         set_service(mock_service)
 
         from api.routes import delete_qa
+
         result = delete_qa(1)
         assert result["qa_id"] == 1
         mock_service.invalidate_active_ids_cache.assert_called_once()
@@ -211,6 +230,7 @@ class TestDeleteQAAPI:
         set_mysql_client(mock_mysql)
 
         from api.routes import delete_qa
+
         with pytest.raises(Exception):
             delete_qa(999)
 
@@ -220,15 +240,25 @@ class TestQASearchAPI:
         mock_mysql = MagicMock()
         mock_mysql.search_qa.return_value = {
             "items": [
-                {"id": 1, "question": "ETC扣费异常", "answer": "核实退款",
-                 "category_l1": "账单问题", "category_l2": "ETC扣费",
-                 "status": "active", "created_at": "2024-01-01", "updated_at": "2024-01-01"},
+                {
+                    "id": 1,
+                    "question": "ETC扣费异常",
+                    "answer": "核实退款",
+                    "category_l1": "账单问题",
+                    "category_l2": "ETC扣费",
+                    "status": "active",
+                    "created_at": "2024-01-01",
+                    "updated_at": "2024-01-01",
+                },
             ],
-            "total": 1, "page": 1, "page_size": 20,
+            "total": 1,
+            "page": 1,
+            "page_size": 20,
         }
         set_mysql_client(mock_mysql)
 
         from api.routes import search_qa
+
         req = QASearchRequest(keyword="ETC")
         result = search_qa(req)
         assert result.total == 1
@@ -243,6 +273,7 @@ class TestStatsAPI:
         set_mysql_client(mock_mysql)
 
         from api.routes import get_stats
+
         result = get_stats()
         assert result.qa_total == 13
         assert result.qa_active == 10
@@ -257,6 +288,7 @@ class TestCategoriesAPI:
         set_mysql_client(mock_mysql)
 
         from api.routes import get_categories
+
         result = get_categories()
         labels = [n["label"] for n in result["categories"]]
         assert "账单问题" in labels
@@ -299,14 +331,23 @@ class TestWorkOrderListAPI:
         mock_mysql = MagicMock()
         mock_mysql.get_work_order_list.return_value = {
             "items": [
-                {"id": 1, "external_id": "WO1", "raw_data": "test", "status": "submitted",
-                 "created_at": "2024-01-01", "updated_at": "2024-01-01"},
+                {
+                    "id": 1,
+                    "external_id": "WO1",
+                    "raw_data": "test",
+                    "status": "submitted",
+                    "created_at": "2024-01-01",
+                    "updated_at": "2024-01-01",
+                },
             ],
-            "total": 1, "page": 1, "page_size": 20,
+            "total": 1,
+            "page": 1,
+            "page_size": 20,
         }
         set_mysql_client(mock_mysql)
 
         from api.routes import list_work_orders
+
         result = list_work_orders(page=1, page_size=20, user=MOCK_USER)
         assert result.total == 1
 
@@ -525,9 +566,20 @@ class TestAuditHistoryAPI:
     def test_audit_history_success(self):
         mock_mysql = MagicMock()
         mock_mysql.get_audit_history.return_value = {
-            "items": [{"id": 1, "qa_id": 10, "question": "q", "answer": "a",
-                       "result": "pass", "operator": "admin", "created_at": "2024-01-01"}],
-            "total": 1, "page": 1, "page_size": 20,
+            "items": [
+                {
+                    "id": 1,
+                    "qa_id": 10,
+                    "question": "q",
+                    "answer": "a",
+                    "result": "pass",
+                    "operator": "admin",
+                    "created_at": "2024-01-01",
+                }
+            ],
+            "total": 1,
+            "page": 1,
+            "page_size": 20,
         }
         set_mysql_client(mock_mysql)
         result = audit_history(page=1, page_size=20)
@@ -589,8 +641,11 @@ class TestGetWorkOrderAPI:
     def test_get_work_order_success(self):
         mock_mysql = MagicMock()
         mock_mysql.get_work_order_detail.return_value = {
-            "id": 1, "external_id": "WO1", "raw_data": '{"service_id":"s1","customer_name":"张三"}',
-            "status": "submitted", "dept": "账单组",
+            "id": 1,
+            "external_id": "WO1",
+            "raw_data": '{"service_id":"s1","customer_name":"张三"}',
+            "status": "submitted",
+            "dept": "账单组",
         }
         set_mysql_client(mock_mysql)
         result = get_work_order(1, user={"sub": "u", "role": "admin"})
@@ -625,8 +680,13 @@ class TestReplyWorkOrderAPI:
         mock_mysql = MagicMock()
         mock_mysql.get_work_order_detail.side_effect = [
             {"id": 1, "external_id": "WO1", "raw_data": "{}", "status": "submitted", "dept": "账单组"},
-            {"id": 1, "external_id": "WO1", "raw_data": '{"handle_remark":"已处理","back_dept":"客服组"}',
-             "status": "processed", "dept": "账单组"},
+            {
+                "id": 1,
+                "external_id": "WO1",
+                "raw_data": '{"handle_remark":"已处理","back_dept":"客服组"}',
+                "status": "processed",
+                "dept": "账单组",
+            },
         ]
         set_mysql_client(mock_mysql)
         req = WorkOrderReplyRequest(handle_remark="已处理", back_dept="客服组")
@@ -691,8 +751,11 @@ class TestASRQueryAPI:
         mock_get.return_value = mock_asr
         mock_service = MagicMock()
         mock_service.query.return_value = MagicMock(
-            query="ETC扣费", standardized_query="ETC", confidence="high",
-            candidates=[], total_candidates=0,
+            query="ETC扣费",
+            standardized_query="ETC",
+            confidence="high",
+            candidates=[],
+            total_candidates=0,
         )
         set_service(mock_service)
         result = asyncio.run(asr_query(self._make_file(), "账单问题", user={"sub": "test"}))
@@ -765,16 +828,26 @@ class TestASRQueryAPI:
         assert exc.value.status_code == 500
 
 
-
 class TestUserAPI:
     MOCK_SUPER = {"sub": "superadmin", "role": "superadmin"}
 
     def test_list_users(self):
         mock_mysql = MagicMock()
         mock_mysql.list_users.return_value = {
-            "items": [{"id": 1, "username": "admin", "role": "admin", "dept": "", "status": "active",
-                        "created_at": "2024-01-01", "updated_at": "2024-01-01"}],
-            "total": 1, "page": 1, "page_size": 20,
+            "items": [
+                {
+                    "id": 1,
+                    "username": "admin",
+                    "role": "admin",
+                    "dept": "",
+                    "status": "active",
+                    "created_at": "2024-01-01",
+                    "updated_at": "2024-01-01",
+                }
+            ],
+            "total": 1,
+            "page": 1,
+            "page_size": 20,
         }
         set_mysql_client(mock_mysql)
         result = list_users(page=1, page_size=20)

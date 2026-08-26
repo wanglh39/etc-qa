@@ -43,10 +43,11 @@ def check_password_policy():
         stored = meta.get("password", "") or ""
         if needs_rehash(stored):
             if stored == "123456":
-                print(f"[安全告警] 账号 {username} 密码为默认弱密码 123456（明文），"
-                      f"请运行 scripts/setup/gen_password_hash.py 生成强密码哈希")
+                print(
+                    f"[安全告警] 账号 {username} 密码为默认弱密码 123456（明文），"
+                    f"请运行 scripts/setup/gen_password_hash.py 生成强密码哈希"
+                )
             else:
-                print(f"[安全告警] 账号 {username} 密码仍为明文，"
-                      f"请运行 scripts/setup/gen_password_hash.py 迁移为哈希")
+                print(f"[安全告警] 账号 {username} 密码仍为明文，请运行 scripts/setup/gen_password_hash.py 迁移为哈希")
         elif verify_password("123456", stored):
             print(f"[安全告警] 账号 {username} 仍使用默认弱密码 123456（已哈希），请尽快修改")

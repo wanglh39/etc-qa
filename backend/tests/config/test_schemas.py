@@ -48,8 +48,11 @@ class TestCacheConfig:
 class TestMysqlEnvConfig:
     def test_valid(self):
         c = MysqlEnvConfig(
-            host="localhost", port=3306, user="root",
-            password="123", database="test",
+            host="localhost",
+            port=3306,
+            user="root",
+            password="123",
+            database="test",
             pool=MysqlPoolConfig(max_usage=100, ping=5),
         )
         assert c.host == "localhost"
@@ -57,8 +60,11 @@ class TestMysqlEnvConfig:
     def test_port_invalid(self):
         with pytest.raises(Exception):
             MysqlEnvConfig(
-                host="localhost", port=0, user="root",
-                password="123", database="test",
+                host="localhost",
+                port=0,
+                user="root",
+                password="123",
+                database="test",
                 pool=MysqlPoolConfig(max_usage=100, ping=5),
             )
 
@@ -72,55 +78,98 @@ class TestMilvusEnvConfig:
 class TestLlmConfig:
     def test_valid(self):
         c = LlmConfig(
-            enabled=True, provider="openai", api_key="sk-xxx",
-            base_url="https://api.example.com", model="gpt-4",
-            temperature=0.1, max_tokens=1024,
+            enabled=True,
+            provider="openai",
+            api_key="sk-xxx",
+            base_url="https://api.example.com",
+            model="gpt-4",
+            temperature=0.1,
+            max_tokens=1024,
         )
         assert c.temperature == 0.0 or c.temperature >= 0
 
     def test_api_key_empty(self):
         with pytest.raises(Exception):
             LlmConfig(
-                enabled=True, provider="openai", api_key="",
-                base_url="https://api.example.com", model="gpt-4",
-                temperature=0.1, max_tokens=1024,
+                enabled=True,
+                provider="openai",
+                api_key="",
+                base_url="https://api.example.com",
+                model="gpt-4",
+                temperature=0.1,
+                max_tokens=1024,
             )
 
     def test_api_key_env_placeholder(self):
         with pytest.raises(Exception):
             LlmConfig(
-                enabled=True, provider="openai", api_key="${DEEPSEEK_KEY}",
-                base_url="https://api.example.com", model="gpt-4",
-                temperature=0.1, max_tokens=1024,
+                enabled=True,
+                provider="openai",
+                api_key="${DEEPSEEK_KEY}",
+                base_url="https://api.example.com",
+                model="gpt-4",
+                temperature=0.1,
+                max_tokens=1024,
             )
 
     def test_temperature_out_of_range(self):
         with pytest.raises(Exception):
             LlmConfig(
-                enabled=True, provider="openai", api_key="sk-xxx",
-                base_url="https://api.example.com", model="gpt-4",
-                temperature=3.0, max_tokens=1024,
+                enabled=True,
+                provider="openai",
+                api_key="sk-xxx",
+                base_url="https://api.example.com",
+                model="gpt-4",
+                temperature=3.0,
+                max_tokens=1024,
             )
 
 
 class TestThresholdConfig:
     def test_gap_mode(self):
-        c = ThresholdConfig(mode="gap", gap_high=0.15, gap_mid=0.08, gap_low=0.03,
-                            floor_high=0.5, floor_mid=0.3, floor_low=0.15,
-                            high=0.7, low=0.3, min=0.1)
+        c = ThresholdConfig(
+            mode="gap",
+            gap_high=0.15,
+            gap_mid=0.08,
+            gap_low=0.03,
+            floor_high=0.5,
+            floor_mid=0.3,
+            floor_low=0.15,
+            high=0.7,
+            low=0.3,
+            min=0.1,
+        )
         assert c.mode == "gap"
 
     def test_absolute_mode(self):
-        c = ThresholdConfig(mode="absolute", gap_high=0.15, gap_mid=0.08, gap_low=0.03,
-                            floor_high=0.5, floor_mid=0.3, floor_low=0.15,
-                            high=0.7, low=0.3, min=0.1)
+        c = ThresholdConfig(
+            mode="absolute",
+            gap_high=0.15,
+            gap_mid=0.08,
+            gap_low=0.03,
+            floor_high=0.5,
+            floor_mid=0.3,
+            floor_low=0.15,
+            high=0.7,
+            low=0.3,
+            min=0.1,
+        )
         assert c.mode == "absolute"
 
     def test_invalid_mode(self):
         with pytest.raises(Exception):
-            ThresholdConfig(mode="invalid", gap_high=0.15, gap_mid=0.08, gap_low=0.03,
-                            floor_high=0.5, floor_mid=0.3, floor_low=0.15,
-                            high=0.7, low=0.3, min=0.1)
+            ThresholdConfig(
+                mode="invalid",
+                gap_high=0.15,
+                gap_mid=0.08,
+                gap_low=0.03,
+                floor_high=0.5,
+                floor_mid=0.3,
+                floor_low=0.15,
+                high=0.7,
+                low=0.3,
+                min=0.1,
+            )
 
 
 class TestAsrConfig:
@@ -136,14 +185,20 @@ class TestAsrConfig:
 
 class TestHydeConfig:
     def test_valid(self):
-        c = HydeConfig(enabled=True, num_questions=3, max_questions_per_qa=5,
-                       max_rewrite_per_batch=10, answer_summary_max_len=100)
+        c = HydeConfig(
+            enabled=True, num_questions=3, max_questions_per_qa=5, max_rewrite_per_batch=10, answer_summary_max_len=100
+        )
         assert c.conditional is True
 
     def test_num_questions_zero(self):
         with pytest.raises(Exception):
-            HydeConfig(enabled=True, num_questions=0, max_questions_per_qa=5,
-                       max_rewrite_per_batch=10, answer_summary_max_len=100)
+            HydeConfig(
+                enabled=True,
+                num_questions=0,
+                max_questions_per_qa=5,
+                max_rewrite_per_batch=10,
+                answer_summary_max_len=100,
+            )
 
 
 class TestDedupConfig:
@@ -161,23 +216,56 @@ class TestValidateConfig:
         cfg = {
             "server": {"port": 8000, "title": "test", "version": "1.0", "workers": 1},
             "cache": {"active_ids_ttl": 30, "config_ttl": 60},
-            "mysql": {"host": "localhost", "port": 3306, "user": "root",
-                      "password": "123", "database": "test",
-                      "pool": {"max_usage": 100, "ping": 5}},
+            "mysql": {
+                "host": "localhost",
+                "port": 3306,
+                "user": "root",
+                "password": "123",
+                "database": "test",
+                "pool": {"max_usage": 100, "ping": 5},
+            },
             "milvus": {"db_path": "./test.db", "collection_name": "qa"},
-            "models": {"embed": {"name": "bge", "path": "/models/bge", "dim": 1024},
-                       "rerank": {"name": "bge-reranker", "path": "/models/reranker"},
-                       "query_prefix": ""},
-            "llm": {"enabled": True, "provider": "openai", "api_key": "sk-xxx",
-                    "base_url": "https://api.example.com", "model": "gpt-4",
-                    "temperature": 0.1, "max_tokens": 1024},
-            "threshold": {"mode": "gap", "gap_high": 0.15, "gap_mid": 0.08, "gap_low": 0.03,
-                          "floor_high": 0.5, "floor_mid": 0.3, "floor_low": 0.15,
-                          "high": 0.7, "low": 0.3, "min": 0.1},
+            "models": {
+                "embed": {"name": "bge", "path": "/models/bge", "dim": 1024},
+                "rerank": {"name": "bge-reranker", "path": "/models/reranker"},
+                "query_prefix": "",
+            },
+            "llm": {
+                "enabled": True,
+                "provider": "openai",
+                "api_key": "sk-xxx",
+                "base_url": "https://api.example.com",
+                "model": "gpt-4",
+                "temperature": 0.1,
+                "max_tokens": 1024,
+            },
+            "threshold": {
+                "mode": "gap",
+                "gap_high": 0.15,
+                "gap_mid": 0.08,
+                "gap_low": 0.03,
+                "floor_high": 0.5,
+                "floor_mid": 0.3,
+                "floor_low": 0.15,
+                "high": 0.7,
+                "low": 0.3,
+                "min": 0.1,
+            },
             "ingest_confidence": {"auto": 0.8, "review": 0.5, "highlight": 0.3},
-            "asr": {"enabled": True, "model": "test", "max_duration_ms": 30000, "sample_rate": 16000, "tensor_parallel_size": 1},
-            "hyde": {"enabled": True, "num_questions": 3, "max_questions_per_qa": 5,
-                     "max_rewrite_per_batch": 10, "answer_summary_max_len": 100},
+            "asr": {
+                "enabled": True,
+                "model": "test",
+                "max_duration_ms": 30000,
+                "sample_rate": 16000,
+                "tensor_parallel_size": 1,
+            },
+            "hyde": {
+                "enabled": True,
+                "num_questions": 3,
+                "max_questions_per_qa": 5,
+                "max_rewrite_per_batch": 10,
+                "answer_summary_max_len": 100,
+            },
             "dedup": {"question_threshold": 0.92, "answer_threshold": 0.85},
             "data": {"qa_csv": "./data/qa.csv"},
         }

@@ -1,12 +1,12 @@
 import os
 
-os.environ['ETC_QA_ENV'] = os.environ.get('ETC_QA_ENV', 'test')
+os.environ["ETC_QA_ENV"] = os.environ.get("ETC_QA_ENV", "test")
 from dotenv import load_dotenv
 
 load_dotenv()
 import sys
 
-sys.path.insert(0, '.')
+sys.path.insert(0, ".")
 import csv
 
 from db.milvus_client import MilvusQA
@@ -20,6 +20,7 @@ from utils.config import load_config
 try:
     import langsmith
     from langsmith.evaluation import evaluate
+
     HAS_LANGSMITH = True
 except ImportError:
     HAS_LANGSMITH = False
@@ -64,10 +65,12 @@ for row in test_data:
             expected_id = qid
             break
     if expected_id is not None:
-        examples.append({
-            "inputs": {"question": row["user_query"]},
-            "outputs": {"expected_id": expected_id, "expected_question": expected_q},
-        })
+        examples.append(
+            {
+                "inputs": {"question": row["user_query"]},
+                "outputs": {"expected_id": expected_id, "expected_question": expected_q},
+            }
+        )
 
 
 def target_func(inputs: dict) -> dict:
@@ -124,8 +127,8 @@ if not HAS_LANGSMITH:
                 mrr_sum += 1.0 / rank
                 break
         if (i + 1) % 50 == 0:
-            print(f"  {i+1}/{total}")
-    print(f"\nR@1={h1/total:.4f} R@3={h3/total:.4f} MRR={mrr_sum/total:.4f}")
+            print(f"  {i + 1}/{total}")
+    print(f"\nR@1={h1 / total:.4f} R@3={h3 / total:.4f} MRR={mrr_sum / total:.4f}")
 else:
     dataset_name = "etc-qa-rag-eval"
     try:

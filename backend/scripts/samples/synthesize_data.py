@@ -10,6 +10,7 @@
 
 以后可从真实业务导出音频替换这些合成数据，评测脚本不需要改。
 """
+
 import argparse
 import asyncio
 import json
@@ -30,6 +31,7 @@ SILENCE_GAP_SEC = 0.5
 async def _synthesize_mono(text: str, voice: str):
     import edge_tts
     import soundfile as sf
+
     communicate = edge_tts.Communicate(text, voice)
     mp3_path = os.path.join(SAMPLES_DIR, f"_tmp_{hash(text) & 0xFFFFFFFF}.mp3")
     await communicate.save(mp3_path)
@@ -63,8 +65,8 @@ def synthesize_stereo_multi_segment(customer_segments: list, agent_segments: lis
     max_len = max(len(customer_full), len(agent_full))
     customer_padded = np.zeros(max_len, dtype=np.float32)
     agent_padded = np.zeros(max_len, dtype=np.float32)
-    customer_padded[:len(customer_full)] = customer_full
-    agent_padded[:len(agent_full)] = agent_full
+    customer_padded[: len(customer_full)] = customer_full
+    agent_padded[: len(agent_full)] = agent_full
 
     stereo = np.column_stack([customer_padded, agent_padded])
     sf.write(output_path, stereo, sr, subtype="PCM_16")
@@ -105,10 +107,7 @@ def main():
         print(f"       客服({len(agent_segs)}段): {agent_segs}")
         synthesize_stereo_multi_segment(customer_segs, agent_segs, stereo_path)
 
-    metadata = [
-        {"filename": f"sample_{i:02d}.wav", **item}
-        for i, item in enumerate(test_questions, 1)
-    ]
+    metadata = [{"filename": f"sample_{i:02d}.wav", **item} for i, item in enumerate(test_questions, 1)]
     with open(os.path.join(SAMPLES_DIR, "metadata.json"), "w", encoding="utf-8") as f:
         json.dump(metadata, f, ensure_ascii=False, indent=2)
 

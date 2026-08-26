@@ -12,6 +12,7 @@ _ENV_VAR_PATTERN = re.compile(r"\$\{([^}:]+)(?::([^}]*))?\}")
 
 def _resolve_env_vars(obj):
     if isinstance(obj, str):
+
         def _replace(match):
             var_name = match.group(1)
             default = match.group(2)
@@ -21,6 +22,7 @@ def _resolve_env_vars(obj):
             if default is not None:
                 return default
             return match.group(0)
+
         return _ENV_VAR_PATTERN.sub(_replace, obj)
     elif isinstance(obj, dict):
         return {k: _resolve_env_vars(v) for k, v in obj.items()}
@@ -81,6 +83,7 @@ def load_config(config_path=None):
 
 def validate_config() -> list:
     from config.schemas import validate_config as _validate
+
     cfg = get_config()
     return _validate(cfg)
 

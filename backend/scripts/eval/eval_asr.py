@@ -13,6 +13,7 @@
   2. python scripts/eval/eval_asr.py --rag-only   # 只测RAG（用final_question文本，不经过ASR）
   3. python scripts/eval/eval_asr.py --asr-only   # 只测ASR（不测RAG检索）
 """
+
 import argparse
 import json
 import os
@@ -23,7 +24,7 @@ from difflib import SequenceMatcher
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, ROOT)
-os.environ['ETC_QA_ENV'] = os.environ.get('ETC_QA_ENV', 'dev')
+os.environ["ETC_QA_ENV"] = os.environ.get("ETC_QA_ENV", "dev")
 
 OUTPUT_DIR = os.path.join(ROOT, "output")
 SAMPLES_DIR = os.path.join(ROOT, "data", "asr_samples")
@@ -32,9 +33,10 @@ TEST_QUESTIONS_PATH = os.path.join(SAMPLES_DIR, "test_questions.json")
 
 def calculate_cer(reference: str, hypothesis: str) -> float:
     import re
-    strip_re = re.compile(r'[，。？！、；：""'r'（）\s]')
-    ref_clean = strip_re.sub('', reference)
-    hyp_clean = strip_re.sub('', hypothesis)
+
+    strip_re = re.compile(r'[，。？！、；：""' r"（）\s]")
+    ref_clean = strip_re.sub("", reference)
+    hyp_clean = strip_re.sub("", hypothesis)
     if not ref_clean:
         return 1.0 if hyp_clean else 0.0
     matcher = SequenceMatcher(None, ref_clean, hyp_clean)
@@ -90,8 +92,8 @@ def vad_split(wav_path: str, threshold_db: int = 30, min_silence_ms: int = 200):
 
     is_speech = []
     for i in range(0, len(data) - frame_len + 1, hop_len):
-        frame = data[i:i + frame_len]
-        rms = np.sqrt(np.mean(frame ** 2))
+        frame = data[i : i + frame_len]
+        rms = np.sqrt(np.mean(frame**2))
         is_speech.append(rms > threshold)
 
     segments = []
@@ -120,6 +122,7 @@ def vad_split(wav_path: str, threshold_db: int = 30, min_silence_ms: int = 200):
 
 def save_segment(data, sr, start, end, output_path: str):
     import soundfile as sf
+
     segment = data[start:end]
     sf.write(output_path, segment, sr, subtype="PCM_16")
 
@@ -194,7 +197,7 @@ def run_pseudo_streaming_pipeline(streaming_service, wav_path: str, chunk_sample
 
     streaming_service.start_stream(_FilterCb())
     for i in range(0, len(pcm_bytes), chunk_bytes):
-        streaming_service.send_audio(pcm_bytes[i:i + chunk_bytes])
+        streaming_service.send_audio(pcm_bytes[i : i + chunk_bytes])
     streaming_service.stop_stream()
 
     if accumulate_mode != "sentence":
@@ -259,6 +262,7 @@ def run_asr_test(args):
         sys.exit(1)
 
     from asr.service import _apply_corrections, _load_corrections, get_asr_service
+
     asr_service = get_asr_service()
     corrections = _load_corrections()
     print(f"加载纠错表: {len(corrections)}条 (DB优先→config/asr.yaml兜底)")
@@ -268,6 +272,7 @@ def run_asr_test(args):
         sys.exit(1)
 
     from utils.config import get_config
+
     cfg = get_config()
     customer_side = cfg.get("asr", {}).get("streaming", {}).get("channel_customer_side", "left")
     print(f"声道配置: 客户在{customer_side}声道")
@@ -275,6 +280,7 @@ def run_asr_test(args):
     streaming_service = None
     if not args.rag_only:
         from asr.streaming import get_streaming_service
+
         streaming_service = get_streaming_service()
         if streaming_service.enabled:
             print(f"伪流式ASR: 已启用 (mode={streaming_service.mode})")
@@ -285,10 +291,12 @@ def run_asr_test(args):
     rag_service = None
     if not args.asr_only:
         from app import create_service
+
         print("初始化RAG服务...")
         rag_service = create_service()
 
     from db.mysql_client import MySQLClient
+
     mysql = MySQLClient()
     question_to_ids, qa_dict = load_qa_index(mysql)
 
@@ -312,7 +320,7 @@ def run_asr_test(args):
         stereo_path = os.path.join(SAMPLES_DIR, f"sample_{i:02d}.wav")
 
         print(f"\n  [{i:2d}] 客户分段: {customer_segs}")
-        print(f"       最终问题: \"{final_question}\"")
+        print(f'       最终问题: "{final_question}"')
 
         if args.rag_only:
             offline_accumulated = final_question
@@ -333,7 +341,9 @@ def run_asr_test(args):
             vad_total += 1
             if vad_segments_count == expected_seg_count:
                 vad_match_count += 1
-            print(f"       VAD切分: {vad_segments_count}段 (期望{expected_seg_count}段) {'✓' if vad_segments_count == expected_seg_count else '✗'}")
+            print(
+                f"       VAD切分: {vad_segments_count}段 (期望{expected_seg_count}段) {'✓' if vad_segments_count == expected_seg_count else '✗'}"
+            )
 
             seg_texts = []
             tmp_dir = tempfile.mkdtemp(prefix="eval_asr_")
@@ -343,9 +353,9 @@ def run_asr_test(args):
                 try:
                     resp = asr_service.transcribe(seg_path)
                     seg_texts.append(resp.text)
-                    print(f"       段[{j+1}] 离线ASR: \"{resp.text}\"")
+                    print(f'       段[{j + 1}] 离线ASR: "{resp.text}"')
                 except Exception as e:
-                    print(f"       段[{j+1}] 离线ASR失败: {e}")
+                    print(f"       段[{j + 1}] 离线ASR失败: {e}")
                     seg_texts.append("")
 
             for f in os.listdir(tmp_dir):
@@ -365,19 +375,18 @@ def run_asr_test(args):
             filtered_msgs = []
             if streaming_service:
                 try:
-                    pseudo_filtered_text, filtered_msgs = run_pseudo_streaming_pipeline(
-                        streaming_service, customer_wav
-                    )
+                    pseudo_filtered_text, filtered_msgs = run_pseudo_streaming_pipeline(streaming_service, customer_wav)
                     if filtered_msgs:
                         print(f"       过滤掉{len(filtered_msgs)}段: {filtered_msgs}")
-                    print(f"       伪流式结果: \"{pseudo_filtered_text}\"")
+                    print(f'       伪流式结果: "{pseudo_filtered_text}"')
                 except Exception as e:
                     print(f"       伪流式失败: {e}")
 
         offline_corrected = _apply_corrections(offline_accumulated, corrections) if corrections else offline_accumulated
         import re as _re
-        _punct_re = _re.compile(r'[，。？！、；：""''（）]$')
-        offline_corrected = _punct_re.sub('', offline_corrected)
+
+        _punct_re = _re.compile(r'[，。？！、；：""' "（）]$")
+        offline_corrected = _punct_re.sub("", offline_corrected)
 
         customer_full_text = "".join(customer_segs)
         offline_cer = calculate_cer(customer_full_text, offline_accumulated)
@@ -393,8 +402,8 @@ def run_asr_test(args):
             pseudo_count += 1
 
         if not args.rag_only:
-            print(f"       离线累积: \"{offline_accumulated}\"")
-            print(f"       客服识别:   \"{agent_asr_text}\"")
+            print(f'       离线累积: "{offline_accumulated}"')
+            print(f'       客服识别:   "{agent_asr_text}"')
 
         rag_query_text = pseudo_filtered_text if pseudo_filtered_text else offline_corrected
         if "expected_qa_id" in item:
@@ -414,7 +423,7 @@ def run_asr_test(args):
                     top_id = rag_result.candidates[0].qa_id
                     rag_top1 = rag_result.candidates[0].question
                     rag_top1_score = rag_result.candidates[0].score
-                    rag_hit = (top_id == expected_id)
+                    rag_hit = top_id == expected_id
                     rag_total += 1
                     if rag_hit:
                         rag_hits += 1
@@ -428,35 +437,38 @@ def run_asr_test(args):
             print(f"       给客服的候选提示:")
             for j, c in enumerate(rag_candidates, 1):
                 mark = "← 客服选择" if j == 1 else ""
-                print(f"         [{j}] 分数={c.score:.4f} \"{c.question}\" {mark}")
-            print(f"         答案: \"{rag_candidates[0].answer[:60]}...\"")
-        print(f"       离线CER: {offline_cer:.1%}→{offline_cer_corrected:.1%} [{offline_cer_mark}]  "
-              f"客服CER: {agent_cer:.1%}  "
-              f"RAG: [{rag_mark}]"
-              + (f"  伪流式CER: {pseudo_cer:.1%}" if pseudo_cer is not None else ""))
+                print(f'         [{j}] 分数={c.score:.4f} "{c.question}" {mark}')
+            print(f'         答案: "{rag_candidates[0].answer[:60]}..."')
+        print(
+            f"       离线CER: {offline_cer:.1%}→{offline_cer_corrected:.1%} [{offline_cer_mark}]  "
+            f"客服CER: {agent_cer:.1%}  "
+            f"RAG: [{rag_mark}]" + (f"  伪流式CER: {pseudo_cer:.1%}" if pseudo_cer is not None else "")
+        )
 
-        results.append({
-            "index": i,
-            "customer_segments": customer_segs,
-            "agent_segments": agent_segs,
-            "final_question": final_question,
-            "offline_accumulated_text": offline_accumulated,
-            "pseudo_filtered_text": pseudo_filtered_text,
-            "filtered_msgs": filtered_msgs,
-            "agent_asr_text": agent_asr_text,
-            "offline_corrected": offline_corrected,
-            "offline_cer": round(offline_cer, 4),
-            "offline_cer_corrected": round(offline_cer_corrected, 4),
-            "agent_cer": round(agent_cer, 4),
-            "pseudo_cer": round(pseudo_cer, 4) if pseudo_cer is not None else None,
-            "vad_segments_count": vad_segments_count,
-            "expected_seg_count": len(customer_segs),
-            "rag_hit": rag_hit,
-            "rag_top1": rag_top1,
-            "rag_top1_score": rag_top1_score,
-            "category": category,
-            "keyword": keyword,
-        })
+        results.append(
+            {
+                "index": i,
+                "customer_segments": customer_segs,
+                "agent_segments": agent_segs,
+                "final_question": final_question,
+                "offline_accumulated_text": offline_accumulated,
+                "pseudo_filtered_text": pseudo_filtered_text,
+                "filtered_msgs": filtered_msgs,
+                "agent_asr_text": agent_asr_text,
+                "offline_corrected": offline_corrected,
+                "offline_cer": round(offline_cer, 4),
+                "offline_cer_corrected": round(offline_cer_corrected, 4),
+                "agent_cer": round(agent_cer, 4),
+                "pseudo_cer": round(pseudo_cer, 4) if pseudo_cer is not None else None,
+                "vad_segments_count": vad_segments_count,
+                "expected_seg_count": len(customer_segs),
+                "rag_hit": rag_hit,
+                "rag_top1": rag_top1,
+                "rag_top1_score": rag_top1_score,
+                "category": category,
+                "keyword": keyword,
+            }
+        )
 
     n = len(results)
     avg_offline_cer = total_offline_cer / n if n else 0
@@ -465,9 +477,9 @@ def run_asr_test(args):
     rag_recall = rag_hits / rag_total if rag_total else 0
     vad_match_rate = vad_match_count / vad_total if vad_total else 0
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("客服辅助检索测试结果汇总（双声道多段对话版 - 伪流式）")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"  测试场景: 客户分段说话 → 声道分离 → 伪流式(VAD+Fun-ASR-Nano) → 过滤 → RAG检索")
     print(f"  样本数:          {n}")
     print(f"  VAD切分匹配率:   {vad_match_rate:.1%} ({vad_match_count}/{vad_total})")
@@ -518,6 +530,7 @@ def run_asr_test(args):
 
     if rag_service:
         from db.milvus_client import MilvusQA
+
         try:
             MilvusQA().close()
         except Exception:

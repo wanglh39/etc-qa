@@ -13,6 +13,7 @@ sys.path.insert(0, PROJECT_ROOT)
 
 def download_embed(save_dir):
     from modelscope import snapshot_download
+
     print("\n[1/3] 下载 Embedding 模型 bge-large-zh-v1.5 (~1.3GB)...")
     path = snapshot_download(
         "BAAI/bge-large-zh-v1.5",
@@ -24,6 +25,7 @@ def download_embed(save_dir):
 
 def download_rerank(save_dir):
     from modelscope import snapshot_download
+
     print("\n[2/3] 下载 Reranker 模型 bge-reranker-large (~2.2GB)...")
     path = snapshot_download(
         "BAAI/bge-reranker-large",
@@ -35,6 +37,7 @@ def download_rerank(save_dir):
 
 def download_asr(save_dir):
     from modelscope import snapshot_download
+
     print("\n[3/3] 下载 ASR 模型 Fun-ASR-Nano-2512 (~2.1GB)...")
     path = snapshot_download(
         "FunAudioLLM/Fun-ASR-Nano-2512",
@@ -72,20 +75,10 @@ def check_exists(save_dir, model_id):
 def main():
     parser = argparse.ArgumentParser(description="下载ETC-QA所需模型")
     parser.add_argument(
-        "--models",
-        default="embed,rerank,asr",
-        help="要下载的模型，逗号分隔: embed,rerank,asr (默认全部)"
+        "--models", default="embed,rerank,asr", help="要下载的模型，逗号分隔: embed,rerank,asr (默认全部)"
     )
-    parser.add_argument(
-        "--dir",
-        default=os.path.join(PROJECT_ROOT, "models"),
-        help="模型保存目录 (默认: ./models)"
-    )
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        help="强制重新下载，即使模型已存在"
-    )
+    parser.add_argument("--dir", default=os.path.join(PROJECT_ROOT, "models"), help="模型保存目录 (默认: ./models)")
+    parser.add_argument("--force", action="store_true", help="强制重新下载，即使模型已存在")
     args = parser.parse_args()
 
     save_dir = os.path.abspath(args.dir)

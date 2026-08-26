@@ -43,9 +43,7 @@ class TestReranker:
         mock_model = MagicMock()
         mock_model.predict.return_value = [0.9, 0.8, 0.7, 0.6, 0.5]
         mock_mysql = MagicMock()
-        mock_mysql.get_by_ids.return_value = [
-            {"id": i, "question": f"问题{i}"} for i in range(1, 6)
-        ]
+        mock_mysql.get_by_ids.return_value = [{"id": i, "question": f"问题{i}"} for i in range(1, 6)]
         reranker = Reranker(model=mock_model, mysql_client=mock_mysql)
         candidates = [(i, 0.5) for i in range(1, 6)]
         result = reranker.rerank("test", candidates)

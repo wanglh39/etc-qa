@@ -34,18 +34,14 @@ class SpeakerDiarizer:
             try:
                 from pyannote.audio import Pipeline
             except ImportError as e:
-                raise RuntimeError(
-                    f"pyannote.audio导入失败: {e}，请运行: pip install pyannote.audio"
-                )
+                raise RuntimeError(f"pyannote.audio导入失败: {e}，请运行: pip install pyannote.audio")
 
             import torch
 
             logger.info(f"加载说话人分离模型: {self._model_name}, device={self._device}")
 
             if not self._hf_token:
-                self._hf_token = get_config().get("asr", {}).get("diarize", {}).get(
-                    "hf_token", ""
-                )
+                self._hf_token = get_config().get("asr", {}).get("diarize", {}).get("hf_token", "")
 
             self._pipeline = Pipeline.from_pretrained(
                 self._model_name,
@@ -76,11 +72,13 @@ class SpeakerDiarizer:
 
         segments = []
         for turn, speaker in diarization.itertracks():
-            segments.append({
-                "start": round(turn.start, 2),
-                "end": round(turn.end, 2),
-                "speaker": speaker,
-            })
+            segments.append(
+                {
+                    "start": round(turn.start, 2),
+                    "end": round(turn.end, 2),
+                    "speaker": speaker,
+                }
+            )
 
         logger.info(f"说话人分离完成: {len(segments)}段, {len(set(s['speaker'] for s in segments))}位说话人")
         return segments

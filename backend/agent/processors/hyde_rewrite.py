@@ -114,7 +114,6 @@ def _judge_need_rewrite(question: str, answer_summary: str) -> tuple:
                 if isinstance(result, HydeJudgeOutput):
                     return result.need_rewrite, result.reason
             except Exception as e:
-
                 logger.warning(f"HyDE判断结构化输出失败，降级为JSON解析: {e}")
 
         llm = get_llm()
@@ -177,18 +176,15 @@ def hyde_rewrite(state: AgentState) -> dict:
                         "current_step": "hyde_rewrite",
                     }
             except Exception as e:
-
                 logger.warning(f"HyDE改写结构化输出失败，降级为JSON解析: {e}")
 
         llm = get_llm()
         response = llm.invoke([HumanMessage(content=prompt)])
         content = response.content.strip()
 
-        hyde_questions = [
-            line.strip()
-            for line in content.split("\n")
-            if line.strip() and len(line.strip()) >= 3
-        ][:num_questions]
+        hyde_questions = [line.strip() for line in content.split("\n") if line.strip() and len(line.strip()) >= 3][
+            :num_questions
+        ]
 
         return {
             "hyde_questions": hyde_questions,

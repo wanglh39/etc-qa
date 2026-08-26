@@ -12,7 +12,9 @@ class AgentState(BaseModel):
     user_id: str | None = Field(default=None, description="用户ID")
 
     question: str = Field(default="", description="处理后的问题")
-    rewrite_confidence: float = Field(default=1.0, description="问题改写置信度（1.0=未改写或高置信，低值表示改写质量不确定）")
+    rewrite_confidence: float = Field(
+        default=1.0, description="问题改写置信度（1.0=未改写或高置信，低值表示改写质量不确定）"
+    )
     answer: str = Field(default="", description="处理后的答案")
     internal_process: str = Field(default="", description="内部处理办法及流程")
     feedback_dept: str = Field(default="", description="涉及反馈部门/微信群/工单模板")

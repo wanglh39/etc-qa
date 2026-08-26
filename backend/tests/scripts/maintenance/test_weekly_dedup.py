@@ -34,8 +34,7 @@ class TestWeeklyDedupNoWorkOrders:
     @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
-    def test_no_processed_work_orders(self, mock_mysql_cls, mock_milvus_cls,
-                                      mock_embed_cls, mock_config_cls):
+    def test_no_processed_work_orders(self, mock_mysql_cls, mock_milvus_cls, mock_embed_cls, mock_config_cls):
         mock_config_cls.return_value = _mock_config()
         mock_mysql = MagicMock()
         mock_mysql.get_work_orders_by_status.return_value = []
@@ -49,8 +48,7 @@ class TestWeeklyDedupRound1:
     @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
-    def test_duplicate_with_kb_marked_rejected(self, mock_mysql_cls, mock_milvus_cls,
-                                                mock_embed_cls, mock_config_cls):
+    def test_duplicate_with_kb_marked_rejected(self, mock_mysql_cls, mock_milvus_cls, mock_embed_cls, mock_config_cls):
         mock_config_cls.return_value = _mock_config()
         wo = _make_work_order(1, "WO001", "ETC扣费异常", "核实退款处理")
         mock_mysql = MagicMock()
@@ -64,9 +62,7 @@ class TestWeeklyDedupRound1:
         mock_embed.encode.return_value = np.array([[0.1] * 1024])
         mock_embed_cls.return_value = mock_embed
         weekly_dedup()
-        mock_mysql.update_work_order.assert_any_call(
-            "WO001", json.dumps({"duplicate_of": 5}), "rejected"
-        )
+        mock_mysql.update_work_order.assert_any_call("WO001", json.dumps({"duplicate_of": 5}), "rejected")
 
 
 class TestWeeklyDedupRound1NotDuplicate:
@@ -74,8 +70,9 @@ class TestWeeklyDedupRound1NotDuplicate:
     @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
-    def test_not_duplicate_with_kb_marked_deduped(self, mock_mysql_cls, mock_milvus_cls,
-                                                    mock_embed_cls, mock_config_cls):
+    def test_not_duplicate_with_kb_marked_deduped(
+        self, mock_mysql_cls, mock_milvus_cls, mock_embed_cls, mock_config_cls
+    ):
         mock_config_cls.return_value = _mock_config()
         wo = _make_work_order(1, "WO001", "ETC新问题", "新答案")
         mock_mysql = MagicMock()
@@ -97,8 +94,7 @@ class TestWeeklyDedupRound1NoResult:
     @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
-    def test_no_kb_match_marked_deduped(self, mock_mysql_cls, mock_milvus_cls,
-                                          mock_embed_cls, mock_config_cls):
+    def test_no_kb_match_marked_deduped(self, mock_mysql_cls, mock_milvus_cls, mock_embed_cls, mock_config_cls):
         mock_config_cls.return_value = _mock_config()
         wo = _make_work_order(1, "WO001", "全新问题", "全新答案")
         mock_mysql = MagicMock()
@@ -120,8 +116,9 @@ class TestWeeklyDedupRound2:
     @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
-    def test_internal_duplicate_both_similar_q_and_a(self, mock_mysql_cls, mock_milvus_cls,
-                                                      mock_embed_cls, mock_config_cls):
+    def test_internal_duplicate_both_similar_q_and_a(
+        self, mock_mysql_cls, mock_milvus_cls, mock_embed_cls, mock_config_cls
+    ):
         mock_config_cls.return_value = _mock_config()
         wo1 = _make_work_order(1, "WO001", "ETC扣费异常", "核实退款处理流程")
         wo2 = _make_work_order(2, "WO002", "ETC扣费异常怎么处理", "核实退款处理流程一样")
@@ -137,6 +134,7 @@ class TestWeeklyDedupRound2:
         a_vec1 = np.array([1.0] + [0.0] * 1023)
         a_vec2 = np.array([0.95] + [0.0] + [0.312] + [0.0] * 1021)
         call_count = [0]
+
         def mock_encode(texts, **kwargs):
             if isinstance(texts, list) and len(texts) == 2 and isinstance(texts[0], str):
                 return np.array([a_vec1, a_vec2])
@@ -145,6 +143,7 @@ class TestWeeklyDedupRound2:
                 return np.array([q_vec1])
             else:
                 return np.array([q_vec1, q_vec2])
+
         mock_embed = MagicMock()
         mock_embed.encode.side_effect = mock_encode
         mock_embed_cls.return_value = mock_embed
@@ -158,8 +157,9 @@ class TestWeeklyDedupRound2:
     @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
-    def test_internal_not_duplicate_different_answer(self, mock_mysql_cls, mock_milvus_cls,
-                                                      mock_embed_cls, mock_config_cls):
+    def test_internal_not_duplicate_different_answer(
+        self, mock_mysql_cls, mock_milvus_cls, mock_embed_cls, mock_config_cls
+    ):
         mock_config_cls.return_value = _mock_config()
         wo1 = _make_work_order(1, "WO001", "ETC扣费异常", "核实退款处理")
         wo2 = _make_work_order(2, "WO002", "ETC扣费异常", "完全不同的答案关于设备故障")
@@ -175,6 +175,7 @@ class TestWeeklyDedupRound2:
         a_vec1 = np.array([1.0] + [0.0] * 1023)
         a_vec2 = np.array([0.0, 1.0] + [0.0] * 1022)
         call_count = [0]
+
         def mock_encode(texts, **kwargs):
             if isinstance(texts, list) and len(texts) == 2 and isinstance(texts[0], str):
                 return np.array([a_vec1, a_vec2])
@@ -183,6 +184,7 @@ class TestWeeklyDedupRound2:
                 return np.array([q_vec1])
             else:
                 return np.array([q_vec1, q_vec2])
+
         mock_embed = MagicMock()
         mock_embed.encode.side_effect = mock_encode
         mock_embed_cls.return_value = mock_embed
@@ -197,8 +199,7 @@ class TestWeeklyDedupRound2KeepLonger:
     @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
-    def test_keeps_longer_answer(self, mock_mysql_cls, mock_milvus_cls,
-                                  mock_embed_cls, mock_config_cls):
+    def test_keeps_longer_answer(self, mock_mysql_cls, mock_milvus_cls, mock_embed_cls, mock_config_cls):
         mock_config_cls.return_value = _mock_config()
         short_answer = "短答案"
         long_answer = "这是一个比较长的答案包含更多详细信息和处理流程说明"
@@ -214,6 +215,7 @@ class TestWeeklyDedupRound2KeepLonger:
         q_vec = np.array([1.0] + [0.0] * 1023)
         a_vec = np.array([1.0] + [0.0] * 1023)
         call_count = [0]
+
         def mock_encode(texts, **kwargs):
             if isinstance(texts, list) and len(texts) == 2 and isinstance(texts[0], str):
                 return np.array([a_vec, a_vec])
@@ -222,6 +224,7 @@ class TestWeeklyDedupRound2KeepLonger:
                 return np.array([q_vec])
             else:
                 return np.array([q_vec, q_vec])
+
         mock_embed = MagicMock()
         mock_embed.encode.side_effect = mock_encode
         mock_embed_cls.return_value = mock_embed
@@ -238,8 +241,7 @@ class TestWeeklyDedupSingleWorkOrder:
     @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
-    def test_single_work_order_skips_round2(self, mock_mysql_cls, mock_milvus_cls,
-                                              mock_embed_cls, mock_config_cls):
+    def test_single_work_order_skips_round2(self, mock_mysql_cls, mock_milvus_cls, mock_embed_cls, mock_config_cls):
         mock_config_cls.return_value = _mock_config()
         wo = _make_work_order(1, "WO001", "ETC扣费异常", "核实退款")
         mock_mysql = MagicMock()
@@ -261,8 +263,7 @@ class TestWeeklyDedupEmptyRawData:
     @patch("scripts.maintenance.weekly_dedup.get_embedding_client")
     @patch("scripts.maintenance.weekly_dedup.MilvusQA")
     @patch("scripts.maintenance.weekly_dedup.MySQLClient")
-    def test_empty_raw_data_handled(self, mock_mysql_cls, mock_milvus_cls,
-                                      mock_embed_cls, mock_config_cls):
+    def test_empty_raw_data_handled(self, mock_mysql_cls, mock_milvus_cls, mock_embed_cls, mock_config_cls):
         mock_config_cls.return_value = _mock_config()
         wo = {"id": 1, "external_id": "WO001", "raw_data": None, "status": "processed"}
         mock_mysql = MagicMock()

@@ -12,10 +12,13 @@ from utils.logger import get_logger
 try:
     from langsmith import traceable
 except ImportError:
+
     def traceable(name=None, run_type=None):
         def decorator(func):
             return func
+
         return decorator
+
 
 logger = get_logger("asr.service")
 
@@ -91,6 +94,7 @@ class ASRService:
                 except ImportError as e:
                     raise RuntimeError(f"funasr导入失败(缺{e.name})，请运行: pip install funasr torchaudio")
                 import torch
+
                 torch.set_num_threads(1)
                 logger.info(f"加载ASR模型: {model_name}, device={self._device}")
                 self._model = AutoModel(
@@ -110,19 +114,14 @@ class ASRService:
             self._preprocessor = get_preprocessor()
         return self._preprocessor
 
-    def _merge_asr_diarize(
-        self, text: str, diarize_segments: list[dict]
-    ) -> list[SpeakerSegment]:
+    def _merge_asr_diarize(self, text: str, diarize_segments: list[dict]) -> list[SpeakerSegment]:
         if not diarize_segments:
             return []
 
         total_duration = diarize_segments[-1]["end"]
         text_len = len(text)
         if text_len == 0 or total_duration == 0:
-            return [
-                SpeakerSegment(start=s["start"], end=s["end"], speaker=s["speaker"])
-                for s in diarize_segments
-            ]
+            return [SpeakerSegment(start=s["start"], end=s["end"], speaker=s["speaker"]) for s in diarize_segments]
 
         chars_per_second = text_len / total_duration
         segments = []
@@ -206,6 +205,7 @@ class ASRService:
         streaming_loaded = False
         try:
             from asr.streaming import get_streaming_service
+
             streaming_loaded = get_streaming_service()._backend is not None
         except Exception:
             pass

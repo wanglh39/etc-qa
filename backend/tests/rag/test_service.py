@@ -40,8 +40,24 @@ class TestQAServiceQuery:
         mock_reranker.rerank.return_value = [(1, 0.95), (2, 0.6)]
         mock_threshold.filter_candidates.return_value = ("high", [(1, 0.95), (2, 0.6)])
         mock_mysql.get_by_ids.return_value = [
-            {"id": 1, "question": "ETC扣费异常", "answer": "核实退款", "category_l1": "售后", "category_l2": "扣费", "internal_process": "", "feedback_dept": ""},
-            {"id": 2, "question": "ETC注销", "answer": "联系客服", "category_l1": "售前", "category_l2": "注销", "internal_process": "", "feedback_dept": ""},
+            {
+                "id": 1,
+                "question": "ETC扣费异常",
+                "answer": "核实退款",
+                "category_l1": "售后",
+                "category_l2": "扣费",
+                "internal_process": "",
+                "feedback_dept": "",
+            },
+            {
+                "id": 2,
+                "question": "ETC注销",
+                "answer": "联系客服",
+                "category_l1": "售前",
+                "category_l2": "注销",
+                "internal_process": "",
+                "feedback_dept": "",
+            },
         ]
 
         result = svc.query("ETC扣费异常")

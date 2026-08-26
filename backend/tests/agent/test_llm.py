@@ -39,9 +39,7 @@ class TestGetLLM:
 
     @patch("agent.llm.get_config")
     def test_raises_when_disabled(self, mock_cfg):
-        mock_cfg.return_value = {
-            "llm": {"enabled": False}
-        }
+        mock_cfg.return_value = {"llm": {"enabled": False}}
         try:
             get_llm()
             assert False
@@ -132,6 +130,7 @@ class TestGetStructuredLLM:
         mock_chat_cls.return_value = mock_chat
 
         from agent.output_schemas import StandardizeOutput
+
         llm, supported = get_structured_llm(StandardizeOutput)
         assert supported is False
         assert llm is mock_chat
@@ -158,6 +157,7 @@ class TestGetStructuredLLM:
         mock_chat_cls.return_value = mock_chat
 
         from agent.output_schemas import StandardizeOutput
+
         llm, supported = get_structured_llm(StandardizeOutput)
         assert supported is True
         assert llm is mock_structured
@@ -183,6 +183,7 @@ class TestGetStructuredLLM:
         mock_chat_cls.return_value = mock_chat
 
         from agent.output_schemas import StandardizeOutput
+
         llm, supported = get_structured_llm(StandardizeOutput)
         assert supported is False
         assert llm is mock_chat
@@ -207,6 +208,7 @@ class TestGetStructuredLLM:
         mock_chat_cls.return_value = mock_chat
 
         from agent.output_schemas import StandardizeOutput
+
         get_structured_llm(StandardizeOutput)
         get_structured_llm(StandardizeOutput)
         assert mock_chat.with_structured_output.call_count == 0

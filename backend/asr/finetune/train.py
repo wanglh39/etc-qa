@@ -32,6 +32,7 @@ def train(
 
     try:
         from funasr import AutoModel
+
         print("开始训练...")
         print("TODO: 实现具体微调逻辑")
         print("参考: https://github.com/modelscope/FunASR/blob/main/examples/finetune")

@@ -17,10 +17,13 @@ from utils.logger import get_logger
 try:
     from langsmith import traceable
 except ImportError:
+
     def traceable(name=None, run_type=None):
         def decorator(func):
             return func
+
         return decorator
+
 
 logger = get_logger("rag.service")
 
@@ -29,8 +32,7 @@ class QAService:
     _STANDARDIZE_CACHE_SIZE = 2000
     _STANDARDIZE_TTL = 3600
 
-    def __init__(self, recall: RecallEngine, threshold: ThresholdJudge,
-                 reranker: Reranker, mysql: MySQLClient):
+    def __init__(self, recall: RecallEngine, threshold: ThresholdJudge, reranker: Reranker, mysql: MySQLClient):
         self.recall = recall
         self.threshold = threshold
         self.reranker = reranker
@@ -90,15 +92,14 @@ class QAService:
         self.invalidate_active_ids_cache()
         return qa_id
 
-    def _insert_milvus_with_retry(self, qa_id: int, vector: list[float],
-                                  category_l1: str, max_retries: int = 2):
+    def _insert_milvus_with_retry(self, qa_id: int, vector: list[float], category_l1: str, max_retries: int = 2):
         for attempt in range(max_retries + 1):
             try:
                 self.recall.milvus.insert(qa_id, vector, category_l1=category_l1)
                 return
             except Exception as e:
                 if attempt < max_retries:
-                    logger.warning(f"Milvus写入失败(第{attempt+1}次)qa_id={qa_id}，重试: {e}")
+                    logger.warning(f"Milvus写入失败(第{attempt + 1}次)qa_id={qa_id}，重试: {e}")
                     time.sleep(0.5 * (attempt + 1))
                     continue
                 raise
@@ -119,6 +120,7 @@ class QAService:
                 standardized = raw_question
         else:
             from agent.processors.standardize_query import _rule_based_standardize
+
             standardized = _rule_based_standardize(raw_question)
             logger.info(f"规则标准化(跳过LLM): '{raw_question}' -> '{standardized}'")
 
@@ -143,7 +145,6 @@ class QAService:
             confidence, filtered = self.threshold.filter_candidates(candidates)
             logger.info(f"confidence={confidence}, candidates={len(filtered)}")
 
-
             qa_ids = [qa_id for qa_id, score in filtered]
             qa_records = self.mysql.get_by_ids(qa_ids)
             qa_map = {r["id"]: r for r in qa_records}
@@ -152,16 +153,18 @@ class QAService:
             for qa_id, score in filtered:
                 if qa_id in qa_map:
                     r = qa_map[qa_id]
-                    results.append(CandidateResult(
-                        qa_id=qa_id,
-                        question=r["question"],
-                        answer=r["answer"],
-                        category_l1=r.get("category_l1", ""),
-                        category_l2=r.get("category_l2", ""),
-                        internal_process=r.get("internal_process", ""),
-                        feedback_dept=r.get("feedback_dept", ""),
-                        score=round(score, 4),
-                    ))
+                    results.append(
+                        CandidateResult(
+                            qa_id=qa_id,
+                            question=r["question"],
+                            answer=r["answer"],
+                            category_l1=r.get("category_l1", ""),
+                            category_l2=r.get("category_l2", ""),
+                            internal_process=r.get("internal_process", ""),
+                            feedback_dept=r.get("feedback_dept", ""),
+                            score=round(score, 4),
+                        )
+                    )
 
             resp = QueryResponse(
                 query=question,

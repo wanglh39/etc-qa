@@ -9,11 +9,13 @@ class TestMySQLClient:
             "mysql": {"host": "localhost", "port": 3360, "user": "root", "password": "123456", "database": "etc_qa"},
         }
         import utils.config as cfg_module
+
         self._original_get = getattr(cfg_module, "get_config", None)
         cfg_module.get_config = lambda: self.mock_config
 
     def teardown_method(self):
         import utils.config as cfg_module
+
         if self._original_get:
             cfg_module.get_config = self._original_get
 
@@ -21,7 +23,15 @@ class TestMySQLClient:
     def test_get_by_ids_returns_rows(self, mock_connect):
         mock_cursor = MagicMock()
         mock_cursor.fetchall.return_value = [
-            {"id": 1, "question": "ETC扣费异常", "answer": "核实退款", "category_l1": "账单问题", "category_l2": "ETC扣费", "internal_process": "", "feedback_dept": ""},
+            {
+                "id": 1,
+                "question": "ETC扣费异常",
+                "answer": "核实退款",
+                "category_l1": "账单问题",
+                "category_l2": "ETC扣费",
+                "internal_process": "",
+                "feedback_dept": "",
+            },
         ]
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
@@ -43,7 +53,15 @@ class TestMySQLClient:
     def test_get_by_id_returns_single(self, mock_connect):
         mock_cursor = MagicMock()
         mock_cursor.fetchall.return_value = [
-            {"id": 1, "question": "ETC扣费异常", "answer": "核实退款", "category_l1": "账单问题", "category_l2": "ETC扣费", "internal_process": "", "feedback_dept": ""},
+            {
+                "id": 1,
+                "question": "ETC扣费异常",
+                "answer": "核实退款",
+                "category_l1": "账单问题",
+                "category_l2": "ETC扣费",
+                "internal_process": "",
+                "feedback_dept": "",
+            },
         ]
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
@@ -82,7 +100,13 @@ class TestMySQLClient:
     def test_get_all_questions(self, mock_connect):
         mock_cursor = MagicMock()
         mock_cursor.fetchall.return_value = [
-            {"id": 1, "question": "ETC扣费异常", "answer": "核实退款", "category_l1": "账单问题", "category_l2": "ETC扣费"},
+            {
+                "id": 1,
+                "question": "ETC扣费异常",
+                "answer": "核实退款",
+                "category_l1": "账单问题",
+                "category_l2": "ETC扣费",
+            },
         ]
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
@@ -119,7 +143,15 @@ class TestMySQLClient:
     def test_get_by_ids_filters_inactive(self, mock_connect):
         mock_cursor = MagicMock()
         mock_cursor.fetchall.return_value = [
-            {"id": 1, "question": "ETC扣费异常", "answer": "核实退款", "category_l1": "账单问题", "category_l2": "ETC扣费", "internal_process": "", "feedback_dept": ""},
+            {
+                "id": 1,
+                "question": "ETC扣费异常",
+                "answer": "核实退款",
+                "category_l1": "账单问题",
+                "category_l2": "ETC扣费",
+                "internal_process": "",
+                "feedback_dept": "",
+            },
         ]
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
@@ -134,8 +166,16 @@ class TestMySQLClient:
         mock_cursor = MagicMock()
         mock_cursor.fetchone.return_value = {"cnt": 1}
         mock_cursor.fetchall.return_value = [
-            {"id": 1, "question": "ETC扣费异常", "answer": "核实退款", "category_l1": "账单问题",
-             "category_l2": "ETC扣费", "status": "active", "created_at": "2024-01-01", "updated_at": "2024-01-01"},
+            {
+                "id": 1,
+                "question": "ETC扣费异常",
+                "answer": "核实退款",
+                "category_l1": "账单问题",
+                "category_l2": "ETC扣费",
+                "status": "active",
+                "created_at": "2024-01-01",
+                "updated_at": "2024-01-01",
+            },
         ]
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
@@ -151,8 +191,16 @@ class TestMySQLClient:
         mock_cursor = MagicMock()
         mock_cursor.fetchone.return_value = {"cnt": 1}
         mock_cursor.fetchall.return_value = [
-            {"id": 1, "question": "ETC扣费异常", "answer": "核实退款", "category_l1": "账单问题",
-             "category_l2": "ETC扣费", "status": "active", "created_at": "2024-01-01", "updated_at": "2024-01-01"},
+            {
+                "id": 1,
+                "question": "ETC扣费异常",
+                "answer": "核实退款",
+                "category_l1": "账单问题",
+                "category_l2": "ETC扣费",
+                "status": "active",
+                "created_at": "2024-01-01",
+                "updated_at": "2024-01-01",
+            },
         ]
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
@@ -214,10 +262,16 @@ class TestMySQLClient:
     def test_get_qa_detail(self, mock_connect):
         mock_cursor = MagicMock()
         mock_cursor.fetchone.return_value = {
-            "id": 1, "question": "ETC扣费异常", "answer": "核实退款",
-            "category_l1": "账单问题", "category_l2": "ETC扣费",
-            "internal_process": "核实", "feedback_dept": "账单组",
-            "status": "active", "created_at": "2024-01-01", "updated_at": "2024-01-01",
+            "id": 1,
+            "question": "ETC扣费异常",
+            "answer": "核实退款",
+            "category_l1": "账单问题",
+            "category_l2": "ETC扣费",
+            "internal_process": "核实",
+            "feedback_dept": "账单组",
+            "status": "active",
+            "created_at": "2024-01-01",
+            "updated_at": "2024-01-01",
         }
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
@@ -262,8 +316,14 @@ class TestMySQLClient:
         mock_cursor = MagicMock()
         mock_cursor.fetchone.return_value = {"cnt": 3}
         mock_cursor.fetchall.return_value = [
-            {"id": 1, "external_id": "WO1", "raw_data": "test", "status": "submitted",
-             "created_at": "2024-01-01", "updated_at": "2024-01-01"},
+            {
+                "id": 1,
+                "external_id": "WO1",
+                "raw_data": "test",
+                "status": "submitted",
+                "created_at": "2024-01-01",
+                "updated_at": "2024-01-01",
+            },
         ]
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
@@ -280,11 +340,13 @@ class TestMySQLClientNewBranches:
             "mysql": {"host": "localhost", "port": 3360, "user": "root", "password": "123456", "database": "etc_qa"},
         }
         import utils.config as cfg_module
+
         self._original_get = getattr(cfg_module, "get_config", None)
         cfg_module.get_config = lambda: self.mock_config
 
     def teardown_method(self):
         import utils.config as cfg_module
+
         if self._original_get:
             cfg_module.get_config = self._original_get
 
@@ -544,8 +606,14 @@ class TestMySQLClientNewBranches:
         mock_cursor = MagicMock()
         mock_cursor.fetchone.return_value = {"cnt": 2}
         mock_cursor.fetchall.return_value = [
-            {"id": 1, "external_id": "WO1", "raw_data": "test", "status": "submitted",
-             "created_at": "2024-01-01", "updated_at": "2024-01-01"},
+            {
+                "id": 1,
+                "external_id": "WO1",
+                "raw_data": "test",
+                "status": "submitted",
+                "created_at": "2024-01-01",
+                "updated_at": "2024-01-01",
+            },
         ]
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
@@ -560,8 +628,15 @@ class TestMySQLClientNewBranches:
         mock_cursor = MagicMock()
         mock_cursor.fetchone.return_value = {"cnt": 4}
         mock_cursor.fetchall.return_value = [
-            {"id": 2, "external_id": "WO2", "raw_data": "data", "status": "submitted",
-             "dept": "账单组", "created_at": "2024-01-02", "updated_at": "2024-01-02"},
+            {
+                "id": 2,
+                "external_id": "WO2",
+                "raw_data": "data",
+                "status": "submitted",
+                "dept": "账单组",
+                "created_at": "2024-01-02",
+                "updated_at": "2024-01-02",
+            },
         ]
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
@@ -784,7 +859,15 @@ class TestMySQLClientNewBranches:
     def test_get_by_ids_no_active_filter(self, mock_connect):
         mock_cursor = MagicMock()
         mock_cursor.fetchall.return_value = [
-            {"id": 1, "question": "q", "answer": "a", "category_l1": "c1", "category_l2": "c2", "internal_process": "", "feedback_dept": ""},
+            {
+                "id": 1,
+                "question": "q",
+                "answer": "a",
+                "category_l1": "c1",
+                "category_l2": "c2",
+                "internal_process": "",
+                "feedback_dept": "",
+            },
         ]
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
@@ -1045,8 +1128,13 @@ class TestMySQLClientNewBranches:
     def test_get_work_order_detail(self, mock_connect):
         mock_cursor = MagicMock()
         mock_cursor.fetchone.return_value = {
-            "id": 1, "external_id": "WO1", "raw_data": "工单内容", "status": "submitted",
-            "dept": "账单组", "created_at": "2024-01-01", "updated_at": "2024-01-01",
+            "id": 1,
+            "external_id": "WO1",
+            "raw_data": "工单内容",
+            "status": "submitted",
+            "dept": "账单组",
+            "created_at": "2024-01-01",
+            "updated_at": "2024-01-01",
         }
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
@@ -1144,8 +1232,15 @@ class TestMySQLClientNewBranches:
         mock_cursor = MagicMock()
         mock_cursor.fetchone.return_value = {"cnt": 5}
         mock_cursor.fetchall.return_value = [
-            {"id": 1, "qa_id": 10, "question": "问题", "answer": "答案",
-             "result": "match", "operator": "op01", "created_at": "2024-01-01"},
+            {
+                "id": 1,
+                "qa_id": 10,
+                "question": "问题",
+                "answer": "答案",
+                "result": "match",
+                "operator": "op01",
+                "created_at": "2024-01-01",
+            },
         ]
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor

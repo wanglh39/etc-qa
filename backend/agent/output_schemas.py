@@ -1,4 +1,3 @@
-
 from pydantic import BaseModel, Field
 
 
@@ -6,7 +5,9 @@ class StandardizeOutput(BaseModel):
     need_rewrite: bool = Field(description="是否需要改写")
     reason: str = Field(default="", description="判断理由")
     rewritten: str = Field(default="", description="改写后问题，不需要改写时留空")
-    rewrite_confidence: float = Field(ge=0.0, le=1.0, default=1.0, description="改写质量置信度，1.0=高置信，低值表示改写可能有问题")
+    rewrite_confidence: float = Field(
+        ge=0.0, le=1.0, default=1.0, description="改写质量置信度，1.0=高置信，低值表示改写可能有问题"
+    )
 
 
 class StructureIngestOutput(BaseModel):

@@ -45,26 +45,34 @@ class TestApplyCorrections:
 
 class TestLoadCorrections:
     def test_from_business_config(self):
-        with patch("asr.service.get_business_config", return_value={"解忧": "解悠"}), \
-             patch("asr.service.get_config", return_value={}):
+        with (
+            patch("asr.service.get_business_config", return_value={"解忧": "解悠"}),
+            patch("asr.service.get_config", return_value={}),
+        ):
             result = _load_corrections()
             assert result == {"解忧": "解悠"}
 
     def test_from_yaml_config(self):
-        with patch("asr.service.get_business_config", return_value=None), \
-             patch("asr.service.get_config", return_value={"asr": {"corrections": {"ETC": "etc"}}}):
+        with (
+            patch("asr.service.get_business_config", return_value=None),
+            patch("asr.service.get_config", return_value={"asr": {"corrections": {"ETC": "etc"}}}),
+        ):
             result = _load_corrections()
             assert result == {"ETC": "etc"}
 
     def test_business_config_not_dict(self):
-        with patch("asr.service.get_business_config", return_value="not a dict"), \
-             patch("asr.service.get_config", return_value={"asr": {"corrections": {"a": "b"}}}):
+        with (
+            patch("asr.service.get_business_config", return_value="not a dict"),
+            patch("asr.service.get_config", return_value={"asr": {"corrections": {"a": "b"}}}),
+        ):
             result = _load_corrections()
             assert result == {"a": "b"}
 
     def test_no_corrections_anywhere(self):
-        with patch("asr.service.get_business_config", return_value=None), \
-             patch("asr.service.get_config", return_value={}):
+        with (
+            patch("asr.service.get_business_config", return_value=None),
+            patch("asr.service.get_config", return_value={}),
+        ):
             result = _load_corrections()
             assert result == {}
 
@@ -134,6 +142,7 @@ class TestASRService:
         with patch("asr.service.get_business_config", return_value={"解忧": "解悠"}):
             import os
             import tempfile
+
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
                 tmp_path = f.name
             try:
@@ -154,6 +163,7 @@ class TestASRService:
         with patch("asr.service.get_business_config", return_value=None):
             import os
             import tempfile
+
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
                 tmp_path = f.name
             try:
@@ -174,6 +184,7 @@ class TestASRService:
         with patch("asr.service.get_business_config", return_value=None):
             import os
             import tempfile
+
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
                 tmp_path = f.name
             try:
@@ -295,9 +306,7 @@ class TestASRServiceVLLM:
 
     @patch("asr.service.get_config")
     def test_normal_load_model_import_error(self, mock_cfg):
-        mock_cfg.return_value = {
-            "asr": {"enabled": True, "model": "test-model", "device": "cpu"}
-        }
+        mock_cfg.return_value = {"asr": {"enabled": True, "model": "test-model", "device": "cpu"}}
         original_import = builtins.__import__
 
         def blocking_import(name, *args, **kwargs):
@@ -391,6 +400,7 @@ class TestASRServiceDiarize:
 
         import os
         import tempfile
+
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
             tmp_path = f.name
         try:
@@ -415,6 +425,7 @@ class TestASRServiceDiarize:
 
         import os
         import tempfile
+
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
             tmp_path = f.name
         try:
@@ -439,6 +450,7 @@ class TestASRServiceDiarize:
 
         import os
         import tempfile
+
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
             tmp_path = f.name
         try:
@@ -480,11 +492,13 @@ class TestTraceableImportFallback:
             @traceable(name="test", run_type="chain")
             def func(x):
                 return x
+
             assert func(1) == 1
 
             @traceable()
             def func2(x):
                 return x * 2
+
             assert func2(2) == 4
         finally:
             if original_langsmith is not None:

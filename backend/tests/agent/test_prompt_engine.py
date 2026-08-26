@@ -281,9 +281,11 @@ class TestPromptEngineFileTemplate:
 
         engine = PromptEngine()
         result = engine.render(
-            "judge", "fallback",
+            "judge",
+            "fallback",
             question="我的ETC坏了",
-            min_length=5, max_length=30,
+            min_length=5,
+            max_length=30,
             judge_no_rewrite_examples="示例",
             judge_rewrite_examples="示例",
         )
@@ -326,8 +328,10 @@ class TestPromptEngineFileTemplate:
         mock_mysql_cls.return_value = mock_mysql
 
         engine = PromptEngine()
-        with patch.object(Path, "is_file", return_value=True), \
-             patch.object(Path, "read_text", side_effect=OSError("read error")):
+        with (
+            patch.object(Path, "is_file", return_value=True),
+            patch.object(Path, "read_text", side_effect=OSError("read error")),
+        ):
             text = engine._load_file_template("judge")
         assert text == ""
 

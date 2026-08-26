@@ -1,9 +1,9 @@
 import os
 
-os.environ['ETC_QA_ENV'] = os.environ.get('ETC_QA_ENV', 'test')
+os.environ["ETC_QA_ENV"] = os.environ.get("ETC_QA_ENV", "test")
 import sys
 
-sys.path.insert(0, '.')
+sys.path.insert(0, ".")
 import csv
 import json
 import re
@@ -34,36 +34,39 @@ bm25.build(all_qa)
 qa_pairs_dict = {qa["id"]: qa for qa in all_qa}
 recall_eng = RecallEngine(embed_model, milvus, bm25)
 
-PROJECT_ROOT = os.path.join(os.path.dirname(__file__), '..', '..')
+PROJECT_ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 WORK_ORDER_CSV = os.path.join(PROJECT_ROOT, cfg.get("data", {}).get("work_order_csv", "data/eval/work_orders_200.csv"))
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'output')
+OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "output")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 CORE_KEYWORDS = get_business_config("must_preserve_kws", ["ETC", "etc", "扣费", "退款", "注销", "激活"])
 INTERNAL_PROCESS_KEYWORDS = get_business_config("internal_process_keywords", ["核实", "待", "安排", "引导", "手动"])
 
-WO_TYPE_TO_L1 = get_business_config("wo_type_to_l1", {
-    "收款对账-划扣": "售后业务",
-    "退款申请": "售后业务",
-    "通行异常/多扣费": "售后业务",
-    "通行异常/少扣费": "售后业务",
-    "通行异常/未扣费": "售后业务",
-    "设备邮寄/更换": "售后业务",
-    "设备激活/异常": "售前业务",
-    "ETC注销": "售后业务",
-    "ETC变更": "售后业务",
-    "车队权限/其他": "售后业务",
-    "账单查询": "售后业务",
-    "投诉/其他": "其它",
-    "发票申请": "售后业务",
-    "黑名单查询": "售后业务",
-    "通行异常/其他": "售后业务",
-})
+WO_TYPE_TO_L1 = get_business_config(
+    "wo_type_to_l1",
+    {
+        "收款对账-划扣": "售后业务",
+        "退款申请": "售后业务",
+        "通行异常/多扣费": "售后业务",
+        "通行异常/少扣费": "售后业务",
+        "通行异常/未扣费": "售后业务",
+        "设备邮寄/更换": "售后业务",
+        "设备激活/异常": "售前业务",
+        "ETC注销": "售后业务",
+        "ETC变更": "售后业务",
+        "车队权限/其他": "售后业务",
+        "账单查询": "售后业务",
+        "投诉/其他": "其它",
+        "发票申请": "售后业务",
+        "黑名单查询": "售后业务",
+        "通行异常/其他": "售后业务",
+    },
+)
 
 
 def load_work_orders(csv_path, limit=None):
     rows = []
-    with open(csv_path, encoding='utf-8-sig') as f:
+    with open(csv_path, encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         for i, row in enumerate(reader):
             if limit and i >= limit:
@@ -77,14 +80,16 @@ def load_work_orders(csv_path, limit=None):
             question = re.sub(r"客户.{0,10}?[（(].{2,30}?[）)]反馈[：:]", "", desc).strip()
             if not question:
                 question = desc
-            rows.append({
-                "id": i,
-                "raw_question": desc,
-                "question": question,
-                "answer": result,
-                "work_order_type": wo_type,
-                "work_order_context": f"工单类型={wo_type}，流转至={dept}",
-            })
+            rows.append(
+                {
+                    "id": i,
+                    "raw_question": desc,
+                    "question": question,
+                    "answer": result,
+                    "work_order_type": wo_type,
+                    "work_order_context": f"工单类型={wo_type}，流转至={dept}",
+                }
+            )
     return rows
 
 
@@ -121,14 +126,10 @@ def eval_retrieval_gain(outputs, work_orders, recall_eng, embed_model, qa_pairs_
 
         total += 1
 
-        raw_vec = embed_model.encode(
-            [cfg["models"]["query_prefix"] + raw_q], normalize_embeddings=True
-        ).tolist()[0]
+        raw_vec = embed_model.encode([cfg["models"]["query_prefix"] + raw_q], normalize_embeddings=True).tolist()[0]
         raw_top_l1s, raw_top1_l1 = _recall_and_get_l1(raw_q, raw_vec, recall_eng, qa_pairs_dict)
 
-        rw_vec = embed_model.encode(
-            [cfg["models"]["query_prefix"] + rw], normalize_embeddings=True
-        ).tolist()[0]
+        rw_vec = embed_model.encode([cfg["models"]["query_prefix"] + rw], normalize_embeddings=True).tolist()[0]
         rw_top_l1s, rw_top1_l1 = _recall_and_get_l1(rw, rw_vec, recall_eng, qa_pairs_dict)
 
         raw_hit = expected_l1 in raw_top_l1s
@@ -146,15 +147,17 @@ def eval_retrieval_gain(outputs, work_orders, recall_eng, embed_model, qa_pairs_
         else:
             same += 1
 
-        details.append({
-            "raw_question": raw_q[:40],
-            "rewritten": rw[:30],
-            "expected_l1": expected_l1,
-            "raw_top3_l1": raw_top_l1s,
-            "rewrite_top3_l1": rw_top_l1s,
-            "raw_hit": raw_hit,
-            "rewrite_hit": rw_hit,
-        })
+        details.append(
+            {
+                "raw_question": raw_q[:40],
+                "rewritten": rw[:30],
+                "expected_l1": expected_l1,
+                "raw_top3_l1": raw_top_l1s,
+                "rewrite_top3_l1": rw_top_l1s,
+                "raw_hit": raw_hit,
+                "rewrite_hit": rw_hit,
+            }
+        )
 
     return raw_l1_match, rewrite_l1_match, raw_better, rewrite_better, same, total, details
 
@@ -175,12 +178,14 @@ def eval_category_consistency(outputs, work_orders):
             match += 1
         else:
             if len(mismatch_examples) < 10:
-                mismatch_examples.append({
-                    "wo_type": wo_type,
-                    "expected_l1": expected_l1,
-                    "actual_l1": o["category_l1"],
-                    "question": o["rewritten_question"][:30],
-                })
+                mismatch_examples.append(
+                    {
+                        "wo_type": wo_type,
+                        "expected_l1": expected_l1,
+                        "actual_l1": o["category_l1"],
+                        "question": o["rewritten_question"][:30],
+                    }
+                )
 
     return match, total, mismatch_examples
 
@@ -193,14 +198,16 @@ def eval_format_quality(questions):
         no_narrative = not bool(re.search(r"我[上这那本]?[个月星期年周]", q))
         has_core_kw = any(kw in q for kw in CORE_KEYWORDS)
         length_ok = 5 <= length <= 30
-        results.append({
-            "length": length,
-            "length_ok": length_ok,
-            "has_question_mark": has_question_mark,
-            "no_narrative": no_narrative,
-            "has_core_keyword": has_core_kw,
-            "format_score": sum([length_ok, has_question_mark, no_narrative, has_core_kw]) / 4,
-        })
+        results.append(
+            {
+                "length": length,
+                "length_ok": length_ok,
+                "has_question_mark": has_question_mark,
+                "no_narrative": no_narrative,
+                "has_core_keyword": has_core_kw,
+                "format_score": sum([length_ok, has_question_mark, no_narrative, has_core_kw]) / 4,
+            }
+        )
     return results
 
 
@@ -221,12 +228,14 @@ def eval_answer_structure(answers, internal_processes, feedback_depts, raw_answe
         ip_separated = bool(ip.strip()) and ip.strip() != ans.strip()
         fd_extracted = bool(fd.strip())
         has_internal_kw = any(kw in (ip or "") for kw in INTERNAL_PROCESS_KEYWORDS)
-        results.append({
-            "answer_nonempty": ans_nonempty,
-            "internal_process_separated": ip_separated,
-            "feedback_dept_extracted": fd_extracted,
-            "has_internal_action_kw": has_internal_kw,
-        })
+        results.append(
+            {
+                "answer_nonempty": ans_nonempty,
+                "internal_process_separated": ip_separated,
+                "feedback_dept_extracted": fd_extracted,
+                "has_internal_action_kw": has_internal_kw,
+            }
+        )
     return results
 
 
@@ -265,41 +274,45 @@ def run_eval(limit=None, sample=None):
                 errors.append({"id": wo["id"], "error": result["error"], "raw": wo["raw_question"]})
             else:
                 parse_success += 1
-            outputs.append({
-                "id": wo["id"],
-                "raw_question": wo["raw_question"],
-                "cleaned_question": state.question,
-                "rewritten_question": result.get("question", ""),
-                "raw_answer": wo["answer"],
-                "answer": result.get("answer", ""),
-                "internal_process": result.get("internal_process", ""),
-                "feedback_dept": result.get("feedback_dept", ""),
-                "category_l1": result.get("category_l1", ""),
-                "category_l2": result.get("category_l2", ""),
-                "needs_review": result.get("needs_review", False),
-            })
+            outputs.append(
+                {
+                    "id": wo["id"],
+                    "raw_question": wo["raw_question"],
+                    "cleaned_question": state.question,
+                    "rewritten_question": result.get("question", ""),
+                    "raw_answer": wo["answer"],
+                    "answer": result.get("answer", ""),
+                    "internal_process": result.get("internal_process", ""),
+                    "feedback_dept": result.get("feedback_dept", ""),
+                    "category_l1": result.get("category_l1", ""),
+                    "category_l2": result.get("category_l2", ""),
+                    "needs_review": result.get("needs_review", False),
+                }
+            )
         except Exception as e:
             parse_fail += 1
             errors.append({"id": wo["id"], "error": str(e), "raw": wo["raw_question"]})
-            outputs.append({
-                "id": wo["id"],
-                "raw_question": wo["raw_question"],
-                "cleaned_question": state.question,
-                "rewritten_question": state.question,
-                "raw_answer": wo["answer"],
-                "answer": wo["answer"],
-                "internal_process": "",
-                "feedback_dept": "",
-                "category_l1": "咨询类",
-                "category_l2": "业务咨询",
-                "needs_review": True,
-            })
+            outputs.append(
+                {
+                    "id": wo["id"],
+                    "raw_question": wo["raw_question"],
+                    "cleaned_question": state.question,
+                    "rewritten_question": state.question,
+                    "raw_answer": wo["answer"],
+                    "answer": wo["answer"],
+                    "internal_process": "",
+                    "feedback_dept": "",
+                    "category_l1": "咨询类",
+                    "category_l2": "业务咨询",
+                    "needs_review": True,
+                }
+            )
 
         if (i + 1) % 10 == 0:
             print(f"  已处理 {i + 1}/{len(work_orders)}")
         time.sleep(0.5)
 
-    print(f"\nJSON解析成功率: {parse_success}/{len(work_orders)} = {parse_success/len(work_orders)*100:.1f}%")
+    print(f"\nJSON解析成功率: {parse_success}/{len(work_orders)} = {parse_success / len(work_orders) * 100:.1f}%")
     if parse_fail > 0:
         print(f"  解析失败: {parse_fail}条")
         for e in errors[:5]:
@@ -312,11 +325,11 @@ def run_eval(limit=None, sample=None):
         outputs, work_orders, recall_eng, embed_model, qa_pairs_dict
     )
     print(f"  可评估工单数: {total}（有工单类型→L1映射的）")
-    print(f"  原始问题Top3命中: {raw_hit}/{total} ({raw_hit/total*100:.1f}%)")
-    print(f"  改写后Top3命中:  {rw_hit}/{total} ({rw_hit/total*100:.1f}%)")
+    print(f"  原始问题Top3命中: {raw_hit}/{total} ({raw_hit / total * 100:.1f}%)")
+    print(f"  改写后Top3命中:  {rw_hit}/{total} ({rw_hit / total * 100:.1f}%)")
     print(f"  改写更好: {rw_better}条 | 原始更好: {raw_better}条 | 相同: {same}条")
     if rw_better > 0 or raw_better > 0:
-        print(f"  净增益: {rw_better - raw_better}条 ({(rw_better - raw_better)/total*100:.1f}%)")
+        print(f"  净增益: {rw_better - raw_better}条 ({(rw_better - raw_better) / total * 100:.1f}%)")
     gain_examples = [d for d in gain_details if d["rewrite_hit"] and not d["raw_hit"]][:3]
     if gain_examples:
         print("  改写增益示例:")
@@ -326,11 +339,13 @@ def run_eval(limit=None, sample=None):
 
     print("\n--- 分类一致性（LLM输出L1 vs 工单类型映射L1） ---")
     cat_match, cat_total, mismatch_examples = eval_category_consistency(outputs, work_orders)
-    print(f"  一致率: {cat_match}/{cat_total} ({cat_match/cat_total*100:.1f}%)")
+    print(f"  一致率: {cat_match}/{cat_total} ({cat_match / cat_total * 100:.1f}%)")
     if mismatch_examples:
         print("  不一致示例:")
         for m in mismatch_examples[:5]:
-            print(f"    工单类型={m['wo_type']}→期望L1={m['expected_l1']}, 实际L1={m['actual_l1']}, 问题={m['question']}")
+            print(
+                f"    工单类型={m['wo_type']}→期望L1={m['expected_l1']}, 实际L1={m['actual_l1']}, 问题={m['question']}"
+            )
 
     format_results = eval_format_quality(rewrites)
     format_scores = [r["format_score"] for r in format_results]
@@ -340,10 +355,10 @@ def run_eval(limit=None, sample=None):
     qmark_count = sum(r["has_question_mark"] for r in format_results)
     no_narr_count = sum(r["no_narrative"] for r in format_results)
     core_kw_count = sum(r["has_core_keyword"] for r in format_results)
-    print(f"  长度5-30字: {length_ok_count}/{len(format_results)} ({length_ok_count/len(format_results)*100:.1f}%)")
-    print(f"  含疑问词/？: {qmark_count}/{len(format_results)} ({qmark_count/len(format_results)*100:.1f}%)")
-    print(f"  无叙述性描述: {no_narr_count}/{len(format_results)} ({no_narr_count/len(format_results)*100:.1f}%)")
-    print(f"  含核心业务词: {core_kw_count}/{len(format_results)} ({core_kw_count/len(format_results)*100:.1f}%)")
+    print(f"  长度5-30字: {length_ok_count}/{len(format_results)} ({length_ok_count / len(format_results) * 100:.1f}%)")
+    print(f"  含疑问词/？: {qmark_count}/{len(format_results)} ({qmark_count / len(format_results) * 100:.1f}%)")
+    print(f"  无叙述性描述: {no_narr_count}/{len(format_results)} ({no_narr_count / len(format_results) * 100:.1f}%)")
+    print(f"  含核心业务词: {core_kw_count}/{len(format_results)} ({core_kw_count / len(format_results) * 100:.1f}%)")
 
     categories_l1 = [o["category_l1"] for o in outputs]
     categories_l2 = [o["category_l2"] for o in outputs]
@@ -351,8 +366,8 @@ def run_eval(limit=None, sample=None):
     l1_valid = sum(r["l1_valid"] for r in cat_results)
     l2_valid = sum(r["l2_valid"] for r in cat_results)
     print("\n--- 分类合理性（L1/L2是否在分类体系中） ---")
-    print(f"  category_l1有效: {l1_valid}/{len(cat_results)} ({l1_valid/len(cat_results)*100:.1f}%)")
-    print(f"  category_l2有效: {l2_valid}/{len(cat_results)} ({l2_valid/len(cat_results)*100:.1f}%)")
+    print(f"  category_l1有效: {l1_valid}/{len(cat_results)} ({l1_valid / len(cat_results) * 100:.1f}%)")
+    print(f"  category_l2有效: {l2_valid}/{len(cat_results)} ({l2_valid / len(cat_results) * 100:.1f}%)")
     l1_dist = Counter(categories_l1)
     print(f"  category_l1分布: {dict(l1_dist)}")
 
@@ -366,14 +381,14 @@ def run_eval(limit=None, sample=None):
     fd_extracted = sum(r["feedback_dept_extracted"] for r in ans_results)
     has_internal_kw = sum(r["has_internal_action_kw"] for r in ans_results)
     print("\n--- 答案结构化质量 ---")
-    print(f"  answer非空: {ans_nonempty}/{len(ans_results)} ({ans_nonempty/len(ans_results)*100:.1f}%)")
-    print(f"  internal_process已分离: {ip_separated}/{len(ans_results)} ({ip_separated/len(ans_results)*100:.1f}%)")
-    print(f"  feedback_dept已提取: {fd_extracted}/{len(ans_results)} ({fd_extracted/len(ans_results)*100:.1f}%)")
-    print(f"  含内部操作关键词: {has_internal_kw}/{len(ans_results)} ({has_internal_kw/len(ans_results)*100:.1f}%)")
+    print(f"  answer非空: {ans_nonempty}/{len(ans_results)} ({ans_nonempty / len(ans_results) * 100:.1f}%)")
+    print(f"  internal_process已分离: {ip_separated}/{len(ans_results)} ({ip_separated / len(ans_results) * 100:.1f}%)")
+    print(f"  feedback_dept已提取: {fd_extracted}/{len(ans_results)} ({fd_extracted / len(ans_results) * 100:.1f}%)")
+    print(f"  含内部操作关键词: {has_internal_kw}/{len(ans_results)} ({has_internal_kw / len(ans_results) * 100:.1f}%)")
 
     review_count = sum(1 for o in outputs if o.get("needs_review"))
     print("\n--- 需人工审核 ---")
-    print(f"  {review_count}/{len(outputs)} ({review_count/len(outputs)*100:.1f}%)")
+    print(f"  {review_count}/{len(outputs)} ({review_count / len(outputs) * 100:.1f}%)")
 
     report = {
         "total": len(work_orders),
@@ -423,14 +438,16 @@ def run_eval(limit=None, sample=None):
     print("\n" + "=" * 60)
     print("评估总结")
     print("=" * 60)
-    print(f"  JSON解析成功率:    {report['parse_success_rate']*100:.1f}%")
-    print(f"  检索增益(改写-原始): {report['retrieval_gain']['net_gain_rate']*100:.1f}% ({report['retrieval_gain']['net_gain']}条)")
-    print(f"  分类一致性:        {report['category_consistency']['rate']*100:.1f}%")
-    print(f"  格式规范度:        {report['format']['mean']*100:.1f}%")
-    print(f"  分类L1有效:        {report['category_validity']['l1_valid_rate']*100:.1f}%")
-    print(f"  分类L2有效:        {report['category_validity']['l2_valid_rate']*100:.1f}%")
-    print(f"  答案非空:          {report['answer_structure']['answer_nonempty_rate']*100:.1f}%")
-    print(f"  内部流程已分离:     {report['answer_structure']['internal_process_separated_rate']*100:.1f}%")
+    print(f"  JSON解析成功率:    {report['parse_success_rate'] * 100:.1f}%")
+    print(
+        f"  检索增益(改写-原始): {report['retrieval_gain']['net_gain_rate'] * 100:.1f}% ({report['retrieval_gain']['net_gain']}条)"
+    )
+    print(f"  分类一致性:        {report['category_consistency']['rate'] * 100:.1f}%")
+    print(f"  格式规范度:        {report['format']['mean'] * 100:.1f}%")
+    print(f"  分类L1有效:        {report['category_validity']['l1_valid_rate'] * 100:.1f}%")
+    print(f"  分类L2有效:        {report['category_validity']['l2_valid_rate'] * 100:.1f}%")
+    print(f"  答案非空:          {report['answer_structure']['answer_nonempty_rate'] * 100:.1f}%")
+    print(f"  内部流程已分离:     {report['answer_structure']['internal_process_separated_rate'] * 100:.1f}%")
 
 
 if __name__ == "__main__":

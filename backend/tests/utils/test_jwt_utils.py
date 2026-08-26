@@ -101,7 +101,11 @@ class TestAuthenticateDB:
     def test_db_active_user_returns_from_db(self):
         mock_db = MagicMock()
         mock_db.get_user_by_username.return_value = {
-            "username": "admin", "password_hash": "123456", "role": "admin", "dept": "ops", "status": "active"
+            "username": "admin",
+            "password_hash": "123456",
+            "role": "admin",
+            "dept": "ops",
+            "status": "active",
         }
         set_mysql_client(mock_db)
         with patch("utils.jwt_utils.verify_password", return_value=True):
@@ -111,7 +115,11 @@ class TestAuthenticateDB:
     def test_db_disabled_user_falls_back_to_hardcoded(self):
         mock_db = MagicMock()
         mock_db.get_user_by_username.return_value = {
-            "username": "admin", "password_hash": "xxx", "role": "admin", "dept": "", "status": "disabled"
+            "username": "admin",
+            "password_hash": "xxx",
+            "role": "admin",
+            "dept": "",
+            "status": "disabled",
         }
         set_mysql_client(mock_db)
         result = authenticate("admin", "123456")
@@ -134,7 +142,11 @@ class TestAuthenticateDB:
     def test_db_password_mismatch_falls_back_to_hardcoded(self):
         mock_db = MagicMock()
         mock_db.get_user_by_username.return_value = {
-            "username": "admin", "password_hash": "wronghash", "role": "admin", "dept": "", "status": "active"
+            "username": "admin",
+            "password_hash": "wronghash",
+            "role": "admin",
+            "dept": "",
+            "status": "active",
         }
         set_mysql_client(mock_db)
         with patch("utils.jwt_utils.verify_password", side_effect=[False, True]):

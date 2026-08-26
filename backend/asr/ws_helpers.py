@@ -11,13 +11,9 @@ _GREETING_PATTERNS = re.compile(
     r"^(你好|您好|喂|为你好|为你|嗯|哎|那个|就是|我想问一下|请问一下|不好意思|打扰了|在吗)[啊吗吧呢哇哦呀]*[，。？！、；：…]*$"
 )
 
-_CORRECTION_PATTERNS = re.compile(
-    r"^(不对|不是|搞错了|说错了|不好意思|纠正一下|更正一下|我重说|重新说)"
-)
+_CORRECTION_PATTERNS = re.compile(r"^(不对|不是|搞错了|说错了|不好意思|纠正一下|更正一下|我重说|重新说)")
 
-_PRONOUN_PATTERNS = re.compile(
-    r"(那个|这个|它|他|她|上面|刚才|前边|前面|刚刚说的|刚刚提到的)"
-)
+_PRONOUN_PATTERNS = re.compile(r"(那个|这个|它|他|她|上面|刚才|前边|前面|刚刚说的|刚刚提到的)")
 
 
 def _is_greeting(text: str) -> bool:
@@ -50,6 +46,7 @@ def _char_overlap_ratio(a: str, b: str) -> float:
 
 def _do_query(text: str, category_l1: str | None = None) -> dict | None:
     from api.routes import service
+
     if service is None:
         return None
     try:
@@ -74,6 +71,7 @@ def _do_diarize_segment(audio_buffer: bytes, sample_rate: int) -> list[dict]:
         audio_np = np.frombuffer(audio_buffer, dtype=np.int16).astype(np.float32) / 32768.0
 
         import soundfile as sf
+
         fd, tmp_path = tempfile.mkstemp(suffix=".wav")
         os.close(fd)
         sf.write(tmp_path, audio_np, sample_rate)
@@ -104,6 +102,7 @@ def _extract_channel(audio_bytes: bytes, side: str) -> bytes:
     if len(audio_bytes) < 4:
         return audio_bytes
     import numpy as np
+
     audio_np = np.frombuffer(audio_bytes, dtype=np.int16)
     if len(audio_np) % 2 != 0:
         return audio_bytes
@@ -112,9 +111,7 @@ def _extract_channel(audio_bytes: bytes, side: str) -> bytes:
     return stereo[:, channel_idx].tobytes()
 
 
-def _identify_speaker(
-    text: str, all_texts: list[str], speaker_map: dict[str, str]
-) -> str | None:
+def _identify_speaker(text: str, all_texts: list[str], speaker_map: dict[str, str]) -> str | None:
     if not speaker_map:
         return None
     for speaker, label in speaker_map.items():

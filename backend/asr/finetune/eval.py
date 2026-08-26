@@ -35,6 +35,7 @@ def evaluate(test_file: str, asr_service=None):
 
     if asr_service is None:
         from asr.service import get_asr_service
+
         asr_service = get_asr_service()
 
     results = []
@@ -51,21 +52,25 @@ def evaluate(test_file: str, asr_service=None):
             cer = compute_cer(reference, hypothesis)
             total_cer += cer
             count += 1
-            results.append({
-                "audio": audio_path,
-                "reference": reference,
-                "hypothesis": hypothesis,
-                "cer": round(cer, 4),
-            })
+            results.append(
+                {
+                    "audio": audio_path,
+                    "reference": reference,
+                    "hypothesis": hypothesis,
+                    "cer": round(cer, 4),
+                }
+            )
         except Exception as e:
-            results.append({
-                "audio": audio_path,
-                "reference": reference,
-                "error": str(e),
-            })
+            results.append(
+                {
+                    "audio": audio_path,
+                    "reference": reference,
+                    "error": str(e),
+                }
+            )
 
     avg_cer = total_cer / count if count > 0 else 0.0
-    print(f"评估完成: {count}条, 平均CER: {avg_cer:.4f} ({avg_cer*100:.2f}%)")
+    print(f"评估完成: {count}条, 平均CER: {avg_cer:.4f} ({avg_cer * 100:.2f}%)")
     return {"avg_cer": avg_cer, "count": count, "results": results}
 
 

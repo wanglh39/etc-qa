@@ -54,11 +54,31 @@ class TestWorkOrderFullFlow:
     def test_service_create_dept_view_dept_reply_admin_stats(self, client, mock_mysql):
         mock_mysql.insert_work_order_full.return_value = 42
         mock_mysql.get_work_order_detail.side_effect = [
-            {"id": 42, "external_id": "WO-20260824-1234", "raw_data": json.dumps({"customer_name": "test"}), "status": "submitted", "dept": "aftersale"},
-            {"id": 42, "external_id": "WO-20260824-1234", "raw_data": json.dumps({"customer_name": "test", "handle_remark": "已处理"}), "status": "processed", "dept": "aftersale"},
+            {
+                "id": 42,
+                "external_id": "WO-20260824-1234",
+                "raw_data": json.dumps({"customer_name": "test"}),
+                "status": "submitted",
+                "dept": "aftersale",
+            },
+            {
+                "id": 42,
+                "external_id": "WO-20260824-1234",
+                "raw_data": json.dumps({"customer_name": "test", "handle_remark": "已处理"}),
+                "status": "processed",
+                "dept": "aftersale",
+            },
         ]
         mock_mysql.get_work_order_list.return_value = {
-            "items": [{"id": 42, "external_id": "WO-20260824-1234", "raw_data": "{}", "status": "submitted", "dept": "aftersale"}],
+            "items": [
+                {
+                    "id": 42,
+                    "external_id": "WO-20260824-1234",
+                    "raw_data": "{}",
+                    "status": "submitted",
+                    "dept": "aftersale",
+                }
+            ],
             "total": 1,
             "page": 1,
             "page_size": 20,
@@ -69,15 +89,19 @@ class TestWorkOrderFullFlow:
         mock_mysql.get_category_stats.return_value = []
 
         h_service = _login(client, "service")
-        resp = client.post("/api/work_orders", json={
-            "service_id": "S001",
-            "customer_name": "test_customer",
-            "phone": "13800001111",
-            "problem_type": "ETC重复扣费",
-            "next_dept": "aftersale",
-            "priority": "high",
-            "detail_desc": "测试工单",
-        }, headers=h_service)
+        resp = client.post(
+            "/api/work_orders",
+            json={
+                "service_id": "S001",
+                "customer_name": "test_customer",
+                "phone": "13800001111",
+                "problem_type": "ETC重复扣费",
+                "next_dept": "aftersale",
+                "priority": "high",
+                "detail_desc": "测试工单",
+            },
+            headers=h_service,
+        )
         assert resp.status_code == 200
         wo_data = resp.json()
         assert wo_data["status"] == "submitted"
@@ -159,7 +183,13 @@ class TestWorkOrderStatusFlow:
     def test_reply_changes_to_processed(self, client, mock_mysql):
         mock_mysql.get_work_order_detail.side_effect = [
             {"id": 1, "external_id": "WO-1", "raw_data": "{}", "status": "submitted", "dept": "aftersale"},
-            {"id": 1, "external_id": "WO-1", "raw_data": '{"handle_remark": "ok"}', "status": "processed", "dept": "aftersale"},
+            {
+                "id": 1,
+                "external_id": "WO-1",
+                "raw_data": '{"handle_remark": "ok"}',
+                "status": "processed",
+                "dept": "aftersale",
+            },
         ]
         mock_mysql.update_work_order_reply.return_value = None
         h = _login(client, "admin")

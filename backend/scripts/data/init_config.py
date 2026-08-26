@@ -7,7 +7,7 @@ import pymysql
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 env = sys.argv[1] if len(sys.argv) > 1 else "test"
-os.environ['ETC_QA_ENV'] = env
+os.environ["ETC_QA_ENV"] = env
 
 from utils.config import load_config
 
@@ -38,8 +38,7 @@ CONFIG_ITEMS = {
 def init_system_config():
     print("\n=== 初始化system_config表 ===")
     conn = pymysql.connect(
-        host=MYSQL_HOST, port=MYSQL_PORT, user=MYSQL_USER,
-        password=MYSQL_PASSWORD, database=MYSQL_DB, charset="utf8mb4"
+        host=MYSQL_HOST, port=MYSQL_PORT, user=MYSQL_USER, password=MYSQL_PASSWORD, database=MYSQL_DB, charset="utf8mb4"
     )
     cursor = conn.cursor()
 

@@ -21,7 +21,6 @@ class PromptEngine:
         self._env = Environment(loader=BaseLoader())
         self._mysql = None
 
-
     def _get_mysql(self) -> MySQLClient:
         if self._mysql is None:
             self._mysql = MySQLClient()

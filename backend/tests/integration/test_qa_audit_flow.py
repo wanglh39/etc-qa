@@ -52,7 +52,16 @@ def _login(client, username="admin"):
 class TestQAAuditFullFlow:
     def test_deprecated_to_active_flow(self, client, mock_mysql):
         mock_mysql.get_qa_list.return_value = {
-            "items": [{"id": 1, "question": "ETC怎么退款", "answer": "3个工作日退款", "category_l1": "售后", "category_l2": "退款", "status": "deprecated"}],
+            "items": [
+                {
+                    "id": 1,
+                    "question": "ETC怎么退款",
+                    "answer": "3个工作日退款",
+                    "category_l1": "售后",
+                    "category_l2": "退款",
+                    "status": "deprecated",
+                }
+            ],
             "total": 1,
             "page": 1,
             "page_size": 20,

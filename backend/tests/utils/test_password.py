@@ -27,9 +27,13 @@ class TestPasswordPolicy:
     def test_warns_on_default_password(self, capsys, monkeypatch):
         import utils.jwt_utils as ju
 
-        monkeypatch.setattr(ju, "USERS", {
-            "admin": {"password": hash_password("123456"), "role": "admin", "dept": ""},
-        })
+        monkeypatch.setattr(
+            ju,
+            "USERS",
+            {
+                "admin": {"password": hash_password("123456"), "role": "admin", "dept": ""},
+            },
+        )
         check_password_policy()
         out = capsys.readouterr().out
         assert "admin" in out
@@ -38,9 +42,13 @@ class TestPasswordPolicy:
     def test_warns_on_plaintext(self, capsys, monkeypatch):
         import utils.jwt_utils as ju
 
-        monkeypatch.setattr(ju, "USERS", {
-            "service": {"password": "plainpw", "role": "service", "dept": ""},
-        })
+        monkeypatch.setattr(
+            ju,
+            "USERS",
+            {
+                "service": {"password": "plainpw", "role": "service", "dept": ""},
+            },
+        )
         check_password_policy()
         out = capsys.readouterr().out
         assert "service" in out

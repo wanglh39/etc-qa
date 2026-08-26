@@ -67,8 +67,18 @@ PROTECTED_ENDPOINTS = [
     {"method": "GET", "path": "/api/users", "allowed": ["superadmin"]},
     {"method": "GET", "path": "/api/roles", "allowed": ["superadmin"]},
     {"method": "GET", "path": "/api/operations", "allowed": ["superadmin"]},
-    {"method": "POST", "path": "/api/add", "body": {"question": "q", "answer": "a", "category_l1": "c", "category_l2": "d"}, "allowed": ["admin", "superadmin"]},
-    {"method": "PUT", "path": "/api/qa/status", "body": {"qa_id": 1, "status": "active"}, "allowed": ["admin", "superadmin"]},
+    {
+        "method": "POST",
+        "path": "/api/add",
+        "body": {"question": "q", "answer": "a", "category_l1": "c", "category_l2": "d"},
+        "allowed": ["admin", "superadmin"],
+    },
+    {
+        "method": "PUT",
+        "path": "/api/qa/status",
+        "body": {"qa_id": 1, "status": "active"},
+        "allowed": ["admin", "superadmin"],
+    },
     {"method": "GET", "path": "/api/config/enterprise_name", "allowed": ["admin", "superadmin"]},
     {"method": "POST", "path": "/api/config/reload", "allowed": ["admin", "superadmin"]},
     {"method": "DELETE", "path": "/api/qa/1", "allowed": ["admin", "superadmin"]},
@@ -103,12 +113,15 @@ class TestPermissionMatrix:
     @pytest.mark.parametrize("endpoint", PROTECTED_ENDPOINTS)
     @pytest.mark.parametrize("role", ROLES)
     def test_role_access(self, client, mock_mysql, logged_in_clients, endpoint, role):
-        resp = _make_request(client, endpoint["method"], endpoint["path"],
-                             logged_in_clients[role], endpoint.get("body"))
+        resp = _make_request(
+            client, endpoint["method"], endpoint["path"], logged_in_clients[role], endpoint.get("body")
+        )
         if role in endpoint["allowed"]:
             assert resp.status_code != 403, f"{role} 应能访问 {endpoint['method']} {endpoint['path']}，但收到 403"
         else:
-            assert resp.status_code == 403, f"{role} 不应访问 {endpoint['method']} {endpoint['path']}，但收到 {resp.status_code}"
+            assert resp.status_code == 403, (
+                f"{role} 不应访问 {endpoint['method']} {endpoint['path']}，但收到 {resp.status_code}"
+            )
 
 
 class TestPublicEndpoints:

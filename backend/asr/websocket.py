@@ -106,9 +106,7 @@ async def asr_stream(websocket: WebSocket):
     class WSCallback(StreamingCallback):
         def on_partial(self, text: str):
             try:
-                asyncio.get_event_loop().create_task(
-                    websocket.send_json({"type": "partial", "text": text})
-                )
+                asyncio.get_event_loop().create_task(websocket.send_json({"type": "partial", "text": text}))
             except Exception:
                 pass
 
@@ -120,12 +118,14 @@ async def asr_stream(websocket: WebSocket):
             try:
                 loop = asyncio.get_event_loop()
                 loop.create_task(
-                    websocket.send_json({
-                        "type": "final",
-                        "text": text,
-                        "is_end": is_end,
-                        "full_text": "".join(final_texts),
-                    })
+                    websocket.send_json(
+                        {
+                            "type": "final",
+                            "text": text,
+                            "is_end": is_end,
+                            "full_text": "".join(final_texts),
+                        }
+                    )
                 )
 
                 if not auto_query or not text.strip():
@@ -134,28 +134,40 @@ async def asr_stream(websocket: WebSocket):
                 if correction_enabled and _is_correction(text):
                     popped = accumulator.pop_last() or (final_texts.pop() if len(final_texts) > 1 else None)
                     _set_state(SessionState.LISTENING)
-                    loop.create_task(websocket.send_json({
-                        "type": "corrected",
-                        "correction_phrase": text,
-                        "removed": popped,
-                    }))
+                    loop.create_task(
+                        websocket.send_json(
+                            {
+                                "type": "corrected",
+                                "correction_phrase": text,
+                                "removed": popped,
+                            }
+                        )
+                    )
                     return
 
                 if filter_greeting and _is_greeting(text):
-                    loop.create_task(websocket.send_json({
-                        "type": "filtered",
-                        "reason": "greeting",
-                        "text": text,
-                    }))
+                    loop.create_task(
+                        websocket.send_json(
+                            {
+                                "type": "filtered",
+                                "reason": "greeting",
+                                "text": text,
+                            }
+                        )
+                    )
                     return
 
                 if len(text.strip()) < min_query_length:
-                    loop.create_task(websocket.send_json({
-                        "type": "filtered",
-                        "reason": "too_short",
-                        "text": text,
-                        "min_length": min_query_length,
-                    }))
+                    loop.create_task(
+                        websocket.send_json(
+                            {
+                                "type": "filtered",
+                                "reason": "too_short",
+                                "text": text,
+                                "min_length": min_query_length,
+                            }
+                        )
+                    )
                     return
 
                 query_text = text
@@ -163,31 +175,43 @@ async def asr_stream(websocket: WebSocket):
                     resolved = context_window.resolve_pronoun(text)
                     if resolved != text:
                         query_text = resolved
-                        loop.create_task(websocket.send_json({
-                            "type": "coreference_resolved",
-                            "original": text,
-                            "resolved": resolved,
-                            "context": context_window.get_context(),
-                        }))
+                        loop.create_task(
+                            websocket.send_json(
+                                {
+                                    "type": "coreference_resolved",
+                                    "original": text,
+                                    "resolved": resolved,
+                                    "context": context_window.get_context(),
+                                }
+                            )
+                        )
 
                 if dedup_enabled and query_cache.should_skip(query_text):
-                    loop.create_task(websocket.send_json({
-                        "type": "filtered",
-                        "reason": "duplicate",
-                        "text": query_text,
-                    }))
+                    loop.create_task(
+                        websocket.send_json(
+                            {
+                                "type": "filtered",
+                                "reason": "duplicate",
+                                "text": query_text,
+                            }
+                        )
+                    )
                     return
 
                 if speaker_filter and speaker_map:
                     speaker = _identify_speaker(text, final_texts, speaker_map)
                     if speaker and speaker != speaker_filter:
-                        loop.create_task(websocket.send_json({
-                            "type": "filtered",
-                            "reason": "speaker_mismatch",
-                            "text": text,
-                            "speaker": speaker,
-                            "expected": speaker_filter,
-                        }))
+                        loop.create_task(
+                            websocket.send_json(
+                                {
+                                    "type": "filtered",
+                                    "reason": "speaker_mismatch",
+                                    "text": text,
+                                    "speaker": speaker,
+                                    "expected": speaker_filter,
+                                }
+                            )
+                        )
                         return
 
                 _set_state(SessionState.QUERY_READY)
@@ -195,21 +219,35 @@ async def asr_stream(websocket: WebSocket):
                     ready = accumulator.add(text)
                     if ready is not None:
                         combined = "".join(ready)
-                        loop.create_task(_send_query_result(
-                            websocket, combined, category_l1, query_cache,
-                            on_sent=lambda: _set_state(SessionState.CANDIDATES_SHOWN),
-                        ))
+                        loop.create_task(
+                            _send_query_result(
+                                websocket,
+                                combined,
+                                category_l1,
+                                query_cache,
+                                on_sent=lambda: _set_state(SessionState.CANDIDATES_SHOWN),
+                            )
+                        )
                         context_window.add(combined)
                     else:
-                        loop.create_task(websocket.send_json({
-                            "type": "accumulating",
-                            "pending_count": accumulator.pending_count,
-                        }))
+                        loop.create_task(
+                            websocket.send_json(
+                                {
+                                    "type": "accumulating",
+                                    "pending_count": accumulator.pending_count,
+                                }
+                            )
+                        )
                 else:
-                    loop.create_task(_send_query_result(
-                        websocket, query_text, category_l1, query_cache,
-                        on_sent=lambda: _set_state(SessionState.CANDIDATES_SHOWN),
-                    ))
+                    loop.create_task(
+                        _send_query_result(
+                            websocket,
+                            query_text,
+                            category_l1,
+                            query_cache,
+                            on_sent=lambda: _set_state(SessionState.CANDIDATES_SHOWN),
+                        )
+                    )
                     context_window.add(text)
 
             except Exception:
@@ -217,9 +255,7 @@ async def asr_stream(websocket: WebSocket):
 
         def on_error(self, error: str):
             try:
-                asyncio.get_event_loop().create_task(
-                    websocket.send_json({"type": "error", "message": error})
-                )
+                asyncio.get_event_loop().create_task(websocket.send_json({"type": "error", "message": error}))
             except Exception:
                 pass
 
@@ -227,24 +263,26 @@ async def asr_stream(websocket: WebSocket):
 
     try:
         service.start_stream(callback)
-        await websocket.send_json({
-            "type": "ready",
-            "mode": service.mode,
-            "auto_query": auto_query,
-            "state": session["state"].value,
-            "filters": {
-                "min_query_length": min_query_length,
-                "filter_greeting": filter_greeting,
-                "speaker_filter": speaker_filter,
-                "speaker_mode": speaker_mode,
-                "accumulate_mode": accumulate_mode,
-                "dedup_enabled": dedup_enabled,
-                "correction_enabled": correction_enabled,
-                "coreference_enabled": coreference_enabled,
-                "vad_trigger_enabled": vad_trigger_enabled,
-                "diarize_trigger_enabled": diarize_trigger_enabled,
-            },
-        })
+        await websocket.send_json(
+            {
+                "type": "ready",
+                "mode": service.mode,
+                "auto_query": auto_query,
+                "state": session["state"].value,
+                "filters": {
+                    "min_query_length": min_query_length,
+                    "filter_greeting": filter_greeting,
+                    "speaker_filter": speaker_filter,
+                    "speaker_mode": speaker_mode,
+                    "accumulate_mode": accumulate_mode,
+                    "dedup_enabled": dedup_enabled,
+                    "correction_enabled": correction_enabled,
+                    "coreference_enabled": coreference_enabled,
+                    "vad_trigger_enabled": vad_trigger_enabled,
+                    "diarize_trigger_enabled": diarize_trigger_enabled,
+                },
+            }
+        )
 
         while True:
             msg = await websocket.receive()
@@ -269,11 +307,13 @@ async def asr_stream(websocket: WebSocket):
                         label = ctrl.get("label", "customer")
                         if speaker:
                             speaker_map[speaker] = label
-                            await websocket.send_json({
-                                "type": "speaker_labeled",
-                                "speaker": speaker,
-                                "label": label,
-                            })
+                            await websocket.send_json(
+                                {
+                                    "type": "speaker_labeled",
+                                    "speaker": speaker,
+                                    "label": label,
+                                }
+                            )
                         continue
                     elif ctrl.get("type") == "clear_cache":
                         query_cache.clear()
@@ -285,10 +325,12 @@ async def asr_stream(websocket: WebSocket):
                         continue
                     elif ctrl.get("type") == "select_answer":
                         _set_state(SessionState.RESOLVED)
-                        await websocket.send_json({
-                            "type": "answer_selected",
-                            "qa_id": ctrl.get("qa_id"),
-                        })
+                        await websocket.send_json(
+                            {
+                                "type": "answer_selected",
+                                "qa_id": ctrl.get("qa_id"),
+                            }
+                        )
                         continue
                     elif ctrl.get("type") == "reset":
                         _set_state(SessionState.IDLE)
@@ -317,7 +359,10 @@ async def asr_stream(websocket: WebSocket):
                         combined = "".join(ready)
                         _set_state(SessionState.QUERY_READY)
                         await _send_query_result(
-                            websocket, combined, category_l1, query_cache,
+                            websocket,
+                            combined,
+                            category_l1,
+                            query_cache,
                             on_sent=lambda: _set_state(SessionState.CANDIDATES_SHOWN),
                         )
                         context_window.add(combined)
@@ -328,14 +373,10 @@ async def asr_stream(websocket: WebSocket):
                         should_query = True
 
                         if diarize_trigger_enabled and audio_chunks:
-                            window_chunks = _get_recent_audio(
-                                audio_chunks, diarize_audio_window, sample_rate
-                            )
+                            window_chunks = _get_recent_audio(audio_chunks, diarize_audio_window, sample_rate)
                             audio_bytes = b"".join(window_chunks)
                             loop = asyncio.get_event_loop()
-                            segments = await loop.run_in_executor(
-                                None, _do_diarize_segment, audio_bytes, sample_rate
-                            )
+                            segments = await loop.run_in_executor(None, _do_diarize_segment, audio_bytes, sample_rate)
                             if segments:
                                 last_speaker = segments[-1]["speaker"]
                                 if speaker_map:
@@ -344,11 +385,13 @@ async def asr_stream(websocket: WebSocket):
                                     is_customer = last_speaker == diarize_default_customer
                                 if not is_customer:
                                     should_query = False
-                                    await websocket.send_json({
-                                        "type": "filtered",
-                                        "reason": "speaker_mismatch",
-                                        "speaker": last_speaker,
-                                    })
+                                    await websocket.send_json(
+                                        {
+                                            "type": "filtered",
+                                            "reason": "speaker_mismatch",
+                                            "speaker": last_speaker,
+                                        }
+                                    )
 
                         ready = accumulator.flush()
                         if ready and should_query:
@@ -370,19 +413,24 @@ async def asr_stream(websocket: WebSocket):
 
 
 async def _send_query_result(
-    websocket: WebSocket, text: str, category_l1: str | None = None,
-    cache: QueryCache | None = None, on_sent=None,
+    websocket: WebSocket,
+    text: str,
+    category_l1: str | None = None,
+    cache: QueryCache | None = None,
+    on_sent=None,
 ):
     if cache is not None:
         cached = cache.get_recent(text)
         if cached is not None:
             try:
-                await websocket.send_json({
-                    "type": "query_result",
-                    "query_text": text,
-                    "data": cached,
-                    "from_cache": True,
-                })
+                await websocket.send_json(
+                    {
+                        "type": "query_result",
+                        "query_text": text,
+                        "data": cached,
+                        "from_cache": True,
+                    }
+                )
             except Exception:
                 pass
             if on_sent:
@@ -395,12 +443,14 @@ async def _send_query_result(
         if cache is not None:
             cache.record(text, result)
         try:
-            await websocket.send_json({
-                "type": "query_result",
-                "query_text": text,
-                "data": result,
-                "from_cache": False,
-            })
+            await websocket.send_json(
+                {
+                    "type": "query_result",
+                    "query_text": text,
+                    "data": result,
+                    "from_cache": False,
+                }
+            )
         except Exception:
             pass
     if on_sent:

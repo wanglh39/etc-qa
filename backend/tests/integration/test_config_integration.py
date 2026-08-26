@@ -10,6 +10,7 @@ class TestL2ConfigCenter:
         mysql_conn.set_config("test_cc_key", {"val": "from_db"}, "配置中心集成测试")
 
         from utils.config_center import get_business_config, invalidate_cache
+
         invalidate_cache("test_cc_key")
 
         result = get_business_config("test_cc_key")
@@ -20,6 +21,7 @@ class TestL2ConfigCenter:
 
     def test_get_business_config_fallback_yaml(self):
         from utils.config_center import get_business_config, invalidate_cache
+
         invalidate_cache("nonexistent_key_xyz")
 
         result = get_business_config("nonexistent_key_xyz", default="fallback_default")
@@ -99,10 +101,13 @@ class TestL2ConfigCenter:
         assert "{{q}}" in result or "提示词" in result
 
     def test_config_update_via_api(self, real_client):
-        resp = real_client.put("/api/v1/config/test_cc_api", json={
-            "value": {"api_val": "updated"},
-            "description": "API配置更新测试",
-        })
+        resp = real_client.put(
+            "/api/v1/config/test_cc_api",
+            json={
+                "value": {"api_val": "updated"},
+                "description": "API配置更新测试",
+            },
+        )
         assert resp.status_code == 200
 
         resp = real_client.get("/api/v1/config/test_cc_api")
@@ -119,8 +124,7 @@ class TestL2ConfigCenter:
         conn = mysql_conn._get_conn()
         try:
             cursor = conn.cursor()
-            for key in ["test_cc_key", "test_cc_cache", "test_cc_inv",
-                        "test_cc_all1", "test_cc_all2", "test_cc_api"]:
+            for key in ["test_cc_key", "test_cc_cache", "test_cc_inv", "test_cc_all1", "test_cc_all2", "test_cc_api"]:
                 cursor.execute("DELETE FROM system_config WHERE config_key=%s", (key,))
             cursor.execute("DELETE FROM prompt_templates WHERE prompt_key='test_cc_prompt'")
             conn.commit()
@@ -130,6 +134,7 @@ class TestL2ConfigCenter:
             mysql_conn._reset_conn()
 
         from utils.config_center import invalidate_cache
+
         invalidate_cache()
 
 
@@ -138,6 +143,7 @@ class TestL2ConfigCenterEdgeCases:
     def test_get_business_config_json_string_value(self, mysql_conn):
         mysql_conn.set_config("test_json_str", {"key": "val"}, "JSON字符串测试")
         from utils.config_center import get_business_config, invalidate_cache
+
         invalidate_cache("test_json_str")
         result = get_business_config("test_json_str")
         assert isinstance(result, dict)
@@ -146,6 +152,7 @@ class TestL2ConfigCenterEdgeCases:
     def test_get_business_config_string_value(self, mysql_conn):
         mysql_conn.set_config("test_str_val", {"_str": "just_a_string"}, "字符串值测试")
         from utils.config_center import get_business_config, invalidate_cache
+
         invalidate_cache("test_str_val")
         result = get_business_config("test_str_val")
         assert isinstance(result, dict)
@@ -153,6 +160,7 @@ class TestL2ConfigCenterEdgeCases:
 
     def test_cache_ttl_expiry(self, mysql_conn):
         from utils.config_center import _cache, _cache_lock, get_business_config, invalidate_cache
+
         mysql_conn.set_config("test_ttl_key", {"v": "1"}, "TTL测试")
         invalidate_cache("test_ttl_key")
         get_business_config("test_ttl_key")
@@ -161,6 +169,7 @@ class TestL2ConfigCenterEdgeCases:
 
     def test_get_prompt_template_nonexistent(self):
         from utils.config_center import get_prompt_template, invalidate_cache
+
         invalidate_cache("nonexistent_prompt_xyz")
         result = get_prompt_template("nonexistent_prompt_xyz", default="default_template")
         assert result == "default_template"

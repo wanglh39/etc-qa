@@ -54,9 +54,18 @@ class TestQueryE2E:
             query="ETC扣费异常",
             standardized_query="ETC扣费异常",
             confidence="high",
-            candidates=[CandidateResult(qa_id=1, question="ETC扣费异常", answer="核实退款",
-                                        category_l1="售后", category_l2="扣费",
-                                        internal_process="", feedback_dept="", score=0.95)],
+            candidates=[
+                CandidateResult(
+                    qa_id=1,
+                    question="ETC扣费异常",
+                    answer="核实退款",
+                    category_l1="售后",
+                    category_l2="扣费",
+                    internal_process="",
+                    feedback_dept="",
+                    score=0.95,
+                )
+            ],
             total_candidates=1,
         )
         resp = client.post("/api/v1/query", json={"question": "ETC扣费异常"})
@@ -73,8 +82,11 @@ class TestQueryE2E:
 
     def test_query_with_category(self, client, mock_service):
         mock_service.query.return_value = QueryResponse(
-            query="test", standardized_query="test", confidence="none",
-            candidates=[], total_candidates=0,
+            query="test",
+            standardized_query="test",
+            confidence="none",
+            candidates=[],
+            total_candidates=0,
         )
         resp = client.post("/api/v1/query", json={"question": "test", "category_l1": "售后业务"})
         assert resp.status_code == 200
@@ -84,22 +96,36 @@ class TestQueryE2E:
 class TestAddQAE2E:
     def test_add_qa_success(self, client, mock_service):
         mock_service.add_knowledge.return_value = 42
-        resp = client.post("/api/v1/add", json={
-            "question": "新问题", "answer": "新答案",
-            "category_l1": "售后", "category_l2": "扣费",
-        })
+        resp = client.post(
+            "/api/v1/add",
+            json={
+                "question": "新问题",
+                "answer": "新答案",
+                "category_l1": "售后",
+                "category_l2": "扣费",
+            },
+        )
         assert resp.status_code == 200
         assert resp.json()["qa_id"] == 42
-
 
 
 class TestQAListE2E:
     def test_list_qa(self, client, mock_mysql):
         mock_mysql.get_qa_list.return_value = {
-            "items": [{"id": 1, "question": "q1", "answer": "a1",
-                       "category_l1": "售后", "category_l2": "扣费",
-                       "status": "active", "created_at": "2024-01-01"}],
-            "total": 1, "page": 1, "page_size": 20,
+            "items": [
+                {
+                    "id": 1,
+                    "question": "q1",
+                    "answer": "a1",
+                    "category_l1": "售后",
+                    "category_l2": "扣费",
+                    "status": "active",
+                    "created_at": "2024-01-01",
+                }
+            ],
+            "total": 1,
+            "page": 1,
+            "page_size": 20,
         }
         resp = client.get("/api/v1/qa/list")
         assert resp.status_code == 200
@@ -114,10 +140,15 @@ class TestQAListE2E:
 class TestQADetailE2E:
     def test_get_qa_detail(self, client, mock_mysql):
         mock_mysql.get_qa_detail.return_value = {
-            "id": 1, "question": "q1", "answer": "a1",
-            "category_l1": "售后", "category_l2": "扣费",
-            "internal_process": "", "feedback_dept": "",
-            "status": "active", "created_at": "2024-01-01",
+            "id": 1,
+            "question": "q1",
+            "answer": "a1",
+            "category_l1": "售后",
+            "category_l2": "扣费",
+            "internal_process": "",
+            "feedback_dept": "",
+            "status": "active",
+            "created_at": "2024-01-01",
         }
         resp = client.get("/api/v1/qa/1")
         assert resp.status_code == 200
@@ -157,10 +188,20 @@ class TestUpdateStatusE2E:
 class TestSearchQAE2E:
     def test_search_qa(self, client, mock_mysql):
         mock_mysql.search_qa.return_value = {
-            "items": [{"id": 1, "question": "ETC扣费", "answer": "核实",
-                       "category_l1": "售后", "category_l2": "扣费",
-                       "status": "active", "created_at": "2024-01-01"}],
-            "total": 1, "page": 1, "page_size": 20,
+            "items": [
+                {
+                    "id": 1,
+                    "question": "ETC扣费",
+                    "answer": "核实",
+                    "category_l1": "售后",
+                    "category_l2": "扣费",
+                    "status": "active",
+                    "created_at": "2024-01-01",
+                }
+            ],
+            "total": 1,
+            "page": 1,
+            "page_size": 20,
         }
         resp = client.post("/api/v1/qa/search", json={"keyword": "ETC"})
         assert resp.status_code == 200
@@ -202,11 +243,13 @@ class TestConfigE2E:
 class TestWorkOrdersE2E:
     def test_list_work_orders(self, client, mock_mysql):
         mock_mysql.get_work_order_list.return_value = {
-            "items": [], "total": 0, "page": 1, "page_size": 20,
+            "items": [],
+            "total": 0,
+            "page": 1,
+            "page_size": 20,
         }
         resp = client.get("/api/v1/work_orders")
         assert resp.status_code == 200
-
 
 
 class TestAddQANoService:
@@ -275,6 +318,7 @@ class TestWorkOrdersNoMySQL:
 class TestASRHealthE2E:
     def test_asr_health(self, client):
         from asr.models import ASRHealthResponse
+
         with patch("api.routes.get_asr_service") as mock_get:
             mock_asr = MagicMock()
             mock_asr.health.return_value = ASRHealthResponse(loaded=True, model="paraformer", device="cpu")
@@ -297,6 +341,7 @@ class TestASRDisabledE2E:
 class TestASRSuccessE2E:
     def test_asr_transcribe_success(self, client):
         from asr.models import ASRResponse
+
         with patch("api.routes.get_asr_service") as mock_get:
             mock_asr = MagicMock()
             mock_asr._enabled = True
@@ -334,4 +379,3 @@ class TestASRErrorE2E:
             mock_get.return_value = mock_asr
             resp = client.post("/api/v1/asr", files={"file": ("test.wav", b"fake audio", "audio/wav")})
             assert resp.status_code == 500
-

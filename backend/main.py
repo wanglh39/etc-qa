@@ -39,6 +39,7 @@ async def lifespan(app: FastAPI):
         scheduler_mgr.start()
         app.state.scheduler = scheduler_mgr
         from api.routes import set_scheduler_manager
+
         set_scheduler_manager(scheduler_mgr)
     except Exception as e:
         logger.warning(f"调度器启动失败(不影响主服务): {e}")

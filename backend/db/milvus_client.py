@@ -1,4 +1,3 @@
-
 import threading
 
 from pymilvus import DataType, MilvusClient
@@ -57,17 +56,19 @@ class MilvusQA:
         schema.add_field(field_name="id", datatype=DataType.INT64, is_primary=True)
         schema.add_field(field_name="qa_id", datatype=DataType.INT64)
         schema.add_field(field_name="vector", datatype=DataType.FLOAT_VECTOR, dim=self.dim)
-        schema.add_field(field_name="category_l1", datatype=DataType.VARCHAR, max_length=self.schema_cfg["category_l1_max_length"])
+        schema.add_field(
+            field_name="category_l1", datatype=DataType.VARCHAR, max_length=self.schema_cfg["category_l1_max_length"]
+        )
         schema.add_field(field_name="is_hyde", datatype=DataType.BOOL)
 
         index_params = self.client.prepare_index_params()
         index_params.add_index(
-            field_name="vector", index_type=self.index_cfg.get("type", "HNSW"),
-            metric_type="COSINE", params={"M": self.index_cfg.get("M", 16), "efConstruction": self.index_cfg.get("ef_construction", 256)}
+            field_name="vector",
+            index_type=self.index_cfg.get("type", "HNSW"),
+            metric_type="COSINE",
+            params={"M": self.index_cfg.get("M", 16), "efConstruction": self.index_cfg.get("ef_construction", 256)},
         )
-        self.client.create_collection(
-            collection_name=self.collection_name, schema=schema, index_params=index_params
-        )
+        self.client.create_collection(collection_name=self.collection_name, schema=schema, index_params=index_params)
 
     def _ensure_loaded(self):
         with self._lock:
@@ -79,6 +80,7 @@ class MilvusQA:
             except Exception as e:
                 if "too_many_pings" in str(e) or "UNAVAILABLE" in str(e) or "GOAWAY" in str(e):
                     from utils.logger import get_logger
+
                     get_logger("milvus").warning(f"_ensure_loaded gRPC错误，重连: {e}")
                     self._reconnect()
                     self.client.load_collection(self.collection_name)
@@ -90,6 +92,7 @@ class MilvusQA:
         import time
 
         from alert.monitor import record_metric
+
         start = time.time()
 
         try:
@@ -100,25 +103,27 @@ class MilvusQA:
             record_metric("milvus_search", time.time() - start, False)
             if "too_many_pings" in str(e) or "UNAVAILABLE" in str(e) or "GOAWAY" in str(e):
                 from utils.logger import get_logger
+
                 get_logger("milvus").warning("gRPC连接断开，正在重连...")
                 self._reconnect()
                 self._ensure_loaded()
                 return self.client.search(**kwargs)
             raise
 
-    def insert(self, qa_id: int, vector: list[float], category_l1: str = "",
-               hyde_vectors: list[list[float]] = None):
+    def insert(self, qa_id: int, vector: list[float], category_l1: str = "", hyde_vectors: list[list[float]] = None):
         self.init_collection()
         data = [{"id": qa_id, "qa_id": qa_id, "vector": vector, "category_l1": category_l1, "is_hyde": False}]
         if hyde_vectors:
             for i, hv in enumerate(hyde_vectors, start=1):
-                data.append({
-                    "id": qa_id * 1000 + i,
-                    "qa_id": qa_id,
-                    "vector": hv,
-                    "category_l1": category_l1,
-                    "is_hyde": True,
-                })
+                data.append(
+                    {
+                        "id": qa_id * 1000 + i,
+                        "qa_id": qa_id,
+                        "vector": hv,
+                        "category_l1": category_l1,
+                        "is_hyde": True,
+                    }
+                )
         self.client.insert(collection_name=self.collection_name, data=data)
         with self._lock:
             self.client.load_collection(self.collection_name)
@@ -131,10 +136,14 @@ class MilvusQA:
             self.client.load_collection(self.collection_name)
             self._collection_loaded = True
 
-    def search(self, query_vector: list[float], top_k: int = 10,
-               category_filter: str | None = None,
-               use_hyde: bool = True,
-               active_qa_ids: list[int] | None = None) -> list[tuple]:
+    def search(
+        self,
+        query_vector: list[float],
+        top_k: int = 10,
+        category_filter: str | None = None,
+        use_hyde: bool = True,
+        active_qa_ids: list[int] | None = None,
+    ) -> list[tuple]:
         self._ensure_loaded()
         ef = self.search_cfg.get("ef", 128)
         overfetch = self.search_cfg.get("overfetch_ratio", 3)

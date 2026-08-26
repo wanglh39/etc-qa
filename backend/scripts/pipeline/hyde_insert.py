@@ -1,9 +1,9 @@
 import os
 
-os.environ['ETC_QA_ENV'] = os.environ.get('ETC_QA_ENV', 'test')
+os.environ["ETC_QA_ENV"] = os.environ.get("ETC_QA_ENV", "test")
 import sys
 
-sys.path.insert(0, '.')
+sys.path.insert(0, ".")
 import json
 import time
 
@@ -17,7 +17,7 @@ if not os.path.exists(cache_path):
     print(f"ERROR: {cache_path} not found. Run hyde_generate.py first.")
     sys.exit(1)
 
-with open(cache_path, encoding='utf-8') as f:
+with open(cache_path, encoding="utf-8") as f:
     cache = json.load(f)
 print(f"Cache: {len(cache)} entries")
 
@@ -43,7 +43,7 @@ BATCH_SIZE = 30
 out_dir = os.path.join(os.path.dirname(__file__), "..", "..", "output")
 os.makedirs(out_dir, exist_ok=True)
 out_path = os.path.join(out_dir, "hyde_insert_report.txt")
-with open(out_path, 'w', encoding='utf-8') as f:
+with open(out_path, "w", encoding="utf-8") as f:
     f.write(f"Cache: {len(cache)}, Existing: {len(existing_hyde_ids)}, To insert: {len(todo)}\n")
 
     for i, entry in enumerate(todo):
@@ -54,11 +54,15 @@ with open(out_path, 'w', encoding='utf-8') as f:
         for j, vec in enumerate(vectors):
             vec_id = qa_id * 1000 + j if j > 0 else qa_id
             is_hyde = j > 0
-            batch_data.append({
-                "id": vec_id, "qa_id": qa_id,
-                "vector": vec, "category_l1": category_l1,
-                "is_hyde": is_hyde,
-            })
+            batch_data.append(
+                {
+                    "id": vec_id,
+                    "qa_id": qa_id,
+                    "vector": vec,
+                    "category_l1": category_l1,
+                    "is_hyde": is_hyde,
+                }
+            )
 
         if len(batch_data) >= BATCH_SIZE:
             milvus = MilvusQA()
@@ -66,7 +70,7 @@ with open(out_path, 'w', encoding='utf-8') as f:
             milvus.client.load_collection(milvus.collection_name)
             milvus.close()
             total_inserted += len(batch_data)
-            f.write(f"  Inserted {total_inserted} (processed {i+1}/{len(todo)})\n")
+            f.write(f"  Inserted {total_inserted} (processed {i + 1}/{len(todo)})\n")
             f.flush()
             batch_data = []
             time.sleep(3)

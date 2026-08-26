@@ -52,10 +52,13 @@ def mysql_conn():
 
 @pytest.fixture(scope="session")
 def milvus_conn():
-    from db.milvus_client import MilvusQA
+    try:
+        from db.milvus_client import MilvusQA
 
-    milvus = MilvusQA()
-    milvus.init_collection()
+        milvus = MilvusQA()
+        milvus.init_collection()
+    except Exception as e:
+        pytest.skip(f"Milvus不可用，跳过集成测试: {e}")
     yield milvus
     try:
         milvus.close()
@@ -65,6 +68,12 @@ def milvus_conn():
 
 @pytest.fixture(scope="session")
 def embed_model():
+    from utils.config import get_config
+
+    cfg = get_config()
+    api_keys = cfg.get("embedding", {}).get("api_keys", []) or os.environ.get("SILICONFLOW_API_KEYS", "")
+    if not api_keys:
+        pytest.skip("SiliconFlow API key未配置，跳过集成测试")
     from rag.siliconflow import get_embedding_client
 
     return get_embedding_client()

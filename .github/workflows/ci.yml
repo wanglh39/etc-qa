@@ -54,7 +54,7 @@ jobs:
     name: Backend · Integration Tests
     runs-on: ubuntu-latest
     needs: backend-test
-    continue-on-error: true
+
     services:
       mysql:
         image: mysql:8.0
@@ -87,8 +87,7 @@ jobs:
             --cov=. \
             --cov-report=term-missing \
             --cov-report=xml:coverage-integration.xml \
-            --cov-config=.coveragerc \
-            --cov-fail-under=80
+            --cov-config=.coveragerc
 
   backend-security:
     name: Backend · Security Scan

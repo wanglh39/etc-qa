@@ -1,7 +1,9 @@
 import sys
 from unittest.mock import MagicMock, patch
 
-import torch
+import pytest
+
+torch = pytest.importorskip("torch")
 
 import asr.diarizer as diarizer_module
 from asr.diarizer import SpeakerDiarizer, get_diarizer

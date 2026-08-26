@@ -86,7 +86,7 @@
 
 ### 测试命令（后端）
 - sandbox：`python -m pytest tests/ -x -q -o addopts="" --ignore=tests/integration`（workdir=`backend/`）
-- 本地：`C:\Users\wlh19\anaconda3\envs\etc_qa\python.exe -m pytest tests/ -x -q`（workdir=`backend/`）
+- 本地：`etc_qa/Scripts/python.exe -m pytest tests/ -x -q`（workdir=`backend/`）
 - sandbox有120秒超时，heavy依赖测试只能本地跑
 - conftest.py已mock langsmith/langchain_core/langgraph
 
@@ -95,7 +95,7 @@
 - `eval_rag.py`：RAG召回率+准确率（改rag/时用）
 - `eval_structure_ingest.py`：入库结构化质量（改structure_ingest时用）
 - `eval_prompt_diff.py`：提示词版本对比（改prompt/templates/*.j2时用）
-- 运行：`C:\Users\wlh19\anaconda3\envs\etc_qa\python.exe scripts/eval/eval_xxx.py`（workdir=`backend/`）
+- 运行：`etc_qa/Scripts/python.exe scripts/eval/eval_xxx.py`（workdir=`backend/`）
 
 ---
 
@@ -153,7 +153,7 @@
 - **项目根目录**: `C:\Users\wlh19\Desktop\挑战杯\etc_qa\`
 - **后端代码目录**: `backend/`（Python/FastAPI）
 - **前端代码目录**: `frontend/`（Vue3/TypeScript）
-- **Python环境**: conda环境`etc_qa`，解释器`C:\Users\wlh19\anaconda3\envs\etc_qa\python.exe`
+- **Python环境**: uv虚拟环境`etc_qa`，解释器`backend/etc_qa/Scripts/python.exe`（workdir=`backend/`）
 - **技术栈**: MySQL + Milvus LITE + FastAPI + Vue3 + Element Plus + ECharts + LangGraph + LangSmith
 - **用户是小白**：只懂玩具级React（前端改用Vue3），不懂Docker/Milvus/FastAPI/Reranker
 

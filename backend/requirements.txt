@@ -1,6 +1,6 @@
 # ETC客服QA智能检索系统 — 依赖清单
 # Python >= 3.10
-# 安装: pip install -r requirements.txt
+# 安装: uv pip install -r requirements.txt
 
 # Web框架
 fastapi>=0.104.0
@@ -10,7 +10,9 @@ python-multipart>=0.0.6
 filelock>=3.13.0
 
 # 阿里云NLS（实时语音识别ASR）
-aliyunsdkcore>=1.0.3
+# aliyunsdkcore需单独安装: uv pip install aliyunsdkcore --no-deps（避免pycrypto编译失败）
+aliyunsdkcore>=1.0.3  # 安装时加 --no-deps
+pycryptodome>=3.20.0  # pycrypto的纯Python替代（aliyunsdkcore依赖pycrypto，用pycryptodome替代）
 websocket-client>=1.8.0
 
 # 定时任务调度
@@ -37,15 +39,6 @@ langgraph>=0.0.30
 langchain-openai>=0.0.5
 langsmith>=0.1.0
 jinja2>=3.1.0
-
-
-# ASR语音识别
-funasr>=1.0.0
-torchaudio>=2.0.0
-# vllm>=0.12.0  # 可选：vLLM推理加速，需GPU+Linux
-
-# 模型下载
-modelscope>=1.9.0
 
 # 测试
 pytest>=7.4.0

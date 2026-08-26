@@ -10,7 +10,7 @@ python-multipart>=0.0.6
 filelock>=3.13.0
 
 # 阿里云NLS（实时语音识别ASR）
-aliyunsdkcore>=2.13.0
+aliyunsdkcore>=1.0.3
 websocket-client>=1.8.0
 
 # 定时任务调度

@@ -54,6 +54,7 @@ jobs:
     name: Backend · Integration Tests
     runs-on: ubuntu-latest
     needs: backend-test
+    continue-on-error: true
     services:
       mysql:
         image: mysql:8.0

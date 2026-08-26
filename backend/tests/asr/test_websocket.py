@@ -16,8 +16,8 @@ pytestmark = pytest.mark.filterwarnings(
 
 from fastapi import WebSocketDisconnect
 
-from asr.streaming import StreamingCallback
 from asr.service import _apply_corrections
+from asr.streaming import StreamingCallback
 from asr.websocket import (
     ContextWindow,
     QueryAccumulator,

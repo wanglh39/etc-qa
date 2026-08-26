@@ -27,7 +27,6 @@ from api.routes import (
     query_qa,
     reply_work_order,
     reset_password,
-
     set_mysql_client,
     set_service,
     stats_trend,

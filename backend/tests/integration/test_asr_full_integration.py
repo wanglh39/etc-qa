@@ -116,6 +116,7 @@ class TestWebSocketASRStreamIntegration:
         streaming_enabled = cfg.get("asr", {}).get("streaming", {}).get("enabled", False)
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
+
         from asr.websocket import router as ws_router
         app = FastAPI()
         app.include_router(ws_router, prefix="/api/v1")

@@ -184,6 +184,7 @@ class TestDoQuery:
 
     def test_returns_dict_on_success(self):
         import sys
+
         from models.schemas import QueryResponse
         mock_mod = MagicMock()
         mock_mod.service.query.return_value = QueryResponse(

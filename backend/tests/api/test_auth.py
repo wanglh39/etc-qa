@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 
 from api.auth import router as auth_router
 from utils import jwt_utils
-from utils.jwt_utils import create_token, verify_token, set_mysql_client
+from utils.jwt_utils import create_token, set_mysql_client, verify_token
 from utils.rate_limit import limiter
 
 

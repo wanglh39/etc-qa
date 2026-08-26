@@ -5,11 +5,11 @@ import pytest
 
 from alert import notifier
 from alert.notifier import (
+    _send_webhook,
+    _write_to_db,
     get_consecutive_failures,
     record_task_result,
     trigger_alert,
-    _send_webhook,
-    _write_to_db,
 )
 
 

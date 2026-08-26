@@ -1,5 +1,6 @@
 import atexit
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeout
 
 from db.milvus_client import MilvusQA
 from rag.bm25_index import BM25Index

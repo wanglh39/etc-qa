@@ -4,7 +4,6 @@ import random
 import tempfile
 from datetime import datetime, timedelta
 
-
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 
 from agent.graph import ingest_agent
@@ -25,7 +24,6 @@ from models.schemas import (
     CategoryUpdateRequest,
     OperationLogItem,
     OperationLogListResponse,
-
     QADetailResponse,
     QAListItem,
     QAListResponse,
@@ -33,28 +31,26 @@ from models.schemas import (
     QASearchResponse,
     QueryRequest,
     QueryResponse,
+    ResetPasswordRequest,
+    RoleCreateRequest,
+    RoleItem,
+    RoleUpdateRequest,
     StatsResponse,
     TrendResponse,
     UpdateStatusRequest,
     UpdateStatusResponse,
+    UserCreateRequest,
+    UserListItem,
+    UserListResponse,
+    UserUpdateRequest,
     WorkOrderCreateRequest,
     WorkOrderDetailResponse,
     WorkOrderListItem,
     WorkOrderListResponse,
     WorkOrderReplyRequest,
-    ResetPasswordRequest,
-    RoleCreateRequest,
-    RoleItem,
-    RoleUpdateRequest,
-    UserCreateRequest,
-    UserListItem,
-    UserListResponse,
-    UserUpdateRequest,
 )
-
 from rag.service import QAService
 from utils.auth_middleware import get_current_user, require_role
-
 from utils.config_center import get_business_config, invalidate_cache
 from utils.logger import get_logger
 from utils.password import hash_password

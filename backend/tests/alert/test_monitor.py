@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from alert.monitor import record_metric, get_metric_stats, get_all_metrics
+from alert.monitor import get_all_metrics, get_metric_stats, record_metric
 
 
 class TestMonitor:

@@ -169,13 +169,12 @@ def run_evaluation(golden: list[dict], pipelines: list[str] = None) -> dict:
     qa_service = None
     if "rag" in (pipelines or ["rag"]):
         try:
-            from rag.siliconflow import get_embedding_client, get_rerank_client
-
             from db.milvus_client import MilvusQA
             from rag.bm25_index import BM25Index
             from rag.recall import RecallEngine
             from rag.reranker import Reranker
             from rag.service import QAService
+            from rag.siliconflow import get_embedding_client, get_rerank_client
             from rag.threshold import ThresholdJudge
 
             mysql = MySQLClient()

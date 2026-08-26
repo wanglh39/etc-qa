@@ -16,6 +16,7 @@ PROJECT_ROOT = os.path.join(os.path.dirname(__file__), "..")
 sys.path.insert(0, PROJECT_ROOT)
 
 from sentence_transformers import CrossEncoder, SentenceTransformer
+
 from db.milvus_client import MilvusQA
 from db.mysql_client import MySQLClient
 from rag.bm25_index import BM25Index

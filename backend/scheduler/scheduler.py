@@ -2,6 +2,7 @@ from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+
 from utils.config import get_config
 from utils.logger import get_logger
 

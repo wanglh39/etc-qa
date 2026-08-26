@@ -1,10 +1,10 @@
-from unittest.mock import MagicMock, patch
 import sys
+from unittest.mock import MagicMock, patch
 
-import torch  # noqa: F401
+import torch
 
-from asr.diarizer import SpeakerDiarizer, get_diarizer
 import asr.diarizer as diarizer_module
+from asr.diarizer import SpeakerDiarizer, get_diarizer
 
 
 class TestSpeakerDiarizer:

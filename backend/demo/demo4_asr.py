@@ -24,6 +24,7 @@ def init_rag_service(cfg):
     import torch
     torch.set_num_threads(1)
     from sentence_transformers import CrossEncoder, SentenceTransformer
+
     from db.milvus_client import MilvusQA
     from db.mysql_client import MySQLClient
     from rag.bm25_index import BM25Index

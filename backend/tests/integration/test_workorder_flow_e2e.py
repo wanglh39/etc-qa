@@ -14,9 +14,9 @@
 """
 
 import argparse
+import random
 import sys
 import time
-import random
 
 try:
     import requests

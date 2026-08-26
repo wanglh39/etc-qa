@@ -11,7 +11,6 @@ import time
 from collections import Counter
 
 import numpy as np
-from rag.siliconflow import get_embedding_client
 
 from agent.processors.clean_text import clean_text
 from agent.processors.structure_ingest import get_category_tree, structure_ingest
@@ -20,6 +19,7 @@ from db.milvus_client import MilvusQA
 from db.mysql_client import MySQLClient
 from rag.bm25_index import BM25Index
 from rag.recall import RecallEngine
+from rag.siliconflow import get_embedding_client
 from utils.config import load_config
 from utils.config_center import get_business_config
 

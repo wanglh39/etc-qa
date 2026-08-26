@@ -6,12 +6,11 @@ import sys
 sys.path.insert(0, '.')
 import argparse
 
-from rag.siliconflow import get_embedding_client
-
 from agent.processors.hyde_rewrite import hyde_rewrite
 from agent.state import AgentState
 from db.milvus_client import MilvusQA
 from db.mysql_client import MySQLClient
+from rag.siliconflow import get_embedding_client
 from utils.config import load_config
 
 cfg = load_config()

@@ -1,4 +1,4 @@
-from alert.monitor import record_metric, get_metric_stats
 from alert.checker import check_alerts
+from alert.monitor import get_metric_stats, record_metric
 
-__all__ = ["record_metric", "get_metric_stats", "check_alerts"]
+__all__ = ["check_alerts", "get_metric_stats", "record_metric"]

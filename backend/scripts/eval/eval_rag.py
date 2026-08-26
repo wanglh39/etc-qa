@@ -6,8 +6,6 @@ import sys
 sys.path.insert(0, '.')
 import csv
 
-from rag.siliconflow import get_embedding_client, get_rerank_client
-
 from agent.processors.standardize_query import standardize_query
 from agent.state import AgentState
 from db.milvus_client import MilvusQA
@@ -15,6 +13,7 @@ from db.mysql_client import MySQLClient
 from rag.bm25_index import BM25Index
 from rag.recall import RecallEngine
 from rag.reranker import Reranker
+from rag.siliconflow import get_embedding_client, get_rerank_client
 from utils.config import load_config
 
 cfg = load_config()

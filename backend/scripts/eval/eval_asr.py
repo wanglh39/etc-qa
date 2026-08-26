@@ -69,8 +69,8 @@ def separate_channels(stereo_path: str, customer_side: str = "left"):
 
 
 def vad_split(wav_path: str, threshold_db: int = 30, min_silence_ms: int = 200):
-    import soundfile as sf
     import numpy as np
+    import soundfile as sf
 
     data, sr = sf.read(wav_path)
     if data.ndim > 1:
@@ -126,10 +126,11 @@ def save_segment(data, sr, start, end, output_path: str):
 
 def run_pseudo_streaming_pipeline(streaming_service, wav_path: str, chunk_samples: int = 4800):
     import soundfile as sf
-    from asr.streaming import StreamingCallback
-    from asr.ws_helpers import _is_greeting, _is_correction, _has_pronoun
-    from asr.ws_state import QueryAccumulator, ContextWindow, QueryCache
+
     from asr.service import _apply_corrections, _load_corrections
+    from asr.streaming import StreamingCallback
+    from asr.ws_helpers import _has_pronoun, _is_correction, _is_greeting
+    from asr.ws_state import ContextWindow, QueryAccumulator, QueryCache
     from utils.config import get_config
 
     cfg = get_config().get("asr", {}).get("streaming", {})

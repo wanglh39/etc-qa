@@ -81,8 +81,9 @@ class TestReranker:
         assert result == candidates
 
     def test_traceable_import_error_fallback(self):
-        import sys
         import importlib
+        import sys
+
         import rag.reranker as reranker_module
 
         original_langsmith = sys.modules.get("langsmith")

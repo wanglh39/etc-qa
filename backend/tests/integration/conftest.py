@@ -117,6 +117,7 @@ def real_app(qa_service, mysql_conn):
     routes.set_mysql_client(mysql_conn)
     routes.set_work_order_client(WorkOrderClient(use_mock=cfg.get("work_order", {}).get("use_mock", True)))
     from fastapi import FastAPI
+
     from utils.auth_middleware import get_current_user
     app = FastAPI()
     app.dependency_overrides[get_current_user] = lambda: {"sub": "test_user", "role": "admin"}

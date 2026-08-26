@@ -3,10 +3,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from alert import notifier
-from alert import monitor
+from alert import monitor, notifier
 from alert.checker import check_alerts
-from alert.monitor import record_metric, get_metric_stats
+from alert.monitor import get_metric_stats, record_metric
 from alert.notifier import trigger_alert
 from alert.rules import ALERT_RULES
 

@@ -1,7 +1,7 @@
 import os
+import statistics
 import sys
 import time
-import statistics
 
 os.environ['ETC_QA_ENV'] = os.environ.get('ETC_QA_ENV', 'test')
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -9,8 +9,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 import argparse
 from collections import defaultdict
 
-from db.mysql_client import MySQLClient
 from db.milvus_client import MilvusQA
+from db.mysql_client import MySQLClient
 from rag.bm25_index import BM25Index
 from rag.recall import RecallEngine
 from rag.reranker import Reranker

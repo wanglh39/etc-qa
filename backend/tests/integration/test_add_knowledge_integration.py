@@ -38,6 +38,9 @@ class TestL2AddKnowledge:
         mysql_conn.delete_qa(qa_id)
         try:
             from pymilvus import MilvusClient
+
+            from utils.config import get_config
+            cfg = get_config()
             client = MilvusClient(cfg["milvus"]["db_path"])
             client.delete(cfg["milvus"]["collection_name"], filter=f"id == {qa_id}")
             client.close()

@@ -2,9 +2,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from alert.checker import check_alerts, _evaluate_rule
-from alert.rules import ALERT_RULES, AlertRule
+from alert.checker import _evaluate_rule, check_alerts
 from alert.monitor import record_metric
+from alert.rules import ALERT_RULES, AlertRule
 
 
 class TestAlertRules:

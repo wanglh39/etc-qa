@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from utils.logger import setup_logging, get_logger
+from utils.logger import get_logger, setup_logging
 
 setup_logging()
 
@@ -15,8 +15,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.auth import router as auth_router
 from api.routes import router
-from asr.websocket import router as ws_router
 from app import create_service
+from asr.websocket import router as ws_router
 from scheduler import SchedulerManager
 from utils.config import get_config
 from utils.password import check_password_policy

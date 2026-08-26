@@ -88,6 +88,7 @@ class MilvusQA:
 
     def _safe_search(self, **kwargs):
         import time
+
         from alert.monitor import record_metric
         start = time.time()
 

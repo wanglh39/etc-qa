@@ -62,6 +62,7 @@ def _do_query(text: str, category_l1: str | None = None) -> dict | None:
 
 def _do_diarize_segment(audio_buffer: bytes, sample_rate: int) -> list[dict]:
     import numpy as np
+
     from asr.diarizer import get_diarizer
 
     diarizer = get_diarizer()

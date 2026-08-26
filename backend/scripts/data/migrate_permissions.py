@@ -1,4 +1,8 @@
-import os, sys, json, pymysql
+import json
+import os
+import sys
+
+import pymysql
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 os.environ['ETC_QA_ENV'] = 'dev'

@@ -146,10 +146,7 @@
               :key="i"
               size="small"
               class="history-tag"
-              @click="
-                searchText = q
-                handleSearch()
-              "
+              @click="searchFromHistory(q)"
             >
               {{ q.length > 12 ? q.slice(0, 12) + '…' : q }}
             </el-tag>
@@ -706,6 +703,11 @@ const handleSearch = async () => {
   } finally {
     searching.value = false
   }
+}
+
+const searchFromHistory = (q: string) => {
+  searchText.value = q
+  handleSearch()
 }
 
 // ===== 工单弹窗 =====

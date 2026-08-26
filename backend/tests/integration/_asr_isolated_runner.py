@@ -90,8 +90,9 @@ def test_batch_accuracy():
 
 
 def test_streaming_recognize():
-    import soundfile as sf
     import numpy as np
+    import soundfile as sf
+
     from asr.streaming import StreamingASRService, StreamingCallback
 
     class _Cb(StreamingCallback):
@@ -153,12 +154,14 @@ def test_asr_to_query():
 
 
 def test_channel_asr():
+    import os
+    import tempfile
+
     import numpy as np
     import soundfile as sf
-    import tempfile
-    import os
-    from asr.websocket import _extract_channel
+
     from asr.service import ASRService
+    from asr.websocket import _extract_channel
 
     stereo_path = os.path.normpath(os.path.join(ASR_SAMPLES_DIR, "sample_01.wav"))
     stereo_audio, sr = sf.read(stereo_path, dtype="int16")

@@ -1,10 +1,10 @@
 import json
 
 import numpy as np
-from rag.siliconflow import get_embedding_client
 
 from db.milvus_client import MilvusQA
 from db.mysql_client import MySQLClient
+from rag.siliconflow import get_embedding_client
 from utils.config import get_config
 
 

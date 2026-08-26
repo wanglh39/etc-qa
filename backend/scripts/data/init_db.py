@@ -27,8 +27,8 @@ _GRPC_OPTIONS = {
 env = sys.argv[1] if len(sys.argv) > 1 else "test"
 os.environ['ETC_QA_ENV'] = env
 
-from utils.config import load_config
 from rag.siliconflow import get_embedding_client
+from utils.config import load_config
 
 cfg = load_config()
 

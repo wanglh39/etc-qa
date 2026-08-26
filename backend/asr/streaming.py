@@ -181,10 +181,11 @@ class PseudoStreamingBackend(StreamingBackend):
             self._silence_samples = 0
             return
 
+        import os
+        import tempfile
+
         import numpy as np
         import soundfile as sf
-        import tempfile
-        import os
 
         audio_np = np.frombuffer(bytes(self._audio_buffer), dtype=np.int16).astype(np.float32) / 32768.0
         tmp_path = os.path.join(tempfile.gettempdir(), f"pseudo_asr_{threading.get_ident()}.wav")

@@ -1,3 +1,4 @@
+import sys
 from unittest.mock import MagicMock, patch
 
 import asr.streaming as streaming_module
@@ -9,8 +10,6 @@ from asr.streaming import (
     StreamingCallback,
     get_streaming_service,
 )
-
-import sys
 
 if "funasr" not in sys.modules:
     sys.modules["funasr"] = MagicMock()

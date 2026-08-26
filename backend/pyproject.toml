@@ -50,6 +50,12 @@ ignore = [
     "W293",   # blank line with whitespace
     "W292",   # missing newline at end of file
     "W605",   # invalid escape sequence
+    "E741",   # ambiguous variable name
+    "B027",   # empty method in abstract class
+    "RUF006", # store reference to create_task return value
+    "RUF012", # mutable default value for class attribute
+    "RUF015", # prefer next() over single element slice
+    "SIM102", # use single if instead of nested
 ]
 
 [tool.ruff.lint.isort]

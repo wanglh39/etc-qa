@@ -225,6 +225,7 @@ class TestL2ASRRecognition:
         """集成测试L2: 说话人分离 - sample_01.wav为双声道，验证通道分离"""
         import numpy as np
         import soundfile as sf
+
         from asr.websocket import _extract_channel
 
         stereo_path = os.path.join(ASR_SAMPLES_DIR, "sample_01.wav")

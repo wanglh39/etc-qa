@@ -45,7 +45,7 @@ chmod +x setup.sh
 
 1. 安装依赖
 ```bash
-pip install -r requirements.txt
+uv pip install -r requirements.txt -p etc_qa/Scripts/python.exe
 ```
 
 2. 配置环境变量
@@ -83,13 +83,13 @@ docker compose up -d
 
 ```bash
 # 单元测试（1240 passed）
-python -m pytest tests/ -q --ignore=tests/integration
+etc_qa/Scripts/python.exe -m pytest tests/ -q --ignore=tests/integration
 
 # 集成测试
-python -m pytest tests/integration/ -m integration -v
+etc_qa/Scripts/python.exe -m pytest tests/integration/ -m integration -v
 
 # 基准测试
-python -m pytest tests/benchmark/ -q
+etc_qa/Scripts/python.exe -m pytest tests/benchmark/ -q
 ```
 
 测试文件 59 个，测试用例 1240 个，集成测试 13 个文件，基准测试 5 个。

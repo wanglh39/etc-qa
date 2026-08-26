@@ -79,12 +79,11 @@ etc-qa/
 ```bash
 cd backend
 
-# 创建 conda 环境
-conda create -n etc_qa python=3.10 -y
-conda activate etc_qa
+# 创建 uv 虚拟环境
+uv venv etc_qa --python 3.10
 
 # 安装依赖
-pip install -r requirements.txt
+uv pip install -r requirements.txt -p etc_qa/Scripts/python.exe
 
 # 配置环境变量
 cp .env.example .env
@@ -270,11 +269,11 @@ npm run dev
 ```bash
 cd backend
 # 单元测试
-python -m pytest tests/ -x -q -o addopts="" --ignore=tests/integration
+etc_qa/Scripts/python.exe -m pytest tests/ -x -q -o addopts="" --ignore=tests/integration
 # 全量测试（含集成测试）
-python -m pytest tests/ -x -q
+etc_qa/Scripts/python.exe -m pytest tests/ -x -q
 # 基准测试
-python -m pytest tests/benchmark/ -q
+etc_qa/Scripts/python.exe -m pytest tests/benchmark/ -q
 ```
 
 - 测试文件：59 个

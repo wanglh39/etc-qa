@@ -1,11 +1,11 @@
 dedup:
   answer_threshold: 0.85
   question_threshold: 0.92
-enabled: true
 display:
   high_confidence: 3
   low_confidence: 10
   mid_confidence: 5
+enabled: true
 ingest_confidence:
   auto: 0.8
   fallback: 0.3
@@ -24,7 +24,6 @@ rerank:
 rewrite_confidence:
   accept: 0.5
   fallback: 0.5
-# 针对 SiliconFlow bge-reranker-v2-m3 的分数尺度重调（相关匹配集中在 0.05~0.98，错题约 0.015）
 threshold:
   floor_high: 0.2
   floor_low: 0.02

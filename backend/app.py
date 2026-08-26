@@ -93,7 +93,7 @@ def create_service():
 
     asr_enabled = cfg.get("asr", {}).get("enabled", False)
     if asr_enabled:
-        logger.info("预热流式ASR模型...")
+        logger.info("ASR API连通检查...")
         from asr.streaming import get_streaming_service
 
         get_streaming_service().warmup()

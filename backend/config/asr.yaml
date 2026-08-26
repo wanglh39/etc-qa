@@ -43,7 +43,7 @@ asr:
     max_speakers: null
   streaming:
     enabled: ${ASR_STREAMING_ENABLED:true}
-    mode: ${ASR_STREAMING_MODE:pseudo}
+    mode: ${ASR_STREAMING_MODE:alicloud}
     device: "cuda"
     local_model: "C:\\Users\\wlh19\\.cache\\modelscope\\hub\\models\\shuai1618\\paraformer-zh-streaming"
     auto_query: ${ASR_STREAMING_AUTO_QUERY:false}

@@ -85,6 +85,7 @@ asr:
       access_key_secret: ${ALICLOUD_ASR_ACCESS_KEY_SECRET:}
       sample_rate: 16000
       format: "pcm"
+      hotwords_id: ${ALICLOUD_ASR_HOTWORDS_ID:}
   corrections:
     "一体机": "ETC"
     "一提西": "ETC"

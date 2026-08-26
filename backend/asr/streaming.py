@@ -252,27 +252,160 @@ class AliCloudStreamingBackend(StreamingBackend):
         access_key_secret: str,
         sample_rate: int = 16000,
         format: str = "pcm",
+        hotwords_id: str = "",
     ):
         self._app_key = app_key
         self._access_key_id = access_key_id
         self._access_key_secret = access_key_secret
         self._sample_rate = sample_rate
         self._format = format
+        self._hotwords_id = hotwords_id
         self._callback = None
         self._running = False
+        self._ws = None
+        self._ws_thread = None
+        self._task_id = ""
+        self._token = None
+        self._token_expire = 0
+        self._connected = threading.Event()
+
+    def _get_token(self) -> str:
+        import json as _json
+
+        from aliyunsdkcore.client import AcsClient
+        from aliyunsdkcore.request import CommonRequest
+
+        if self._token and time.time() < self._token_expire - 60:
+            return self._token
+
+        client = AcsClient(self._access_key_id, self._access_key_secret, "cn-shanghai")
+        req = CommonRequest()
+        req.set_domain("nls-meta.cn-shanghai.aliyuncs.com")
+        req.set_version("2019-02-28")
+        req.set_action_name("CreateToken")
+        resp = client.do_action_with_exception(req)
+        result = _json.loads(resp)
+        self._token = result.get("Token", {}).get("Id", "")
+        self._token_expire = result.get("Token", {}).get("ExpireTime", 0)
+        logger.info(
+            f"阿里云NLS Token获取成功, 有效期至 {time.strftime('%H:%M:%S', time.localtime(self._token_expire))}"
+        )
+        return self._token
 
     def start(self, callback: StreamingCallback):
         self._callback = callback
         self._running = True
-        logger.info(f"阿里云流式ASR连接: app_key={self._app_key[:8]}...")
+        self._task_id = str(__import__("uuid").uuid4())
+        self._connected.clear()
+
+        token = self._get_token()
+        url = f"wss://nls-gateway.cn-shanghai.aliyuncs.com/alibabacloud/api/v1.0/ws/nls/recognize?token={token}"
+
+        import websocket
+
+        self._ws = websocket.WebSocketApp(
+            url,
+            on_open=self._on_open,
+            on_message=self._on_message,
+            on_error=self._on_error,
+            on_close=self._on_close,
+        )
+        self._ws_thread = threading.Thread(target=self._ws.run_forever, daemon=True)
+        self._ws_thread.start()
+
+        if not self._connected.wait(timeout=5):
+            logger.warning("阿里云ASR连接超时, 继续等待")
+
+    def _on_open(self, ws):
+        logger.info(f"阿里云流式ASR连接成功: app_key={self._app_key[:8]}...")
+        msg = {
+            "header": {
+                "message_id": str(__import__("uuid").uuid4()),
+                "task_id": self._task_id,
+                "namespace": "SpeechTranscriber",
+                "name": "StartTranscription",
+                "app_key": self._app_key,
+            },
+            "payload": {
+                "sample_rate": self._sample_rate,
+                "format": self._format,
+                "enable_intermediate_result": True,
+                "enable_punctuation_prediction": True,
+                "enable_inverse_text_normalization": True,
+            },
+        }
+        if self._hotwords_id:
+            msg["payload"]["hotwords_id"] = self._hotwords_id
+            logger.info(f"使用热词表: {self._hotwords_id}")
+        ws.send(json.dumps(msg))
+        self._connected.set()
 
     def send_audio(self, chunk: bytes):
-        if not self._running:
+        if not self._running or not self._ws:
             return
-        pass
+        try:
+            import websocket
+
+            self._ws.send(chunk, opcode=websocket.ABNF.OPCODE_BINARY)
+        except Exception as e:
+            logger.error(f"阿里云ASR发送音频失败: {e}")
+
+    def _on_message(self, ws, message):
+        try:
+            data = json.loads(message)
+            header = data.get("header", {})
+            name = header.get("name", "")
+            status = header.get("status", 0)
+
+            if status != 20000000:
+                err = header.get("status_text", "未知错误")
+                logger.error(f"阿里云ASR错误: status={status}, msg={err}")
+                if self._callback:
+                    self._callback.on_error(err)
+                return
+
+            if name == "TranscriptionResult":
+                payload = data.get("payload", {})
+                result = payload.get("result", "")
+                is_end = payload.get("isSentenceEnd", False)
+                if is_end:
+                    if self._callback:
+                        self._callback.on_final(result)
+                else:
+                    if self._callback:
+                        self._callback.on_partial(result)
+            elif name == "TranscriptionCompleted":
+                if self._callback:
+                    self._callback.on_final("", is_end=True)
+        except Exception as e:
+            logger.error(f"阿里云ASR解析消息失败: {e}")
+
+    def _on_error(self, ws, error):
+        logger.error(f"阿里云ASR WebSocket错误: {error}")
+        if self._callback:
+            self._callback.on_error(str(error))
+
+    def _on_close(self, ws, close_status, close_msg):
+        logger.info(f"阿里云ASR连接关闭: status={close_status}")
+        self._running = False
 
     def stop(self):
         self._running = False
+        if self._ws:
+            msg = {
+                "header": {
+                    "message_id": str(__import__("uuid").uuid4()),
+                    "task_id": self._task_id,
+                    "namespace": "SpeechTranscriber",
+                    "name": "StopTranscription",
+                    "app_key": self._app_key,
+                },
+            }
+            try:
+                self._ws.send(json.dumps(msg))
+            except Exception:
+                pass
+            self._ws.close()
         if self._callback:
             self._callback.on_final("", is_end=True)
         logger.info("阿里云流式ASR连接关闭")
@@ -323,6 +456,7 @@ class StreamingASRService:
                 access_key_secret=self._alicloud.get("access_key_secret", ""),
                 sample_rate=self._alicloud.get("sample_rate", 16000),
                 format=self._alicloud.get("format", "pcm"),
+                hotwords_id=self._alicloud.get("hotwords_id", ""),
             )
         return LocalStreamingBackend(
             model_name=self._local_model,

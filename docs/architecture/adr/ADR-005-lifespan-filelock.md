@@ -5,7 +5,7 @@
 
 ## 背景
 
-开发环境使用 uvicorn --reload（热重载），会启动主+子双进程。模型加载（Embedding/Reranker/ASR）和 Milvus 初始化需要在子进程执行，避免主进程浪费 GPU 显存和 Milvus 锁冲突。
+开发环境使用 uvicorn --reload（热重载），会启动主+子双进程。模型加载（Embedding/Reranker）和 Milvus 初始化需要在子进程执行，避免主进程浪费 GPU 显存和 Milvus 锁冲突。
 
 ## 决策
 
@@ -26,7 +26,7 @@ async def lifespan(app):
     # 子进程才执行
     lock = FileLock("etc_qa_milvus_init.lock", timeout=30)
     with lock:
-        load_models()        # Embedding + Reranker + ASR
+        load_models()        # Embedding + Reranker
         init_milvus()        # Milvus 连接 + 集合加载
         start_scheduler()    # APScheduler
     yield

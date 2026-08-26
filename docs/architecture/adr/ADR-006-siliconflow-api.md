@@ -40,3 +40,7 @@
 - [SiliconFlow API 文档](https://docs.siliconflow.cn)
 - rag/siliconflow.py 实现代码
 - config/models.yaml API 配置
+
+---
+
+> 注：本ADR仅涉及Embedding/Reranker。ASR改用阿里云NLS API的决策见ADR-007。

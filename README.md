@@ -9,7 +9,7 @@ etc-qa/
 ├── backend/                # 后端 (FastAPI + Python)
 │   ├── api/                # API 路由 + 认证
 │   ├── agent/              # LangGraph Agent 流水线
-│   ├── asr/                # 语音识别服务 (WebSocket 流式)
+│   ├── asr/                # 语音识别服务 (WebSocket 流式 + 阿里云NLS API)
 │   ├── alert/              # 告警监控 + 通知
 │   ├── config/             # 配置文件 (数据库/模型/Agent/RAG)
 │   ├── db/                 # MySQL + Milvus 客户端

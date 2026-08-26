@@ -308,7 +308,7 @@ Token 有效期 24 小时。限流：30次/60s/IP、5次/60s/用户。
 
 ```
 Request: multipart/form-data, file 字段为音频文件
-Response: { "text": "识别结果", "confidence": 0.95, "duration_ms": 3200, "model": "funasr-nano-2512", "language": "zh" }
+Response: { "text": "识别结果", "confidence": 0.95, "duration_ms": 3200, "model": "alicloud-nls", "language": "zh" }
 ```
 
 ### GET /api/asr/health — ASR 健康检查
@@ -317,7 +317,7 @@ Response: { "text": "识别结果", "confidence": 0.95, "duration_ms": 3200, "mo
 
 ```json
 // Response
-{ "loaded": true, "model": "funasr-nano-2512", "device": "cpu", "finetuned": false }
+{ "loaded": true, "model": "alicloud-nls", "mode": "alicloud", "hotwords_id": "xxx" }
 ```
 
 ### POST /api/asr/query — ASR + 检索一体化
@@ -508,7 +508,7 @@ Response: { "text": "识别结果", "confidence": 0.95, "duration_ms": 3200, "mo
 
 ### WS /ws/asr/stream — 流式 ASR 识别
 
-流式 ASR 识别 + 自动检索。支持控制消息：config / flush / label_speaker / clear_cache / clear_context / select_answer / reset。
+流式 ASR 识别 + 自动检索。支持控制消息：config / flush / clear_cache / clear_context / select_answer / reset。
 
 ---
 

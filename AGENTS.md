@@ -172,8 +172,9 @@
 ## 关键架构决策
 
 ### ASR
-- 伪流式模式：VAD切句 → Fun-ASR-Nano离线识别 → 回调on_final
-- 启动预热+复用：warmup预加载模型，start_stream复用backend，预热失败退化为懒加载
+- 阿里云NLS API流式模式：WebSocket转发阿里云NLS → on_partial/on_final回调 → 纠错表应用
+- Token自动获取+缓存（aliyunsdkcore，有效期前60秒续期）
+- 热词表在阿里云NLS控制台配置，通过hotwords_id传入
 - 流式路径必须应用纠错表（_apply_corrections）
 
 ### RAG
@@ -210,7 +211,7 @@
 4. RAG find_expected_id加模糊匹配
 5. VAD换成numpy能量VAD + min_silence_ms=200
 6. 双路召回并行
-7. ASR模型复用+启动预热
+7. ASR改用阿里云NLS API（替代本地FunASR模型）
 8. 状态机（ws_state.py + websocket.py）
 9. Milvus定期重连防too_many_pings
 10. 日志文件+轮转

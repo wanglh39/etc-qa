@@ -20,7 +20,7 @@ graph TB
         AUTH[JWT 认证 + RBAC]
         
         subgraph 核心模块
-            ASR[ASR 模块<br/>语音识别]
+            ASR[ASR 模块<br/>阿里云NLS API]
             AGENT[Agent 模块<br/>智能预处理]
             RAG[RAG 模块<br/>语义检索]
         end

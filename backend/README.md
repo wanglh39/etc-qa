@@ -14,7 +14,7 @@
 | LLM | DeepSeek API | 规整/分类/HyDE |
 | Agent | LangGraph | 状态图编排 |
 | BM25 | jieba + rank_bm25 | 关键词召回 |
-| ASR | FunASR | 语音识别 |
+| ASR | 阿里云NLS API | 实时语音识别 |
 | 追踪 | LangSmith | 全链路追踪 |
 
 ## 环境要求
@@ -54,15 +54,7 @@ cp .env.template .env
 # 编辑 .env，填入 DeepSeek API Key 和 SiliconFlow API Keys
 ```
 
-3. 下载 ASR 模型（约2.1GB，Embedding/Reranker 已改用 SiliconFlow API 无需下载）
-```bash
-pip install modelscope
-python scripts/setup/download_models.py --models asr
-```
-
-| 模型 | 用途 | 大小 |
-|------|------|------|
-| Fun-ASR-Nano-2512 | 语音识别 | ~2.1GB |
+3. 配置阿里云NLS API Key（.env中ALICLOUD_ASR_APP_KEY/ACCESS_KEY_ID/ACCESS_KEY_SECRET/HOTWORDS_ID，无需下载本地模型）
 
 4. 启动 MySQL + 初始化数据库
 ```bash
@@ -121,7 +113,7 @@ etc_qa/
 ├── asr/             # 语音识别
 ├── config/          # 配置文件（YAML + Pydantic校验）
 ├── db/              # MySQL + Milvus 客户端
-├── models/                # ASR模型文件（不入Git，不入Docker镜像）
+├── models/                # 模型文件（ASR已改用API，无需本地模型）
 ├── rag/             # 召回 + Reranker + 阈值判定 + SiliconFlow API客户端
 ├── prompt/          # 提示词模板管理
 ├── scheduler/       # 定时任务调度

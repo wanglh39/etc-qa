@@ -184,8 +184,7 @@ docker-compose.dev.yml 启动后：
 | MySQL | Docker 容器 | 队友不用自己装 |
 | Python + 依赖 | Docker 镜像 | 环境一致 |
 | Milvus 数据 | Docker Volume | 自动管理 |
-| ASR模型文件 | 本地 `models/` 目录 | 太大（~2.1G），挂载进容器 |
-| API Key | 本地 `.env` 文件 | 不能进镜像，防泄露（含 SiliconFlow + DeepSeek） |
+| API Key | 本地 `.env` 文件 | 不能进镜像，防泄露（含 SiliconFlow + DeepSeek + 阿里云NLS） |
 | 源代码 | 本地目录 | 开发时改代码，容器里实时生效（--reload） |
 
 ---

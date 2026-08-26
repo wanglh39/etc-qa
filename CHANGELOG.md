@@ -24,6 +24,7 @@
 - 开发规范.md 补充：状态码 401/403/404/429 + 角色权限规范 + 测试/CI 规范
 - 开发环境搭建.md 补充：前端启动 + 角色账号 + SiliconFlow API 配置
 - 全部文档同步更新 SiliconFlow API 变更（技术栈/部署/运维/交接清单等）
+- ASR改用阿里云NLS API替代本地FunASR模型（移除torch/pyannote/funasr依赖，改用aliyunsdkcore+websocket-client）
 
 ### 移除
 - 删除影子测试（shadow_recorder）相关文档引用
@@ -81,7 +82,7 @@
 ### 核心功能
 - RAG 智能检索：双路并行召回（Milvus 向量 + BM25）+ RRF 合并 + Reranker 精排
 - Agent 预处理流水线：清洗 → 规整/分类 → HyDE 改写
-- ASR 语音识别：FunASR + WebSocket 流式 + 领域纠错
+- ASR 语音识别：阿里云NLS API + WebSocket 流式 + 热词表 + 纠错表
 - 5 角色 RBAC：superadmin / admin / ops / service / dept
 - JWT 认证 + 模拟登录（超管专用）
 - 定时任务调度：APScheduler + 工单同步 + 清理 + 告警检查

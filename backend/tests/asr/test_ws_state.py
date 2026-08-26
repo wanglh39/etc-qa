@@ -3,6 +3,15 @@ import sys
 import time
 from unittest.mock import MagicMock, patch
 
+import pytest
+
+try:
+    import torch  # noqa: F401
+
+    _has_torch = True
+except ImportError:
+    _has_torch = False
+
 from asr.ws_state import (
     ContextWindow,
     QueryAccumulator,
@@ -166,6 +175,7 @@ class TestVADSilenceDetector:
         assert detector.check_silence() is False
 
 
+@pytest.mark.skipif(not _has_torch, reason="torch not installed")
 class TestVADFeedAudio:
     def test_empty_chunk_returns(self):
         detector = VADSilenceDetector(silence_threshold=100)

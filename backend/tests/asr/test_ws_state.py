@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 try:
-    import torch  # noqa: F401
+    import torch
 
     _has_torch = True
 except ImportError:

@@ -72,9 +72,11 @@ class TestAliCloudStreamingBackend:
             access_key_secret="test_secret",
         )
         cb = MockCallback()
-        backend.start(cb)
-        backend.stop()
-        assert cb.finals[-1]["is_end"] is True
+        with patch.object(backend, "_get_token", return_value="fake_token"), \
+             patch("asr.streaming.websocket.WebSocketApp"):
+            backend.start(cb)
+            backend.stop()
+            assert cb.finals[-1]["is_end"] is True
 
     def test_send_audio_not_running(self):
         backend = AliCloudStreamingBackend(app_key="test", access_key_id="test", access_key_secret="test")

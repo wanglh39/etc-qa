@@ -349,7 +349,7 @@ def get_stats():
         work_order_total=wo_counts.get("total", 0),
         work_order_submitted=wo_counts.get("submitted", 0),
         work_order_processed=wo_counts.get("processed", 0),
-        category_stats=category_stats,
+        category_stats=category_stats if isinstance(category_stats, dict) else {},
     )
 
 

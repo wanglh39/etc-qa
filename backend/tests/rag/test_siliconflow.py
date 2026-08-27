@@ -117,10 +117,12 @@ class TestRerankClient:
 
 def _fake_ok_post(record):
     """构造一个返回 200 的 httpx.post 替身，记录被选中的 key。"""
+
     def fake_post(url, json=None, headers=None, timeout=None):
         key = headers["Authorization"].split(" ")[1]
         record.append(key)
         return _Resp(200, {"ok": True})
+
     return fake_post
 
 
@@ -169,8 +171,7 @@ class TestBalancerRateLimit:
             return _Resp(200, {"ok": True})
 
         balancer = SiliconFlowBalancer(["A", "B"], "https://example.com", cooldown_seconds=60.0)
-        with patch("rag.siliconflow.time.perf_counter", side_effect=lambda: clock[0]), \
-             _patch_client_post(fake_post):
+        with patch("rag.siliconflow.time.perf_counter", side_effect=lambda: clock[0]), _patch_client_post(fake_post):
             # 第一次：A 429 → 冷却 A → 切 B
             assert balancer.post("/x", {}) == {"ok": True}
             assert calls == ["A", "B"]
@@ -190,8 +191,7 @@ class TestBalancerRateLimit:
             return _Resp(200, {"ok": True})
 
         balancer = SiliconFlowBalancer(["A", "B"], "https://example.com", cooldown_seconds=60.0)
-        with patch("rag.siliconflow.time.perf_counter", side_effect=lambda: clock[0]), \
-             _patch_client_post(fake_post):
+        with patch("rag.siliconflow.time.perf_counter", side_effect=lambda: clock[0]), _patch_client_post(fake_post):
             balancer.post("/x", {})  # A 冷却
             clock[0] = 61.0  # 冷却到期
             balancer.post("/x", {})  # A 恢复可用，被重新选中（仍 429，再切 B）

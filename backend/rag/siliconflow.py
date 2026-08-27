@@ -11,6 +11,20 @@ logger = get_logger("rag.siliconflow")
 
 DEFAULT_BASE_URL = "https://api.siliconflow.cn/v1"
 COOLDOWN_SECONDS = 60.0
+REQUEST_TIMEOUT = 30.0
+
+_client: httpx.Client | None = None
+_client_lock = threading.Lock()
+
+
+def _get_shared_client() -> httpx.Client:
+    """进程级共享 httpx.Client：线程安全、复用连接池，避免每次请求重建 TCP/TLS 连接。"""
+    global _client
+    if _client is None:
+        with _client_lock:
+            if _client is None:
+                _client = httpx.Client(timeout=REQUEST_TIMEOUT)
+    return _client
 
 
 class SiliconFlowBalancer:
@@ -27,7 +41,7 @@ class SiliconFlowBalancer:
         self._cooldown_until = {k: 0.0 for k in self._keys}
 
     def _pick(self) -> str | None:
-        now = time.monotonic()
+        now = time.perf_counter()
         with self._lock:
             best = None
             for k in self._keys:
@@ -41,7 +55,7 @@ class SiliconFlowBalancer:
 
     def _mark_cooldown(self, key: str):
         with self._lock:
-            self._cooldown_until[key] = time.monotonic() + self._cooldown
+            self._cooldown_until[key] = time.perf_counter() + self._cooldown
         logger.warning(f"SiliconFlow key {key[:8]}... 触发冷却 {self._cooldown:.0f}s，切换其他 key")
 
     def post(self, path: str, payload: dict) -> dict:
@@ -51,11 +65,10 @@ class SiliconFlowBalancer:
             if key is None:
                 break
             try:
-                resp = httpx.post(
+                resp = _get_shared_client().post(
                     f"{self._base_url}{path}",
                     json=payload,
                     headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
-                    timeout=30.0,
                 )
             except httpx.HTTPError as e:
                 self._mark_cooldown(key)

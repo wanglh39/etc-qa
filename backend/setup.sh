@@ -41,20 +41,8 @@ fi
 # 安装Python依赖
 echo
 echo "=== 安装Python依赖 ==="
-pip install -r requirements.txt -q
+pip install -r requirements-dev.txt -q
 echo "✓ 依赖安装完成"
-
-# 安装modelscope
-pip install modelscope -q 2>/dev/null || true
-
-# 下载模型
-echo
-echo "=== 下载模型 ==="
-echo "首次下载约5.6GB，已存在的模型会跳过"
-python3 scripts/setup/download_models.py || {
-    echo "⚠️  模型下载可能不完整，可稍后重试:"
-    echo "  python3 scripts/setup/download_models.py"
-}
 
 # 启动MySQL容器
 echo

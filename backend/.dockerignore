@@ -1,21 +1,67 @@
+# Python 缓存
 __pycache__
 *.pyc
 *.pyo
+*.egg-info/
+
+# 密钥（不进镜像、不提交 git）
 .env
+.env.example
+.env.template
+
+# 版本控制
 .git
 .gitignore
-.pytest_cache
+.dockerignore
+
+# 本地虚拟环境（若在 backend/ 下创建）
+.venv/
+venv/
+
+# 测试与覆盖率产物
+.pytest_cache/
 htmlcov/
 .coverage
 .coverage_asr/
-milvus_etc_qa*.db
+coverage-*.xml
+bandit-report.json
+
+# 测试/开发工具（生产镜像不需要）
 tests/
-models/
-data/asr_samples/*.wav
+requirements-dev.txt
+pyproject.toml
+pytest.ini
+.coveragerc
+.pre-commit-config.yaml
+
+# 本地下载的模型权重（保留 models/*.py 源码）
+models/hub/
+
+# 本地数据库与运行时产物
+data/milvus/
+output/
+logs/
+*.db
+
+# 评估/样例数据（非生产）
+data/eval/
+data/golden/
+data/raw/
+data/asr_samples/
+
+# 演示、评估与数据生成脚本
+demo/
+scripts/eval/
+scripts/samples/
+scripts/locustfile.py
+scripts/export_openapi.py
+
+# 文档
 *.md
-demo.py
-run_demo.bat
-run_tests.py
-setup.bat
-setup.sh
+
+# IDE / 编辑器
+.idea/
+.vscode/
 .codeartsdoer/
+*.swp
+*.swo

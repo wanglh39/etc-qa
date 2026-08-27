@@ -1,0 +1,18 @@
+# ETC客服QA智能检索系统 — 开发/测试依赖清单
+# 含运行时依赖（-r requirements.txt），开发环境装本文件即可
+# 安装: pip install -r requirements-dev.txt
+
+-r requirements.txt
+
+# 测试
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-benchmark>=4.0.0
+locust>=2.20.0
+
+# 开发工具
+ruff>=0.8.0
+mypy>=1.7.0
+bandit>=1.7.0
+safety>=2.3.0
+pre-commit>=3.6.0

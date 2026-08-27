@@ -9,7 +9,7 @@ echo.
 where python >nul 2>&1
 if %errorlevel% neq 0 (
     echo ❌ 未检测到Python，请先安装Python 3.10+
-    echo   下载: https://www.anaconda.com/download
+    echo   下载: https://www.python.org/downloads/
     pause
     exit /b 1
 )
@@ -49,26 +49,13 @@ if not exist .env (
 :: 安装Python依赖
 echo.
 echo === 安装Python依赖 ===
-pip install -r requirements.txt -q
+pip install -r requirements-dev.txt -q
 if %errorlevel% neq 0 (
     echo ❌ 依赖安装失败
     pause
     exit /b 1
 )
 echo ✓ 依赖安装完成
-
-:: 安装modelscope（模型下载需要）
-pip install modelscope -q 2>nul
-
-:: 下载模型
-echo.
-echo === 下载模型 ===
-echo 首次下载约5.6GB，已存在的模型会跳过
-python scripts/setup/download_models.py
-if %errorlevel% neq 0 (
-    echo ⚠️  模型下载可能不完整，可稍后重试:
-    echo   python scripts/setup/download_models.py
-)
 
 :: 启动MySQL容器
 echo.

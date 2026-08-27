@@ -8,6 +8,10 @@ services:
       MYSQL_DATABASE: etc_qa
       MYSQL_CHARSET: utf8mb4
       MYSQL_COLLATION: utf8mb4_unicode_ci
+    command:
+      - --innodb-buffer-pool-size=128M
+      - --max-connections=100
+      - --performance-schema=OFF
     ports:
       - "3307:3306"
     volumes:

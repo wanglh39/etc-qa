@@ -273,16 +273,13 @@ class AliCloudStreamingBackend(StreamingBackend):
         import json as _json
 
         from aliyunsdkcore.client import AcsClient
-        from aliyunsdkcore.request import CommonRequest
+        from aliyunsdkcore.request import RpcRequest
 
         if self._token and time.time() < self._token_expire - 60:
             return self._token
 
         client = AcsClient(self._access_key_id, self._access_key_secret, "cn-shanghai")
-        req = CommonRequest()
-        req.set_domain("nls-meta.cn-shanghai.aliyuncs.com")
-        req.set_version("2019-02-28")
-        req.set_action_name("CreateToken")
+        req = RpcRequest("nls-meta.cn-shanghai.aliyuncs.com", "2019-02-28", "CreateToken")
         resp = client.do_action_with_exception(req)
         result = _json.loads(resp)
         self._token = result.get("Token", {}).get("Id", "")

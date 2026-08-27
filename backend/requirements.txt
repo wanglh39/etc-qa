@@ -11,10 +11,12 @@ filelock>=3.13.0
 
 # 阿里云NLS（实时语音识别ASR）
 # 注意：aliyunsdkcore 依赖 pycrypto（Python 3.10 编译失败），
-# 需在安装脚本/Dockerfile 中单独 `pip install --no-deps aliyunsdkcore>=1.0.3`，
+# 需在安装脚本/Dockerfile/CI 中单独 `pip install --no-deps aliyunsdkcore>=1.0.3`，
 # 由 pycryptodome 提供同名的 Crypto 包替代 pycrypto。
+
 pycryptodome>=3.20.0  # pycrypto 的纯 Python 替代（aliyunsdkcore 依赖 pycrypto，用 pycryptodome 替代）
 websocket-client>=1.8.0
+soundfile>=0.12.0
 
 # 定时任务调度
 apscheduler>=3.10.0

@@ -41,6 +41,7 @@ fi
 # 安装Python依赖
 echo
 echo "=== 安装Python依赖 ==="
+pip install --no-deps aliyunsdkcore>=1.0.3 -q
 pip install -r requirements-dev.txt -q
 echo "✓ 依赖安装完成"
 

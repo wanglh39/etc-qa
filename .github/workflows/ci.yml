@@ -39,6 +39,7 @@ jobs:
         with:
           python-version: "3.10"
           cache: pip
+      - run: pip install --no-deps aliyunsdkcore>=1.0.3
       - run: pip install -r requirements-dev.txt
       - run: |
           pytest tests/ \
@@ -77,6 +78,7 @@ jobs:
         with:
           python-version: "3.10"
           cache: pip
+      - run: pip install --no-deps aliyunsdkcore>=1.0.3
       - run: pip install -r requirements-dev.txt
       - run: |
           mysql -h 127.0.0.1 -u root -p123456 etc_qa_test < data/init_test_db.sql || true
@@ -188,6 +190,7 @@ jobs:
         with:
           python-version: "3.10"
           cache: pip
+      - run: pip install --no-deps aliyunsdkcore>=1.0.3
       - run: pip install -r requirements-dev.txt
       - run: |
           pytest tests/benchmark/ \

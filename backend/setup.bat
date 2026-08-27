@@ -49,6 +49,7 @@ if not exist .env (
 :: 安装Python依赖
 echo.
 echo === 安装Python依赖 ===
+pip install --no-deps aliyunsdkcore>=1.0.3 -q
 pip install -r requirements-dev.txt -q
 if %errorlevel% neq 0 (
     echo ❌ 依赖安装失败

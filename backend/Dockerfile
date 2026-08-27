@@ -2,12 +2,11 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc g++ libsndfile1 && \
-    rm -rf /var/lib/apt/lists/*
-
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN env HTTP_PROXY= HTTPS_PROXY= http_proxy= https_proxy= NO_PROXY=* \
+    pip install --no-cache-dir --no-deps aliyunsdkcore>=1.0.3 -i https://mirrors.aliyun.com/pypi/simple/ \
+ && env HTTP_PROXY= HTTPS_PROXY= http_proxy= https_proxy= NO_PROXY=* \
+    pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
 
 COPY . .
 

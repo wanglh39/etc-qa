@@ -39,10 +39,8 @@ services:
       LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY:-}
       LANGCHAIN_TRACING_V2: ${LANGCHAIN_TRACING_V2:-false}
       LANGCHAIN_PROJECT: ${LANGCHAIN_PROJECT:-etc-qa}
-      MODEL_BASE_DIR: /app/models
     volumes:
       - milvus_dev_data:/app/data/milvus
-      - ./models/hub:/app/models/hub:ro
       - ./data:/app/data:ro
     command: >
       sh -c "python scripts/data/init_db.py dev &&

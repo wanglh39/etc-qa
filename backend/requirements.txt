@@ -10,9 +10,10 @@ python-multipart>=0.0.6
 filelock>=3.13.0
 
 # 阿里云NLS（实时语音识别ASR）
-# aliyunsdkcore需单独安装: uv pip install aliyunsdkcore --no-deps（避免pycrypto编译失败）
-aliyunsdkcore>=1.0.3  # 安装时加 --no-deps
-pycryptodome>=3.20.0  # pycrypto的纯Python替代（aliyunsdkcore依赖pycrypto，用pycryptodome替代）
+# 注意：aliyunsdkcore 依赖 pycrypto（Python 3.10 编译失败），
+# 需在安装脚本/Dockerfile 中单独 `pip install --no-deps aliyunsdkcore>=1.0.3`，
+# 由 pycryptodome 提供同名的 Crypto 包替代 pycrypto。
+pycryptodome>=3.20.0  # pycrypto 的纯 Python 替代（aliyunsdkcore 依赖 pycrypto，用 pycryptodome 替代）
 websocket-client>=1.8.0
 
 # 定时任务调度

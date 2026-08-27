@@ -74,7 +74,7 @@ class TestAliCloudStreamingBackend:
         cb = MockCallback()
         with (
             patch.object(backend, "_get_token", return_value="fake_token"),
-            patch("asr.streaming.websocket.WebSocketApp"),
+            patch("websocket.WebSocketApp"),
         ):
             backend.start(cb)
             backend.stop()

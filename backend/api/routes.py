@@ -65,6 +65,11 @@ mysql_client: MySQLClient = None
 scheduler_manager = None
 
 
+@router.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+
 def _serialize_row(row: dict) -> dict:
     result = {}
     for k, v in row.items():

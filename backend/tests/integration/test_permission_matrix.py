@@ -36,7 +36,7 @@ def mock_mysql():
     mysql.get_work_order_list.return_value = {"items": [], "total": 0, "page": 1, "page_size": 20}
     mysql.get_alerts.return_value = {"items": [], "total": 0}
     mysql.get_scheduler_status.return_value = {"jobs": []}
-    mysql.get_scheduler_logs.return_value = {"items": [], "total": 0}
+    mysql.get_scheduler_logs.return_value = {"items": [], "total": 0, "page": 1, "page_size": 20}
     mysql.get_system_status.return_value = {}
     yield mysql
     routes.set_mysql_client(None)

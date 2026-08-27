@@ -405,7 +405,8 @@ class TestL2RAGRecall:
             from rag.threshold import ThresholdJudge
 
             tj = ThresholdJudge()
-            confidence, count = tj.judge([(1, 0.65)])
+            score = (tj.high + tj.low) / 2
+            confidence, count = tj.judge([(1, score)])
             assert confidence == "mid"
         finally:
             _set_threshold_mode("gap")
@@ -416,7 +417,8 @@ class TestL2RAGRecall:
             from rag.threshold import ThresholdJudge
 
             tj = ThresholdJudge()
-            confidence, count = tj.judge([(1, 0.35)])
+            score = (tj.low + tj.min) / 2
+            confidence, count = tj.judge([(1, score)])
             assert confidence == "low"
         finally:
             _set_threshold_mode("gap")
@@ -427,7 +429,8 @@ class TestL2RAGRecall:
             from rag.threshold import ThresholdJudge
 
             tj = ThresholdJudge()
-            confidence, count = tj.judge([(1, 0.1)])
+            score = tj.min / 2
+            confidence, count = tj.judge([(1, score)])
             assert confidence == "none"
         finally:
             _set_threshold_mode("gap")

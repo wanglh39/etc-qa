@@ -29,10 +29,10 @@ mysql:
 
 milvus:
   dev:
-    db_path: "./data/milvus/milvus_etc_qa.db"
+    db_path: "data/milvus/milvus_etc_qa.db"
     collection_name: "qa_vectors"
   test:
-    db_path: "./data/milvus/milvus_etc_qa_test.db"
+    db_path: "data/milvus/milvus_etc_qa_test.db"
     collection_name: "qa_vectors"
   prod:
     db_path: "/app/data/milvus/milvus_etc_qa.db"

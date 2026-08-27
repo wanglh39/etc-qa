@@ -9,6 +9,40 @@ for _mod in ["sentence_transformers", "pymilvus", "langchain_openai"]:
     if _mod in sys.modules and isinstance(sys.modules[_mod], MagicMock):
         del sys.modules[_mod]
 
+for _mod in list(sys.modules):
+    if _mod.startswith(("db.milvus", "rag.siliconflow", "rag.recall", "rag.service")):
+        del sys.modules[_mod]
+
+
+def _patch_faiss_chinese_path():
+    import faiss
+    import numpy as np
+
+    _orig_write = faiss.write_index
+    _orig_read = faiss.read_index
+
+    def _safe_write(index, path, io_flags=0):
+        try:
+            _orig_write(index, path)
+        except Exception:
+            arr = faiss.serialize_index(index)
+            with open(path, "wb") as f:
+                f.write(np.ascontiguousarray(arr).tobytes())
+
+    def _safe_read(path, io_flags=0):
+        try:
+            return _orig_read(path, io_flags)
+        except Exception:
+            with open(path, "rb") as f:
+                arr = np.frombuffer(f.read(), dtype=np.uint8)
+            return faiss.deserialize_index(arr)
+
+    faiss.write_index = _safe_write
+    faiss.read_index = _safe_read
+
+
+_patch_faiss_chinese_path()
+
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
@@ -56,6 +90,7 @@ def milvus_conn():
         from db.milvus_client import MilvusQA
 
         milvus = MilvusQA()
+
         milvus.init_collection()
     except Exception as e:
         pytest.skip(f"Milvus不可用，跳过集成测试: {e}")

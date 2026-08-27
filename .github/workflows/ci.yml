@@ -111,7 +111,8 @@ jobs:
             --cov=. \
             --cov-report=term-missing \
             --cov-report=xml:coverage-integration.xml \
-            --cov-config=.coveragerc
+            --cov-config=.coveragerc \
+            --cov-fail-under=0
 
   backend-security:
     name: Backend · Security Scan

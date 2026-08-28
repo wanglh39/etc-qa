@@ -50,8 +50,22 @@ test.describe('登录流程', () => {
 
   test('登录成功后跳转到工作台', async ({ page }) => {
     await page.goto('/login')
-    await page.waitForLoadState('networkidle')
-    await mockAuthApis(page)
+    await expect(page.locator('input[placeholder="账号"]')).toBeVisible()
+    await page.route('**/api/auth/login', (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          access_token: MOCK_TOKEN,
+          role: 'admin',
+          dept: '',
+          username: 'admin',
+        }),
+      })
+    })
+    await page.route('**/api/**', (route) => {
+      route.fulfill({ status: 200, contentType: 'application/json', body: '{}' })
+    })
     await page.locator('input[placeholder="账号"]').fill('admin')
     await page.locator('input[placeholder="密码"]').fill('123456')
     await page.locator('.login-btn').click()

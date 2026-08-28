@@ -4,7 +4,16 @@ const MOCK_TOKEN =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjk5OTk5OTk5OTksInJvbGUiOiJhZG1pbiIsInN1YiI6ImFkbWluIn0.mock'
 
 async function mockAuthApis(page: Page) {
+  let loggedIn = false
+  await page.route('**/api/auth/verify', (route) => {
+    route.fulfill({
+      status: loggedIn ? 200 : 401,
+      contentType: 'application/json',
+      body: loggedIn ? JSON.stringify({ sub: 'admin', role: 'admin' }) : '{}',
+    })
+  })
   await page.route('**/api/auth/login', (route) => {
+    loggedIn = true
     route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -15,9 +24,6 @@ async function mockAuthApis(page: Page) {
         username: 'admin',
       }),
     })
-  })
-  await page.route('**/api/auth/verify', (route) => {
-    route.fulfill({ status: 200, contentType: 'application/json', body: '{}' })
   })
   await page.route('**/api/system/permissions', (route) => {
     route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })

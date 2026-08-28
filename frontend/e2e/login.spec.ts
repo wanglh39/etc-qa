@@ -66,6 +66,9 @@ test.describe('登录流程', () => {
     await page.route('**/api/system/permissions', (route) => {
       route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
     })
+    await page.route('**/api/roles/permissions', (route) => {
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ permissions: [] }) })
+    })
     await page.route('**/api/**', (route) => {
       route.fulfill({ status: 200, contentType: 'application/json', body: '{}' })
     })

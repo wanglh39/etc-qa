@@ -49,6 +49,10 @@ test.describe('登录流程', () => {
   })
 
   test('登录成功后跳转到工作台', async ({ page }) => {
+    page.on('pageerror', (err) => console.log(`PAGE_ERROR: ${err.message}`))
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') console.log(`CONSOLE_ERROR: ${msg.text()}`)
+    })
     await page.goto('/login')
     await expect(page.locator('input[placeholder="账号"]')).toBeVisible()
     await page.route('**/api/auth/login', (route) => {
@@ -63,9 +67,6 @@ test.describe('登录流程', () => {
         }),
       })
     })
-    await page.route('**/api/system/permissions', (route) => {
-      route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
-    })
     await page.route('**/api/roles/permissions', (route) => {
       route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ permissions: [] }) })
     })
@@ -75,6 +76,8 @@ test.describe('登录流程', () => {
     await page.locator('input[placeholder="账号"]').fill('admin')
     await page.locator('input[placeholder="密码"]').fill('123456')
     await page.locator('.login-btn').click()
+    await page.waitForTimeout(5000)
+    console.log(`URL_AFTER_5S: ${page.url()}`)
     await page.waitForURL('**/workbench/admin/dashboard', { timeout: 30000 })
     await expect(page).toHaveURL(/\/workbench\/admin\/dashboard/)
   })

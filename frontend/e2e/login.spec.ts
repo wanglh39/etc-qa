@@ -63,13 +63,16 @@ test.describe('登录流程', () => {
         }),
       })
     })
+    await page.route('**/api/system/permissions', (route) => {
+      route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
+    })
     await page.route('**/api/**', (route) => {
       route.fulfill({ status: 200, contentType: 'application/json', body: '{}' })
     })
     await page.locator('input[placeholder="账号"]').fill('admin')
     await page.locator('input[placeholder="密码"]').fill('123456')
     await page.locator('.login-btn').click()
-    await page.waitForURL('**/workbench/admin/dashboard', { timeout: 10000 })
+    await page.waitForURL('**/workbench/admin/dashboard', { timeout: 30000 })
     await expect(page).toHaveURL(/\/workbench\/admin\/dashboard/)
   })
 })

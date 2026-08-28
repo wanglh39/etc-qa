@@ -4,7 +4,7 @@ services:
   mysql:
     image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: ${ETC_QA_MYSQL_PASSWORD:-123456}
+      MYSQL_ROOT_PASSWORD: ${ETC_QA_MYSQL_PASSWORD:?required}
       MYSQL_DATABASE: etc_qa
       MYSQL_CHARSET: utf8mb4
       MYSQL_COLLATION: utf8mb4_unicode_ci
@@ -31,13 +31,24 @@ services:
         condition: service_healthy
     environment:
       ETC_QA_ENV: prod
-      ETC_QA_MYSQL_PASSWORD: ${ETC_QA_MYSQL_PASSWORD:-123456}
+      ETC_QA_MYSQL_PASSWORD: ${ETC_QA_MYSQL_PASSWORD:?required}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      SILICONFLOW_API_KEYS: ${SILICONFLOW_API_KEYS:?required}
+      ALICLOUD_ASR_APP_KEY: ${ALICLOUD_ASR_APP_KEY:?required}
+      ALICLOUD_ASR_ACCESS_KEY_ID: ${ALICLOUD_ASR_ACCESS_KEY_ID:?required}
+      ALICLOUD_ASR_ACCESS_KEY_SECRET: ${ALICLOUD_ASR_ACCESS_KEY_SECRET:?required}
     volumes:
       - milvus_data:/app/data/milvus
     command: >
       sh -c "python scripts/data/init_db.py prod --skip-milvus &&
              uvicorn main:app --host 0.0.0.0 --port 8000"
+
+  frontend:
+    build: ../frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - etc-qa
 
 volumes:
   mysql_data:

@@ -67,8 +67,8 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function setPermissions(perms: string[]) {
-    permissions.value = perms
-    sessionStorage.setItem('permissions', JSON.stringify(perms))
+    permissions.value = perms || []
+    sessionStorage.setItem('permissions', JSON.stringify(permissions.value))
   }
 
   function clearAuth() {

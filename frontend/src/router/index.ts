@@ -221,7 +221,7 @@ export function getDefaultPath(role: string): string {
     case 'dept':
       return `/dept/handle/${authStore.dept || 'aftersale'}`
     default: {
-      const perms = authStore.permissions
+      const perms = authStore.permissions || []
       if (perms.length > 0) return perms[0]
       return DEFAULT_ADMIN_PATH
     }
@@ -300,7 +300,7 @@ router.beforeEach(async (to, from, next) => {
     if (role !== 'superadmin') {
       const allowedRoles = roleAuth.split(',').map((r) => r.trim())
       if (!allowedRoles.includes(role!)) {
-        if (authStore.permissions.includes(to.path)) {
+        if ((authStore.permissions || []).includes(to.path)) {
           return next()
         }
         ElMessage.warning('无权访问该页面')

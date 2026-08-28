@@ -49,35 +49,43 @@ test.describe('登录流程', () => {
   })
 
   test('登录成功后跳转到工作台', async ({ page }) => {
-    page.on('pageerror', (err) => console.log(`PAGE_ERROR: ${err.message}`))
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') console.log(`CONSOLE_ERROR: ${msg.text()}`)
-    })
     await page.goto('/login')
     await expect(page.locator('input[placeholder="账号"]')).toBeVisible()
-    await page.route('**/api/auth/login', (route) => {
-      route.fulfill({
+
+    await page.route('**/api/**', (route) => {
+      const url = route.request().url()
+      if (url.includes('/src/api/')) {
+        return route.continue()
+      }
+      if (url.includes('/api/auth/login')) {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            access_token: MOCK_TOKEN,
+            role: 'admin',
+            dept: '',
+            username: 'admin',
+          }),
+        })
+      }
+      if (url.includes('/api/roles/permissions')) {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ permissions: [] }),
+        })
+      }
+      return route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          access_token: MOCK_TOKEN,
-          role: 'admin',
-          dept: '',
-          username: 'admin',
-        }),
+        body: '{}',
       })
     })
-    await page.route('**/api/roles/permissions', (route) => {
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ permissions: [] }) })
-    })
-    await page.route('**/api/**', (route) => {
-      route.fulfill({ status: 200, contentType: 'application/json', body: '{}' })
-    })
+
     await page.locator('input[placeholder="账号"]').fill('admin')
     await page.locator('input[placeholder="密码"]').fill('123456')
     await page.locator('.login-btn').click()
-    await page.waitForTimeout(5000)
-    console.log(`URL_AFTER_5S: ${page.url()}`)
     await page.waitForURL('**/workbench/admin/dashboard', { timeout: 30000 })
     await expect(page).toHaveURL(/\/workbench\/admin\/dashboard/)
   })

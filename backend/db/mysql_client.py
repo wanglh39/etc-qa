@@ -92,6 +92,7 @@ class MySQLClient:
     def get_all_questions(self, only_active: bool = True) -> list[dict]:
         conn = self._get_conn()
         try:
+            conn.commit()
             cursor = conn.cursor(pymysql.cursors.DictCursor)
             sql = "SELECT id, question, answer, category_l1, category_l2 FROM qa_pairs"
             if only_active:

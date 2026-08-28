@@ -45,6 +45,7 @@ test.describe('登录流程', () => {
   test('登录成功后跳转到工作台', async ({ page }) => {
     await mockAuthApis(page)
     await page.goto('/login')
+    await page.waitForLoadState('networkidle')
     await page.locator('input[placeholder="账号"]').fill('admin')
     await page.locator('input[placeholder="密码"]').fill('123456')
     await page.locator('.login-btn').click()

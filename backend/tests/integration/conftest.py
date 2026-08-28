@@ -120,6 +120,8 @@ def bm25_index(mysql_conn):
 
     bm25 = BM25Index()
     all_qa = mysql_conn.get_all_questions()
+    if not all_qa:
+        pytest.skip("qa_pairs表无数据，跳过BM25相关测试")
     bm25.build(all_qa)
     return bm25
 
@@ -149,7 +151,11 @@ def reranker(mysql_conn):
     if cfg["rerank"]["enabled"]:
         from rag.siliconflow import get_rerank_client
 
-        return Reranker(get_rerank_client(), mysql_client=mysql_conn)
+        try:
+            client = get_rerank_client()
+        except Exception as e:
+            pytest.skip(f"Reranker API key未配置，跳过: {e}")
+        return Reranker(client, mysql_client=mysql_conn)
     return Reranker(None, mysql_client=mysql_conn)
 
 

@@ -431,22 +431,18 @@ def list_work_orders(
     page_size: int = Query(20, ge=1, le=100),
     status: str | None = None,
     dept: str | None = None,
-    user: dict = Depends(get_current_user),
 ):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
-    if user.get("role") == "dept":
-        dept = user.get("dept")
     result = mysql_client.get_work_order_list(page=page, page_size=page_size, status=status, dept=dept)
     items = [WorkOrderListItem(**_serialize_row(row)) for row in result["items"]]
     return WorkOrderListResponse(items=items, total=result["total"], page=result["page"], page_size=result["page_size"])
 
 
 @router.get("/work_orders/stats")
-def get_work_order_stats(user: dict = Depends(get_current_user)):
+def get_work_order_stats(dept: str | None = None):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
-    dept = user.get("dept") if user.get("role") == "dept" else None
     if dept:
         return mysql_client.count_work_orders_by_dept(dept)
     return mysql_client.count_work_orders()
@@ -471,26 +467,22 @@ def create_work_order(req: WorkOrderCreateRequest):
 
 
 @router.get("/work_orders/{wo_id}", response_model=WorkOrderDetailResponse)
-def get_work_order(wo_id: int, user: dict = Depends(get_current_user)):
+def get_work_order(wo_id: int):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
     row = mysql_client.get_work_order_detail(wo_id)
     if row is None:
         raise HTTPException(status_code=404, detail="工单不存在")
-    if user.get("role") == "dept" and row.get("dept") != user.get("dept"):
-        raise HTTPException(status_code=403, detail="无权访问该工单")
     return _work_order_to_detail(row)
 
 
 @router.put("/work_orders/{wo_id}/reply", response_model=WorkOrderDetailResponse)
-def reply_work_order(wo_id: int, req: WorkOrderReplyRequest, user: dict = Depends(get_current_user)):
+def reply_work_order(wo_id: int, req: WorkOrderReplyRequest):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
     row = mysql_client.get_work_order_detail(wo_id)
     if row is None:
         raise HTTPException(status_code=404, detail="工单不存在")
-    if user.get("role") == "dept" and row.get("dept") != user.get("dept"):
-        raise HTTPException(status_code=403, detail="无权访问该工单")
     data = _parse_raw_data(row.get("raw_data"))
     data["handle_remark"] = req.handle_remark
     if req.back_dept:

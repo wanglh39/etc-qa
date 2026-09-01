@@ -57,8 +57,10 @@ export interface WorkOrderStats {
   today?: number
 }
 
-export function getWorkOrderStats() {
-  return request.get<WorkOrderStats>('/work_orders/stats').then((r) => r.data)
+export function getWorkOrderStats(dept?: string) {
+  return request
+    .get<WorkOrderStats>('/work_orders/stats', { params: dept ? { dept } : undefined })
+    .then((r) => r.data)
 }
 
 export function processAgent(data: AgentProcessRequest) {

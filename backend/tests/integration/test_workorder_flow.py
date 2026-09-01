@@ -127,8 +127,8 @@ class TestWorkOrderFullFlow:
         assert "work_order_processed" in stats
 
 
-class TestWorkOrderDeptIsolation:
-    def test_dept_cannot_view_other_dept_workorder(self, client, mock_mysql):
+class TestWorkOrderDeptAccess:
+    def test_dept_can_view_other_dept_workorder(self, client, mock_mysql):
         mock_mysql.get_work_order_detail.return_value = {
             "id": 99,
             "external_id": "WO-X",
@@ -138,7 +138,7 @@ class TestWorkOrderDeptIsolation:
         }
         h_dept = _login(client, "dept")
         resp = client.get("/api/work_orders/99", headers=h_dept)
-        assert resp.status_code == 403
+        assert resp.status_code == 200
 
     def test_dept_can_view_own_dept_workorder(self, client, mock_mysql):
         mock_mysql.get_work_order_detail.return_value = {
@@ -152,24 +152,35 @@ class TestWorkOrderDeptIsolation:
         resp = client.get("/api/work_orders/99", headers=h_dept)
         assert resp.status_code == 200
 
-    def test_dept_list_forced_to_own_dept(self, client, mock_mysql):
+    def test_dept_list_respects_dept_param(self, client, mock_mysql):
         mock_mysql.get_work_order_list.return_value = {"items": [], "total": 0, "page": 1, "page_size": 20}
         h_dept = _login(client, "dept")
         client.get("/api/work_orders", params={"dept": "finance"}, headers=h_dept)
         call_kwargs = mock_mysql.get_work_order_list.call_args[1]
-        assert call_kwargs["dept"] == "aftersale"
+        assert call_kwargs["dept"] == "finance"
 
-    def test_dept_cannot_reply_other_dept(self, client, mock_mysql):
-        mock_mysql.get_work_order_detail.return_value = {
-            "id": 99,
-            "external_id": "WO-X",
-            "raw_data": "{}",
-            "status": "submitted",
-            "dept": "finance",
-        }
+    def test_dept_can_reply_other_dept(self, client, mock_mysql):
+        mock_mysql.get_work_order_detail.side_effect = [
+            {
+                "id": 99,
+                "external_id": "WO-X",
+                "raw_data": "{}",
+                "status": "submitted",
+                "dept": "finance",
+            },
+            {
+                "id": 99,
+                "external_id": "WO-X",
+                "raw_data": '{"handle_remark": "x"}',
+                "status": "answered",
+                "dept": "finance",
+            },
+        ]
+        mock_mysql.update_work_order_reply.return_value = None
         h_dept = _login(client, "dept")
         resp = client.put("/api/work_orders/99/reply", json={"handle_remark": "x"}, headers=h_dept)
-        assert resp.status_code == 403
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "answered"
 
 
 class TestWorkOrderStatusFlow:

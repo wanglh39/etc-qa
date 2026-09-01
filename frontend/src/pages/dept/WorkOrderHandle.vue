@@ -287,7 +287,7 @@ const getTableList = async () => {
 
 const getStats = async () => {
   try {
-    stats.value = await getWorkOrderStats()
+    stats.value = await getWorkOrderStats(deptCode.value)
   } catch {
     stats.value = { total: 0, submitted: 0, answered: 0, processed: 0, today: 0 }
   }

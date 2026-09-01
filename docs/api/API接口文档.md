@@ -274,17 +274,18 @@ Token 有效期 24 小时。限流：30次/60s/IP、5次/60s/用户。
 
 ### GET /api/work_orders — 工单列表
 
-权限：已登录（dept 角色自动限定本部门）
+权限：已登录（dept 角色可按 dept 参数查看对应部门，不再强制限定本部门）
 
 | 参数 | 类型 | 默认 | 说明 |
 |------|------|------|------|
 | page | int | 1 | 页码 |
 | page_size | int | 20 | 每页条数 |
 | status | string | — | submitted/answered/processed |
+| dept | string | — | 按部门过滤（aftersale/ops/finance/market/human） |
 
 ### GET /api/work_orders/stats — 工单状态统计
 
-权限：已登录（dept 看本部门统计）
+权限：已登录（可传 dept 参数统计对应部门；不传则统计全部）
 
 ### POST /api/work_orders — 创建工单
 
@@ -292,11 +293,11 @@ Token 有效期 24 小时。限流：30次/60s/IP、5次/60s/用户。
 
 ### GET /api/work_orders/{wo_id} — 工单详情
 
-权限：已登录（dept 跨部门返回 403）
+权限：已登录
 
 ### PUT /api/work_orders/{wo_id}/reply — 工单回复/办结
 
-权限：已登录（dept 跨部门返回 403）
+权限：已登录
 
 ---
 

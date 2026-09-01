@@ -364,6 +364,7 @@ import { queryQA, getAsrHealth, type QueryResponse, type CandidateResult } from 
 import { createWorkOrder } from '@/api/workorder'
 import { getCategories } from '@/api/knowledge'
 import { useStreamingASR } from '@/composables/useStreamingASR'
+import { copyText } from '@/utils/common'
 
 // ===== 快捷话术模板 =====
 const quickReplyGroups = [
@@ -478,10 +479,10 @@ const clearCategoryFilter = () => {
 
 // ===== 复制到剪贴板 =====
 const copyToClipboard = async (text: string) => {
-  try {
-    await navigator.clipboard.writeText(text)
+  const ok = await copyText(text)
+  if (ok) {
     ElMessage.success('已复制到剪贴板')
-  } catch {
+  } else {
     ElMessage.error('复制失败，请手动选择复制')
   }
 }

@@ -216,6 +216,7 @@ import { ElMessage } from 'element-plus'
 import { ArrowLeft, CopyDocument, DocumentRemove } from '@element-plus/icons-vue'
 import { getWorkOrderDetail, replyWorkOrder, type WorkOrderDetail } from '@/api/workorder'
 import { queryQA, type CandidateResult } from '@/api/workbench'
+import { copyText } from '@/utils/common'
 
 const route = useRoute()
 const router = useRouter()
@@ -285,15 +286,13 @@ const searchKB = async () => {
   }
 }
 
-const copyAnswer = (answer: string) => {
-  navigator.clipboard
-    .writeText(answer)
-    .then(() => {
-      ElMessage.success('已复制到剪贴板')
-    })
-    .catch(() => {
-      ElMessage.error('复制失败')
-    })
+const copyAnswer = async (answer: string) => {
+  const ok = await copyText(answer)
+  if (ok) {
+    ElMessage.success('已复制到剪贴板')
+  } else {
+    ElMessage.error('复制失败')
+  }
 }
 
 const useAsRemark = (answer: string) => {

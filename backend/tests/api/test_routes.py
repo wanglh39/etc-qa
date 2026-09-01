@@ -348,7 +348,7 @@ class TestWorkOrderListAPI:
 
         from api.routes import list_work_orders
 
-        result = list_work_orders(page=1, page_size=20, user=MOCK_USER)
+        result = list_work_orders(page=1, page_size=20)
         assert result.total == 1
 
 
@@ -648,7 +648,7 @@ class TestGetWorkOrderAPI:
             "dept": "账单组",
         }
         set_mysql_client(mock_mysql)
-        result = get_work_order(1, user={"sub": "u", "role": "admin"})
+        result = get_work_order(1)
         assert result.id == 1
         assert result.customer_name == "张三"
 
@@ -657,21 +657,13 @@ class TestGetWorkOrderAPI:
         mock_mysql.get_work_order_detail.return_value = None
         set_mysql_client(mock_mysql)
         with pytest.raises(HTTPException) as exc:
-            get_work_order(999, user={"sub": "u", "role": "admin"})
+            get_work_order(999)
         assert exc.value.status_code == 404
-
-    def test_get_work_order_dept_forbidden(self):
-        mock_mysql = MagicMock()
-        mock_mysql.get_work_order_detail.return_value = {"id": 1, "dept": "其他部门"}
-        set_mysql_client(mock_mysql)
-        with pytest.raises(HTTPException) as exc:
-            get_work_order(1, user={"sub": "u", "role": "dept", "dept": "账单组"})
-        assert exc.value.status_code == 403
 
     def test_get_work_order_no_mysql(self):
         set_mysql_client(None)
         with pytest.raises(HTTPException) as exc:
-            get_work_order(1, user={"sub": "u", "role": "admin"})
+            get_work_order(1)
         assert exc.value.status_code == 500
 
 
@@ -690,7 +682,7 @@ class TestReplyWorkOrderAPI:
         ]
         set_mysql_client(mock_mysql)
         req = WorkOrderReplyRequest(handle_remark="已处理", back_dept="客服组")
-        result = reply_work_order(1, req, user={"sub": "u", "role": "admin"})
+        result = reply_work_order(1, req)
         assert result.id == 1
         assert result.status == "answered"
         mock_mysql.update_work_order_reply.assert_called_once()
@@ -706,7 +698,7 @@ class TestReplyWorkOrderAPI:
         ]
         set_mysql_client(mock_mysql)
         req = WorkOrderReplyRequest(handle_remark="ok")
-        result = reply_work_order(1, req, user={"sub": "u", "role": "admin"})
+        result = reply_work_order(1, req)
         assert result.id == 1
         mock_mysql.update_work_order_reply.assert_called_once()
 
@@ -716,23 +708,14 @@ class TestReplyWorkOrderAPI:
         set_mysql_client(mock_mysql)
         req = WorkOrderReplyRequest(handle_remark="x")
         with pytest.raises(HTTPException) as exc:
-            reply_work_order(999, req, user={"sub": "u", "role": "admin"})
+            reply_work_order(999, req)
         assert exc.value.status_code == 404
-
-    def test_reply_work_order_dept_forbidden(self):
-        mock_mysql = MagicMock()
-        mock_mysql.get_work_order_detail.return_value = {"id": 1, "dept": "其他"}
-        set_mysql_client(mock_mysql)
-        req = WorkOrderReplyRequest(handle_remark="x")
-        with pytest.raises(HTTPException) as exc:
-            reply_work_order(1, req, user={"sub": "u", "role": "dept", "dept": "账单组"})
-        assert exc.value.status_code == 403
 
     def test_reply_work_order_no_mysql(self):
         set_mysql_client(None)
         req = WorkOrderReplyRequest(handle_remark="x")
         with pytest.raises(HTTPException) as exc:
-            reply_work_order(1, req, user={"sub": "u", "role": "admin"})
+            reply_work_order(1, req)
         assert exc.value.status_code == 500
 
 

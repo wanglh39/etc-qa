@@ -23,12 +23,7 @@
         class="login-form"
       >
         <el-form-item prop="username">
-          <el-input
-            v-model="loginForm.username"
-            placeholder="账号"
-            :prefix-icon="User"
-            clearable
-          />
+          <el-input v-model="loginForm.username" placeholder="账号" :prefix-icon="User" clearable />
         </el-form-item>
 
         <el-form-item prop="password">
@@ -51,9 +46,7 @@
       </el-form>
     </div>
 
-    <div class="footer-text">
-      © 2026 客服工单流转系统优化 · 挑战杯揭榜挂帅华为赛题
-    </div>
+    <div class="footer-text">© 2026 客服工单流转系统优化 · 挑战杯揭榜挂帅华为赛题</div>
   </div>
 </template>
 
@@ -129,7 +122,6 @@ const handleLogin = async () => {
   overflow: hidden;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
 }
-
 
 .brand-area {
   position: absolute;

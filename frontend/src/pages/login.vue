@@ -1,51 +1,58 @@
 <template>
   <div class="login-wrap">
-    <div class="glow glow-1" />
-    <div class="glow glow-2" />
-    <div class="glow glow-3" />
-    <div class="dot-grid" />
-
-    <div class="login-panel">
-      <div class="login-form-box">
-        <h2 class="form-title">欢迎登录</h2>
-        <p class="form-sub">请输入您的账号信息</p>
-
-        <el-form
-          ref="loginFormRef"
-          :model="loginForm"
-          label-width="0"
-          size="large"
-          :rules="loginRules"
-          class="login-form"
-        >
-          <el-form-item prop="username">
-            <el-input
-              v-model="loginForm.username"
-              placeholder="账号"
-              :prefix-icon="User"
-              clearable
-            />
-          </el-form-item>
-
-          <el-form-item prop="password">
-            <el-input
-              v-model="loginForm.password"
-              type="password"
-              placeholder="密码"
-              :prefix-icon="Lock"
-              show-password
-              clearable
-              @keyup.enter="handleLogin"
-            />
-          </el-form-item>
-
-          <el-form-item>
-            <el-button type="primary" class="login-btn" :loading="loading" @click="handleLogin">
-              登 录
-            </el-button>
-          </el-form-item>
-        </el-form>
+    <div class="brand-area">
+      <div class="brand-logo">
+        <img src="/huawei-logo.svg" alt="华为" />
       </div>
+      <div class="brand-text">
+        <h1 class="brand-title">挑战杯揭榜挂帅华为赛题</h1>
+        <p class="brand-subtitle">客服工单流转系统优化</p>
+      </div>
+    </div>
+
+    <div class="login-form-box">
+      <h2 class="form-title">欢迎登录</h2>
+      <p class="form-sub">请输入您的账号信息</p>
+
+      <el-form
+        ref="loginFormRef"
+        :model="loginForm"
+        label-width="0"
+        size="large"
+        :rules="loginRules"
+        class="login-form"
+      >
+        <el-form-item prop="username">
+          <el-input
+            v-model="loginForm.username"
+            placeholder="账号"
+            :prefix-icon="User"
+            clearable
+          />
+        </el-form-item>
+
+        <el-form-item prop="password">
+          <el-input
+            v-model="loginForm.password"
+            type="password"
+            placeholder="密码"
+            :prefix-icon="Lock"
+            show-password
+            clearable
+            @keyup.enter="handleLogin"
+          />
+        </el-form-item>
+
+        <el-form-item>
+          <el-button type="primary" class="login-btn" :loading="loading" @click="handleLogin">
+            登 录
+          </el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+
+    <div class="footer-text">
+      © 2026 客服工单流转系统优化 · 挑战杯揭榜挂帅华为赛题
     </div>
   </div>
 </template>
@@ -120,74 +127,68 @@ const handleLogin = async () => {
   justify-content: center;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
 }
 
-.glow {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(120px);
-}
-.glow-1 {
-  width: 500px;
-  height: 500px;
-  background: #1677ff;
-  top: -150px;
-  left: -100px;
-  opacity: 0.4;
-}
-.glow-2 {
-  width: 400px;
-  height: 400px;
-  background: #3b82f6;
-  bottom: -100px;
-  right: -80px;
-  opacity: 0.3;
-}
-.glow-3 {
-  width: 300px;
-  height: 300px;
-  background: #0958d9;
-  top: 40%;
-  left: 15%;
-  opacity: 0.25;
-}
-.dot-grid {
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
 
-.login-panel {
-  width: 820px;
-  height: 100vh;
-  background: #f8fafc;
+.brand-area {
+  position: absolute;
+  top: 48px;
+  left: 64px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 40px;
+  gap: 16px;
+  z-index: 2;
+}
+
+.brand-logo img {
+  width: 60px;
+  height: auto;
+  display: block;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.brand-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+}
+
+.brand-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+
+.login-form-box {
+  width: 400px;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 12px;
+  padding: 48px 40px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.1);
   position: relative;
   z-index: 1;
 }
-.login-form-box {
-  width: 100%;
-  max-width: 380px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 40px 36px;
-  box-shadow:
-    0 4px 24px rgba(15, 23, 42, 0.08),
-    0 1px 2px rgba(15, 23, 42, 0.04);
-}
+
 .form-title {
   font-size: 24px;
   font-weight: 700;
-  color: #0f172a;
+  color: #1a1a2e;
   margin: 0 0 6px;
   letter-spacing: -0.02em;
 }
+
 .form-sub {
   font-size: 14px;
   color: #64748b;
@@ -201,5 +202,21 @@ const handleLogin = async () => {
   font-weight: 600;
   letter-spacing: 4px;
   border-radius: 8px;
+}
+
+.login-btn:hover,
+.login-btn:focus {
+  opacity: 0.9;
+}
+
+.footer-text {
+  position: absolute;
+  bottom: 32px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  z-index: 2;
 }
 </style>

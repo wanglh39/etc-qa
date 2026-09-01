@@ -49,7 +49,7 @@ describe('api/audit', () => {
 
       const result = await getWorkOrderStats()
 
-      expect(mockedRequest.get).toHaveBeenCalledWith('/work_orders/stats')
+      expect(mockedRequest.get).toHaveBeenCalledWith('/work_orders/stats', { params: undefined })
       expect(result).toEqual(fakeData)
     })
   })

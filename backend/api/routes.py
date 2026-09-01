@@ -257,7 +257,9 @@ def update_qa_status(req: UpdateStatusRequest, request: Request):
     if req.status not in valid_statuses:
         raise HTTPException(status_code=400, detail=f"status必须是{valid_statuses}之一")
     mysql_client.update_qa_status(req.qa_id, req.status)
-    if service is not None:
+    if req.status == "active" and service is not None:
+        service.activate_qa(req.qa_id)
+    elif service is not None:
         service.invalidate_active_ids_cache()
     if req.status in ("active", "archived"):
         detail = mysql_client.get_qa_detail(req.qa_id) or {}
@@ -493,7 +495,7 @@ def reply_work_order(wo_id: int, req: WorkOrderReplyRequest, user: dict = Depend
     data["handle_remark"] = req.handle_remark
     if req.back_dept:
         data["back_dept"] = req.back_dept
-    mysql_client.update_work_order_reply(wo_id, json.dumps(data, ensure_ascii=False), "processed")
+    mysql_client.update_work_order_reply(wo_id, json.dumps(data, ensure_ascii=False), "answered")
     updated = mysql_client.get_work_order_detail(wo_id)
     return _work_order_to_detail(updated)
 

@@ -92,6 +92,22 @@ class QAService:
         self.invalidate_active_ids_cache()
         return qa_id
 
+    @traceable(name="activate_qa", run_type="chain")
+    def activate_qa(self, qa_id: int) -> None:
+        detail = self.mysql.get_qa_detail(qa_id) or {}
+        question = detail.get("question", "")
+        if not question:
+            logger.warning(f"审核激活 qa_id={qa_id} 但无 question，跳过向量写入")
+            return
+        vector = self.recall.encode_query(question)
+        self._insert_milvus_with_retry(qa_id, vector, detail.get("category_l1", ""))
+        try:
+            all_qa = self.mysql.get_all_questions()
+            self.recall.bm25.build(all_qa)
+        except Exception as e:
+            logger.warning(f"BM25索引重建失败(不影响已入库数据): {e}")
+        self.invalidate_active_ids_cache()
+
     def _insert_milvus_with_retry(self, qa_id: int, vector: list[float], category_l1: str, max_retries: int = 2):
         for attempt in range(max_retries + 1):
             try:

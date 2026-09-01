@@ -63,8 +63,11 @@ def sync_and_ingest_task():
             try:
                 raw = json.loads(wo["raw_data"]) if wo["raw_data"] else {}
                 state = AgentState(
-                    raw_question=raw.get("question", ""),
-                    raw_answer=raw.get("answer", ""),
+                    raw_question=raw.get("detail_desc", "") or raw.get("question", ""),
+                    raw_answer=raw.get("handle_remark", "") or raw.get("answer", ""),
+                    work_order_context=(
+                        f"工单类型={raw.get('problem_type', '')}，流转至={raw.get('next_dept', '')}"
+                    ),
                 )
                 result = ingest_agent.invoke(state.model_dump())
                 mysql.update_work_order(wo["external_id"], json.dumps(result, ensure_ascii=False), "processed")

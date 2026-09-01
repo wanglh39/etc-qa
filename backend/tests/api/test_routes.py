@@ -684,7 +684,7 @@ class TestReplyWorkOrderAPI:
                 "id": 1,
                 "external_id": "WO1",
                 "raw_data": '{"handle_remark":"已处理","back_dept":"客服组"}',
-                "status": "processed",
+                "status": "answered",
                 "dept": "账单组",
             },
         ]
@@ -692,17 +692,17 @@ class TestReplyWorkOrderAPI:
         req = WorkOrderReplyRequest(handle_remark="已处理", back_dept="客服组")
         result = reply_work_order(1, req, user={"sub": "u", "role": "admin"})
         assert result.id == 1
-        assert result.status == "processed"
+        assert result.status == "answered"
         mock_mysql.update_work_order_reply.assert_called_once()
         call_args = mock_mysql.update_work_order_reply.call_args
         assert call_args.args[0] == 1
-        assert call_args.args[2] == "processed"
+        assert call_args.args[2] == "answered"
 
     def test_reply_work_order_success_no_back_dept(self):
         mock_mysql = MagicMock()
         mock_mysql.get_work_order_detail.side_effect = [
             {"id": 1, "raw_data": "{}", "status": "submitted", "dept": "账单组"},
-            {"id": 1, "raw_data": '{"handle_remark":"ok"}', "status": "processed", "dept": "账单组"},
+            {"id": 1, "raw_data": '{"handle_remark":"ok"}', "status": "answered", "dept": "账单组"},
         ]
         set_mysql_client(mock_mysql)
         req = WorkOrderReplyRequest(handle_remark="ok")

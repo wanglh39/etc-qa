@@ -41,14 +41,14 @@
           </div>
         </div>
       </el-card>
-      <el-card class="kpi-card" shadow="hover" @click="filterByStatus('processed')">
+      <el-card class="kpi-card" shadow="hover" @click="filterByStatus('processed,deduped,rejected')">
         <div class="kpi-inner">
           <div class="kpi-icon done">
             <el-icon><CircleCheck /></el-icon>
           </div>
           <div class="kpi-info">
             <div class="kpi-num">
-              {{ stats.processed || 0 }}
+              {{ (stats.processed || 0) + (stats.deduped || 0) + (stats.rejected || 0) }}
             </div>
             <div class="kpi-label">已办结</div>
           </div>
@@ -100,9 +100,9 @@
             <span>已回复 <el-badge :value="stats.answered" :max="999" type="primary" /></span>
           </template>
         </el-tab-pane>
-        <el-tab-pane name="processed">
+        <el-tab-pane name="processed,deduped,rejected">
           <template #label>
-            <span>已办结 <el-badge :value="stats.processed" :max="999" type="primary" /></span>
+            <span>已办结 <el-badge :value="(stats.processed || 0) + (stats.deduped || 0) + (stats.rejected || 0)" :max="999" type="primary" /></span>
           </template>
         </el-tab-pane>
       </el-tabs>
@@ -174,6 +174,12 @@
               </el-tag>
               <el-tag v-else-if="scope.row.status === 'processed'" type="primary" effect="light">
                 已办结
+              </el-tag>
+              <el-tag v-else-if="scope.row.status === 'deduped'" type="success" effect="light">
+                已入库
+              </el-tag>
+              <el-tag v-else-if="scope.row.status === 'rejected'" type="warning" effect="light">
+                重复驳回
               </el-tag>
             </template>
           </el-table-column>

@@ -433,8 +433,14 @@ class MySQLClient:
             where_parts = []
             params = []
             if status:
-                where_parts.append("status = %s")
-                params.append(status)
+                if "," in status:
+                    status_list = [s.strip() for s in status.split(",") if s.strip()]
+                    placeholders = ",".join(["%s"] * len(status_list))
+                    where_parts.append(f"status IN ({placeholders})")
+                    params.extend(status_list)
+                else:
+                    where_parts.append("status = %s")
+                    params.append(status)
             if dept:
                 where_parts.append("dept = %s")
                 params.append(dept)
@@ -508,7 +514,7 @@ class MySQLClient:
             cursor.execute("SELECT dept_key, dept_name FROM depts ORDER BY sort_order")
             rows = cursor.fetchall()
             cursor.close()
-            return rows
+            return [{"dept_key": r[0], "dept_name": r[1]} for r in rows]
         except Exception:
             self._reset_conn()
             raise

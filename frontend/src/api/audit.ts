@@ -54,6 +54,8 @@ export interface WorkOrderStats {
   submitted: number
   answered: number
   processed: number
+  deduped?: number
+  rejected?: number
   today?: number
 }
 

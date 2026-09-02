@@ -342,7 +342,11 @@ class AliCloudStreamingBackend(StreamingBackend):
 
 
     def send_audio(self, chunk: bytes):
-        if not self._running or not self._ws:
+        if not self._running and self._callback:
+            logger.info("阿里云ASR连接断开，自动重连")
+            self._reconnect()
+            return
+        if not self._ws:
             return
         try:
             import websocket
@@ -351,6 +355,24 @@ class AliCloudStreamingBackend(StreamingBackend):
 
         except Exception as e:
             logger.error(f"阿里云ASR发送音频失败: {e}")
+
+    def _reconnect(self):
+        self._running = True
+        self._task_id = __import__("uuid").uuid4().hex
+        self._connected.clear()
+        token = self._get_token()
+        url = f"wss://nls-gateway.cn-shanghai.aliyuncs.com/ws/v1?token={token}"
+        import websocket
+
+        self._ws = websocket.WebSocketApp(
+            url,
+            on_open=self._on_open,
+            on_message=self._on_message,
+            on_error=self._on_error,
+            on_close=self._on_close,
+        )
+        self._ws_thread = threading.Thread(target=self._ws.run_forever, daemon=True)
+        self._ws_thread.start()
 
     def _on_message(self, ws, message):
         try:
@@ -361,9 +383,12 @@ class AliCloudStreamingBackend(StreamingBackend):
 
             if status != 20000000:
                 err = header.get("status_text", "未知错误")
-                logger.error(f"阿里云ASR错误: status={status}, msg={err}")
-                if self._callback:
-                    self._callback.on_error(err)
+                if status == 40000004:
+                    logger.warning(f"阿里云ASR空闲超时(正常): {err}")
+                else:
+                    logger.error(f"阿里云ASR错误: status={status}, msg={err}")
+                    if self._callback:
+                        self._callback.on_error(err)
                 return
 
             payload = data.get("payload", {})

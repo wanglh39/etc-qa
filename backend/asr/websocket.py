@@ -289,6 +289,8 @@ async def asr_stream(websocket: WebSocket):
 
         while True:
             msg = await websocket.receive()
+            if msg.get("type") == "websocket.disconnect":
+                raise WebSocketDisconnect(msg.get("code", 1000))
             if "text" in msg:
                 try:
                     ctrl = json.loads(msg["text"])

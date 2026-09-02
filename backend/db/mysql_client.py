@@ -873,6 +873,7 @@ class MySQLClient:
     def list_roles(self) -> list[dict]:
         conn = self._get_conn()
         try:
+            conn.commit()
             cursor = conn.cursor(pymysql.cursors.DictCursor)
             cursor.execute(
                 "SELECT id, role_key, role_name, description, permissions, created_at FROM roles ORDER BY id ASC"
@@ -886,10 +887,34 @@ class MySQLClient:
 
                     row["permissions"] = _json.loads(row["permissions"])
             cursor.close()
+            conn.commit()
             return rows
         except Exception:
             self._reset_conn()
             raise
+
+    def get_role_permissions(self, role_key: str) -> list[str]:
+        conn = self._get_conn()
+        try:
+            conn.commit()
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            cursor.execute("SELECT permissions FROM roles WHERE role_key = %s", (role_key,))
+            row = cursor.fetchone()
+            cursor.close()
+            conn.commit()
+            if not row:
+                return []
+            perms = row.get("permissions")
+            if perms is None:
+                return []
+            if isinstance(perms, str):
+                import json as _json
+
+                perms = _json.loads(perms)
+            return perms or []
+        except Exception:
+            self._reset_conn()
+            return []
 
     def create_role(
         self, role_key: str, role_name: str, description: str = "", permissions: list[str] | None = None

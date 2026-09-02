@@ -315,11 +315,7 @@
           placeholder="选择需要处理的部门"
           style="width: 100%"
         >
-          <el-option label="售后处理部" value="aftersale" />
-          <el-option label="技术运维部" value="ops" />
-          <el-option label="财务部" value="finance" />
-          <el-option label="市场部" value="market" />
-          <el-option label="人事部" value="human" />
+          <el-option v-for="d in depts" :key="d.dept_key" :label="d.dept_name" :value="d.dept_key" />
         </el-select>
       </el-form-item>
       <el-form-item label="工单优先级" prop="priority">
@@ -363,6 +359,7 @@ import {
 import { queryQA, getAsrHealth, type QueryResponse, type CandidateResult } from '@/api/workbench'
 import { createWorkOrder } from '@/api/workorder'
 import { getCategories } from '@/api/knowledge'
+import { getDeptList, type DeptItem } from '@/api/system'
 import { useStreamingASR } from '@/composables/useStreamingASR'
 import { copyText } from '@/utils/common'
 
@@ -789,9 +786,14 @@ const addSearchHistory = (q: string) => {
   searchHistory.value = [trimmed, ...searchHistory.value.filter((h) => h !== trimmed)].slice(0, 6)
 }
 
-onMounted(() => {
+const depts = ref<DeptItem[]>([])
+
+onMounted(async () => {
   loadCategories()
   checkAsrHealth()
+  try {
+    depts.value = await getDeptList()
+  } catch {}
 })
 </script>
 

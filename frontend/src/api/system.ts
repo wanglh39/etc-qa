@@ -108,6 +108,15 @@ export function getMyPermissions() {
     .then((r) => r.data.permissions)
 }
 
+export interface DeptItem {
+  dept_key: string
+  dept_name: string
+}
+
+export function getDeptList() {
+  return request.get<DeptItem[]>('/depts').then((r) => r.data)
+}
+
 export function createRole(data: RoleCreateRequest) {
   return request.post('/roles', data).then((r) => r.data)
 }

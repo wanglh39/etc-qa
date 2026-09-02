@@ -217,21 +217,16 @@ import { ArrowLeft, CopyDocument, DocumentRemove } from '@element-plus/icons-vue
 import { getWorkOrderDetail, replyWorkOrder, type WorkOrderDetail } from '@/api/workorder'
 import { queryQA, type CandidateResult } from '@/api/workbench'
 import { copyText } from '@/utils/common'
+import { getDeptList } from '@/api/system'
 
 const route = useRoute()
 const router = useRouter()
 
-const deptNameMap: Record<string, string> = {
-  aftersale: '售后处理部',
-  ops: '技术运维部',
-  finance: '财务部',
-  market: '市场部',
-  human: '人事部',
-}
+const deptNameMap = ref<Record<string, string>>({})
 
 const deptCode = computed(() => route.params.deptCode as string)
 const orderId = computed(() => route.params.orderId as string)
-const deptName = computed(() => deptNameMap[deptCode.value] || '通用部门')
+const deptName = computed(() => deptNameMap.value[deptCode.value] || '通用部门')
 
 const orderInfo = ref<WorkOrderDetail>({
   id: 0,
@@ -336,7 +331,11 @@ const handleFinish = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  try {
+    const depts = await getDeptList()
+    deptNameMap.value = Object.fromEntries(depts.map((d) => [d.dept_key, d.dept_name]))
+  } catch {}
   getOrderDetail()
 })
 </script>

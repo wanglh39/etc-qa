@@ -361,6 +361,40 @@ def init_work_orders_table():
     conn.close()
 
 
+def init_depts_table():
+    conn = pymysql.connect(
+        host=MYSQL_HOST, port=MYSQL_PORT, user=MYSQL_USER, password=MYSQL_PASSWORD, charset="utf8mb4"
+    )
+    cursor = conn.cursor()
+    cursor.execute(f"USE `{MYSQL_DB}`")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS depts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            dept_key VARCHAR(50) NOT NULL UNIQUE,
+            dept_name VARCHAR(100) NOT NULL,
+            sort_order INT DEFAULT 0
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    """)
+    conn.commit()
+
+    cursor.execute("SELECT COUNT(*) FROM depts")
+    if cursor.fetchone()[0] == 0:
+        depts = [
+            ("aftersale", "售后处理部", 1),
+            ("ops", "技术运维部", 2),
+            ("finance", "财务部", 3),
+        ]
+        cursor.executemany(
+            "INSERT INTO depts (dept_key, dept_name, sort_order) VALUES (%s, %s, %s)",
+            depts,
+        )
+        conn.commit()
+        print("  depts表已插入3条部门数据")
+
+    cursor.close()
+    conn.close()
+
+
 def import_to_mysql():
     print("\n=== 第2步：导入数据到MySQL ===")
 
@@ -520,6 +554,7 @@ def main():
     init_mysql()
     import_to_mysql()
     init_work_orders_table()
+    init_depts_table()
 
     if skip_milvus:
         print("\n  --skip-milvus: 跳过Milvus初始化（保留已有向量数据）")

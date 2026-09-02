@@ -224,19 +224,14 @@ import {
   type WorkOrderStats,
 } from '@/api/audit'
 import { replyWorkOrder } from '@/api/workorder'
+import { getDeptList } from '@/api/system'
 
 const route = useRoute()
 const router = useRouter()
 
-const deptNameMap: Record<string, string> = {
-  aftersale: '售后处理部',
-  ops: '技术运维部',
-  finance: '财务部',
-  market: '市场部',
-  human: '人事部',
-}
+const deptNameMap = ref<Record<string, string>>({})
 const deptCode = computed(() => route.params.deptCode as string)
-const currentDeptName = computed(() => deptNameMap[deptCode.value] || '通用部门')
+const currentDeptName = computed(() => deptNameMap.value[deptCode.value] || '通用部门')
 
 const activeTab = ref('')
 const searchForm = ref({ orderNo: '' })
@@ -362,7 +357,11 @@ const batchFinish = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  try {
+    const depts = await getDeptList()
+    deptNameMap.value = Object.fromEntries(depts.map((d) => [d.dept_key, d.dept_name]))
+  } catch {}
   getTableList()
   getStats()
 })

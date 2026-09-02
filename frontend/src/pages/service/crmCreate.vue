@@ -37,11 +37,7 @@
       <!-- 客服指定：流转给哪个业务部门处理 -->
       <el-form-item label="转交处理部门" prop="nextDept">
         <el-select v-model="formData.nextDept" placeholder="选择需要处理的部门" style="width: 100%">
-          <el-option label="售后处理部" value="aftersale" />
-          <el-option label="技术运维部" value="ops" />
-          <el-option label="财务部" value="finance" />
-          <el-option label="市场部" value="market" />
-          <el-option label="人事部" value="human" />
+          <el-option v-for="d in depts" :key="d.dept_key" :label="d.dept_name" :value="d.dept_key" />
         </el-select>
       </el-form-item>
 
@@ -73,14 +69,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElForm } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { createWorkOrder } from '@/api/workorder'
+import { getDeptList, type DeptItem } from '@/api/system'
 
 const router = useRouter()
 const formRef = ref<InstanceType<typeof ElForm>>()
 const submitting = ref(false)
+const depts = ref<DeptItem[]>([])
+
+onMounted(async () => {
+  try {
+    depts.value = await getDeptList()
+  } catch {}
+})
 
 // 客服发起工单完整数据
 const formData = ref({

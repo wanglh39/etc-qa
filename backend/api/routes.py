@@ -425,6 +425,14 @@ def stats_trend(days: int = Query(7, ge=1, le=90)):
     return TrendResponse(dates=dates, work_order_counts=work_order_counts, qa_new_counts=qa_new_counts)
 
 
+@router.get("/depts")
+def list_depts():
+    if mysql_client is None:
+        raise HTTPException(status_code=500, detail="服务未初始化")
+    rows = mysql_client.get_all_depts()
+    return [{"dept_key": r["dept_key"], "dept_name": r["dept_name"]} for r in rows]
+
+
 @router.get("/work_orders", response_model=WorkOrderListResponse)
 def list_work_orders(
     page: int = Query(1, ge=1),

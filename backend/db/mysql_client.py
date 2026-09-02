@@ -501,6 +501,18 @@ class MySQLClient:
             self._reset_conn()
             raise
 
+    def get_all_depts(self):
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT dept_key, dept_name FROM depts ORDER BY sort_order")
+            rows = cursor.fetchall()
+            cursor.close()
+            return rows
+        except Exception:
+            self._reset_conn()
+            raise
+
     def insert_audit_log(self, qa_id: int, question: str, answer: str, result: str, operator: str):
         conn = self._get_conn()
         try:

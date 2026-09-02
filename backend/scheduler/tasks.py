@@ -70,7 +70,8 @@ def sync_and_ingest_task():
                     ),
                 )
                 result = ingest_agent.invoke(state.model_dump())
-                mysql.update_work_order(wo["external_id"], json.dumps(result, ensure_ascii=False), "processed")
+                raw.update(result)
+                mysql.update_work_order(wo["external_id"], json.dumps(raw, ensure_ascii=False), "processed")
                 stats["preprocessed"] += 1
             except Exception as e:
                 logger.error(f"工单 {wo['external_id']} 预处理失败: {e}")

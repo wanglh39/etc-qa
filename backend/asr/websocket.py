@@ -76,8 +76,8 @@ async def asr_stream(websocket: WebSocket):
             logger.info(f"状态转换: {session['state'].value} -> {new_state.value}")
             session["state"] = new_state
             try:
-                asyncio.get_event_loop().create_task(
-                    websocket.send_json({"type": "state_change", "state": new_state.value})
+                asyncio.run_coroutine_threadsafe(
+                    websocket.send_json({"type": "state_change", "state": new_state.value}), loop
                 )
             except Exception:
                 pass
@@ -85,6 +85,10 @@ async def asr_stream(websocket: WebSocket):
     from asr.streaming import StreamingCallback, get_streaming_service
 
     service = get_streaming_service()
+    loop = asyncio.get_event_loop()
+
+    def _emit(coro):
+        asyncio.run_coroutine_threadsafe(coro, loop)
 
     final_texts = []
     audio_chunks: deque[bytes] = deque(maxlen=500)
@@ -106,7 +110,7 @@ async def asr_stream(websocket: WebSocket):
     class WSCallback(StreamingCallback):
         def on_partial(self, text: str):
             try:
-                asyncio.get_event_loop().create_task(websocket.send_json({"type": "partial", "text": text}))
+                asyncio.run_coroutine_threadsafe(websocket.send_json({"type": "partial", "text": text}), loop)
             except Exception:
                 pass
 
@@ -116,8 +120,7 @@ async def asr_stream(websocket: WebSocket):
             if text:
                 final_texts.append(text)
             try:
-                loop = asyncio.get_event_loop()
-                loop.create_task(
+                _emit(
                     websocket.send_json(
                         {
                             "type": "final",
@@ -134,7 +137,7 @@ async def asr_stream(websocket: WebSocket):
                 if correction_enabled and _is_correction(text):
                     popped = accumulator.pop_last() or (final_texts.pop() if len(final_texts) > 1 else None)
                     _set_state(SessionState.LISTENING)
-                    loop.create_task(
+                    _emit(
                         websocket.send_json(
                             {
                                 "type": "corrected",
@@ -146,7 +149,7 @@ async def asr_stream(websocket: WebSocket):
                     return
 
                 if filter_greeting and _is_greeting(text):
-                    loop.create_task(
+                    _emit(
                         websocket.send_json(
                             {
                                 "type": "filtered",
@@ -158,7 +161,7 @@ async def asr_stream(websocket: WebSocket):
                     return
 
                 if len(text.strip()) < min_query_length:
-                    loop.create_task(
+                    _emit(
                         websocket.send_json(
                             {
                                 "type": "filtered",
@@ -175,7 +178,7 @@ async def asr_stream(websocket: WebSocket):
                     resolved = context_window.resolve_pronoun(text)
                     if resolved != text:
                         query_text = resolved
-                        loop.create_task(
+                        _emit(
                             websocket.send_json(
                                 {
                                     "type": "coreference_resolved",
@@ -187,7 +190,7 @@ async def asr_stream(websocket: WebSocket):
                         )
 
                 if dedup_enabled and query_cache.should_skip(query_text):
-                    loop.create_task(
+                    _emit(
                         websocket.send_json(
                             {
                                 "type": "filtered",
@@ -201,7 +204,7 @@ async def asr_stream(websocket: WebSocket):
                 if speaker_filter and speaker_map:
                     speaker = _identify_speaker(text, final_texts, speaker_map)
                     if speaker and speaker != speaker_filter:
-                        loop.create_task(
+                        _emit(
                             websocket.send_json(
                                 {
                                     "type": "filtered",
@@ -219,7 +222,7 @@ async def asr_stream(websocket: WebSocket):
                     ready = accumulator.add(text)
                     if ready is not None:
                         combined = "".join(ready)
-                        loop.create_task(
+                        _emit(
                             _send_query_result(
                                 websocket,
                                 combined,
@@ -230,7 +233,7 @@ async def asr_stream(websocket: WebSocket):
                         )
                         context_window.add(combined)
                     else:
-                        loop.create_task(
+                        _emit(
                             websocket.send_json(
                                 {
                                     "type": "accumulating",
@@ -239,7 +242,7 @@ async def asr_stream(websocket: WebSocket):
                             )
                         )
                 else:
-                    loop.create_task(
+                    _emit(
                         _send_query_result(
                             websocket,
                             query_text,
@@ -255,7 +258,7 @@ async def asr_stream(websocket: WebSocket):
 
         def on_error(self, error: str):
             try:
-                asyncio.get_event_loop().create_task(websocket.send_json({"type": "error", "message": error}))
+                _emit(websocket.send_json({"type": "error", "message": error}))
             except Exception:
                 pass
 
@@ -375,7 +378,7 @@ async def asr_stream(websocket: WebSocket):
                         if diarize_trigger_enabled and audio_chunks:
                             window_chunks = _get_recent_audio(audio_chunks, diarize_audio_window, sample_rate)
                             audio_bytes = b"".join(window_chunks)
-                            loop = asyncio.get_event_loop()
+
                             segments = await loop.run_in_executor(None, _do_diarize_segment, audio_bytes, sample_rate)
                             if segments:
                                 last_speaker = segments[-1]["speaker"]

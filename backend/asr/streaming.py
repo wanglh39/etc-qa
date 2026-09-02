@@ -269,17 +269,20 @@ class AliCloudStreamingBackend(StreamingBackend):
         self._token_expire = 0
         self._connected = threading.Event()
 
+
     def _get_token(self) -> str:
         import json as _json
 
         from aliyunsdkcore.client import AcsClient
+        from aliyunsdkcore.profile import region_provider
         from aliyunsdkcore.request import RpcRequest
 
         if self._token and time.time() < self._token_expire - 60:
             return self._token
 
+        region_provider.modify_point("nls-meta", "cn-shanghai", "nls-meta.cn-shanghai.aliyuncs.com")
         client = AcsClient(self._access_key_id, self._access_key_secret, "cn-shanghai")
-        req = RpcRequest("nls-meta.cn-shanghai.aliyuncs.com", "2019-02-28", "CreateToken")
+        req = RpcRequest("nls-meta", "2019-02-28", "CreateToken")
         resp = client.do_action_with_exception(req)
         result = _json.loads(resp)
         self._token = result.get("Token", {}).get("Id", "")
@@ -292,11 +295,11 @@ class AliCloudStreamingBackend(StreamingBackend):
     def start(self, callback: StreamingCallback):
         self._callback = callback
         self._running = True
-        self._task_id = str(__import__("uuid").uuid4())
+        self._task_id = __import__("uuid").uuid4().hex
         self._connected.clear()
 
         token = self._get_token()
-        url = f"wss://nls-gateway.cn-shanghai.aliyuncs.com/alibabacloud/api/v1.0/ws/nls/recognize?token={token}"
+        url = f"wss://nls-gateway.cn-shanghai.aliyuncs.com/ws/v1?token={token}"
 
         import websocket
 
@@ -317,11 +320,11 @@ class AliCloudStreamingBackend(StreamingBackend):
         logger.info(f"阿里云流式ASR连接成功: app_key={self._app_key[:8]}...")
         msg = {
             "header": {
-                "message_id": str(__import__("uuid").uuid4()),
+                "message_id": __import__("uuid").uuid4().hex,
                 "task_id": self._task_id,
                 "namespace": "SpeechTranscriber",
                 "name": "StartTranscription",
-                "app_key": self._app_key,
+                "appkey": self._app_key,
             },
             "payload": {
                 "sample_rate": self._sample_rate,
@@ -337,6 +340,7 @@ class AliCloudStreamingBackend(StreamingBackend):
         ws.send(json.dumps(msg))
         self._connected.set()
 
+
     def send_audio(self, chunk: bytes):
         if not self._running or not self._ws:
             return
@@ -344,6 +348,7 @@ class AliCloudStreamingBackend(StreamingBackend):
             import websocket
 
             self._ws.send(chunk, opcode=websocket.ABNF.OPCODE_BINARY)
+
         except Exception as e:
             logger.error(f"阿里云ASR发送音频失败: {e}")
 
@@ -361,9 +366,10 @@ class AliCloudStreamingBackend(StreamingBackend):
                     self._callback.on_error(err)
                 return
 
-            if name == "TranscriptionResult":
-                payload = data.get("payload", {})
-                result = payload.get("result", "")
+            payload = data.get("payload", {})
+            result = payload.get("result", "")
+
+            if name == "TranscriptionResultChanged" or name == "TranscriptionResult":
                 is_end = payload.get("isSentenceEnd", False)
                 if is_end:
                     if self._callback:
@@ -371,6 +377,11 @@ class AliCloudStreamingBackend(StreamingBackend):
                 else:
                     if self._callback:
                         self._callback.on_partial(result)
+            elif name == "SentenceEnd":
+                if self._callback:
+                    self._callback.on_final(result)
+            elif name == "SentenceBegin":
+                pass
             elif name == "TranscriptionCompleted":
                 if self._callback:
                     self._callback.on_final("", is_end=True)
@@ -391,11 +402,11 @@ class AliCloudStreamingBackend(StreamingBackend):
         if self._ws:
             msg = {
                 "header": {
-                    "message_id": str(__import__("uuid").uuid4()),
+                    "message_id": __import__("uuid").uuid4().hex,
                     "task_id": self._task_id,
                     "namespace": "SpeechTranscriber",
                     "name": "StopTranscription",
-                    "app_key": self._app_key,
+                    "appkey": self._app_key,
                 },
             }
             try:

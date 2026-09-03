@@ -394,16 +394,14 @@ class AliCloudStreamingBackend(StreamingBackend):
             payload = data.get("payload", {})
             result = payload.get("result", "")
 
-            if name == "TranscriptionResultChanged" or name == "TranscriptionResult":
-                is_end = payload.get("isSentenceEnd", False)
-                if is_end:
-                    if self._callback:
-                        self._callback.on_final(result)
-                else:
-                    if self._callback:
-                        self._callback.on_partial(result)
-            elif name == "SentenceEnd":
+            if name == "TranscriptionResultChanged":
                 if self._callback:
+                    self._callback.on_partial(result)
+            elif name == "TranscriptionResult":
+                if self._callback:
+                    self._callback.on_final(result)
+            elif name == "SentenceEnd":
+                if result and self._callback:
                     self._callback.on_final(result)
             elif name == "SentenceBegin":
                 pass

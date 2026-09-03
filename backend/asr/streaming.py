@@ -412,9 +412,13 @@ class AliCloudStreamingBackend(StreamingBackend):
             logger.error(f"阿里云ASR解析消息失败: {e}")
 
     def _on_error(self, ws, error):
-        logger.error(f"阿里云ASR WebSocket错误: {error}")
-        if self._callback:
-            self._callback.on_error(str(error))
+        err_str = str(error)
+        if "opcode=8" in err_str or "goodbye" in err_str or "Connection closed" in err_str:
+            logger.warning(f"阿里云ASR WebSocket关闭(正常): {err_str}")
+        else:
+            logger.error(f"阿里云ASR WebSocket错误: {err_str}")
+            if self._callback:
+                self._callback.on_error(err_str)
 
     def _on_close(self, ws, close_status, close_msg):
         logger.info(f"阿里云ASR连接关闭: status={close_status}")

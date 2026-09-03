@@ -35,7 +35,8 @@ export function useStreamingASR() {
 
   const connect = (): Promise<void> => {
     return new Promise((resolve, reject) => {
-      const wsUrl = `ws://${window.location.host}/ws/asr/stream`
+      const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
+      const wsUrl = `${protocol}://${window.location.host}/ws/asr/stream`
       ws = new WebSocket(wsUrl)
       ws.binaryType = 'arraybuffer'
 

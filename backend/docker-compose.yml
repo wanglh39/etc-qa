@@ -51,8 +51,11 @@ services:
     build: ../frontend
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - etc-qa
+    volumes:
+      - ../frontend/certs:/etc/nginx/certs:ro
 
 volumes:
   mysql_data:

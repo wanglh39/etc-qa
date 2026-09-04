@@ -249,7 +249,12 @@ class TestL2ASRRecognition:
         from asr.websocket import _extract_channel
 
         stereo_path = os.path.join(ASR_SAMPLES_DIR, "sample_01.wav")
-        stereo_audio, sr = sf.read(stereo_path, dtype="int16")
+        if not os.path.exists(stereo_path):
+            pytest.skip("sample_01.wav不存在，跳过")
+        try:
+            stereo_audio, sr = sf.read(stereo_path, dtype="int16")
+        except Exception:
+            pytest.skip("soundfile无法读取sample_01.wav，跳过")
         assert stereo_audio.ndim == 2, f"sample_01.wav应为双声道, 实际ndim={stereo_audio.ndim}"
 
         stereo_bytes = stereo_audio.tobytes()

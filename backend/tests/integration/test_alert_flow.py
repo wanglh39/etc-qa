@@ -216,6 +216,6 @@ class TestAlertFlowAllRules:
     def test_rag_p95_latency_rule_triggers(self, mock_db, mock_wh, mock_cfg):
         mock_cfg.return_value = _mock_alert_config()
         for _ in range(20):
-            record_metric("rag_query", 5.0, True)
+            record_metric("rag_query", 6.0, True)
         triggered = check_alerts()
         assert triggered > 0

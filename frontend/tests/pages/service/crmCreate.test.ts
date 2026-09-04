@@ -3,10 +3,11 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import { commonStubs, iconStubs } from '../../helpers/stubs'
 
-const { mockRouterPush, mockElMessage, mockCreateWorkOrder } = vi.hoisted(() => ({
+const { mockRouterPush, mockElMessage, mockCreateWorkOrder, mockGetDeptList } = vi.hoisted(() => ({
   mockRouterPush: vi.fn(),
   mockElMessage: { success: vi.fn(), warning: vi.fn(), error: vi.fn(), info: vi.fn() },
   mockCreateWorkOrder: vi.fn(),
+  mockGetDeptList: vi.fn(),
 }))
 
 vi.mock('vue-router', () => ({
@@ -25,6 +26,10 @@ vi.mock('@element-plus/icons-vue', () => ({ ...iconStubs }))
 
 vi.mock('@/api/workorder', () => ({
   createWorkOrder: mockCreateWorkOrder,
+}))
+
+vi.mock('@/api/system', () => ({
+  getDeptList: mockGetDeptList,
 }))
 
 import CrmCreate from '@/pages/service/crmCreate.vue'
@@ -60,6 +65,13 @@ describe('crmCreate', () => {
     vi.clearAllMocks()
     setActivePinia(createPinia())
     mockCreateWorkOrder.mockResolvedValue({ id: 1 })
+    mockGetDeptList.mockResolvedValue([
+      { dept_key: 'aftersale', dept_name: '售后处理部' },
+      { dept_key: 'tech', dept_name: '技术运维部' },
+      { dept_key: 'finance', dept_name: '财务部' },
+      { dept_key: 'market', dept_name: '市场部' },
+      { dept_key: 'hr', dept_name: '人事部' },
+    ])
   })
 
   it('渲染页面标题 客服发起CRM工单', () => {
@@ -95,8 +107,9 @@ describe('crmCreate', () => {
     expect(text).toContain('投诉建议')
   })
 
-  it('渲染转交部门选项', () => {
+  it('渲染转交部门选项', async () => {
     const wrapper = mount(CrmCreate, { global: { stubs } })
+    await flushPromises()
     const text = wrapper.text()
     expect(text).toContain('售后处理部')
     expect(text).toContain('技术运维部')

@@ -10,6 +10,7 @@ const {
   mockSearchQA,
   mockGetQADetail,
   mockAddQA,
+  mockUpdateQA,
   mockUpdateQAStatus,
   mockDeleteQA,
   mockGetCategories,
@@ -23,6 +24,7 @@ const {
   mockSearchQA: vi.fn(),
   mockGetQADetail: vi.fn(),
   mockAddQA: vi.fn(),
+  mockUpdateQA: vi.fn(),
   mockUpdateQAStatus: vi.fn(),
   mockDeleteQA: vi.fn(),
   mockGetCategories: vi.fn(),
@@ -46,6 +48,7 @@ vi.mock('@/api/knowledge', () => ({
   searchQA: mockSearchQA,
   getQADetail: mockGetQADetail,
   addQA: mockAddQA,
+  updateQA: mockUpdateQA,
   updateQAStatus: mockUpdateQAStatus,
   deleteQA: mockDeleteQA,
   getCategories: mockGetCategories,
@@ -92,6 +95,7 @@ describe('knowledgeList', () => {
     mockGetQAList.mockResolvedValue(qaList)
     mockGetCategories.mockResolvedValue({ categories: [{ label: '售后', children: [] }] })
     mockAddQA.mockResolvedValue({})
+    mockUpdateQA.mockResolvedValue({})
     mockUpdateQAStatus.mockResolvedValue({})
     mockDeleteQA.mockResolvedValue({})
     mockGetQADetail.mockResolvedValue({
@@ -327,7 +331,7 @@ describe('knowledgeList', () => {
     expect(mockDeleteQA).not.toHaveBeenCalled()
   })
 
-  it('编辑对话框点确认编辑提示接口待支持', async () => {
+  it('编辑对话框点确认编辑调用updateQA并提示成功', async () => {
     const wrapper = mount(KnowledgeList, { global: { stubs } })
     await flushPromises()
     const editBtn = wrapper.findAll('button').find((b) => b.text() === '编辑')
@@ -335,9 +339,9 @@ describe('knowledgeList', () => {
     await flushPromises()
     const confirmEditBtn = wrapper.findAll('button').find((b) => b.text() === '确认编辑')
     await confirmEditBtn!.trigger('click')
-    expect(mockElMessage.warning).toHaveBeenCalledWith(
-      '编辑内容接口待后端支持（当前后端仅提供上下架/删除），暂不可用'
-    )
+    await flushPromises()
+    expect(mockUpdateQA).toHaveBeenCalled()
+    expect(mockElMessage.success).toHaveBeenCalledWith('编辑成功')
   })
 
   it('新增时未填问题点确认新增提示警告', async () => {

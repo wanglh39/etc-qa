@@ -65,30 +65,56 @@ class ImpersonateResponse(BaseModel):
 def impersonate(req: ImpersonateRequest, user: dict = Depends(require_role("superadmin"))):
     from utils.jwt_utils import _mysql_client
 
-    if _mysql_client is None:
-        raise HTTPException(status_code=500, detail="服务未初始化")
-    permissions = _mysql_client.get_role_permissions(req.target_role)
-    if not permissions and req.target_role not in ("admin", "ops", "service", "dept"):
-        row = _mysql_client.list_roles()
-        existing_keys = [r["role_key"] for r in row]
-        if req.target_role not in existing_keys:
-            raise HTTPException(status_code=400, detail=f"不支持的角色: {req.target_role}")
-    target_user = None
-    try:
-        conn = _mysql_client._get_conn()
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT username, dept FROM users WHERE role=%s AND status='active' LIMIT 1",
-            (req.target_role,),
-        )
-        result = cursor.fetchone()
-        cursor.close()
-        if result:
-            target_user = {"username": result[0], "dept": result[1] or ""}
-    except Exception:
-        pass
-    username = target_user["username"] if target_user else req.target_role
-    dept = target_user["dept"] if target_user else ""
+    STANDARD_ROLES = ("admin", "ops", "service", "dept", "superadmin")
+    FALLBACK_INFO = {
+        "admin": ("admin", ""),
+        "ops": ("ops", ""),
+        "service": ("service", ""),
+        "dept": ("dept", "aftersale"),
+        "superadmin": ("superadmin", ""),
+    }
+
+    permissions: list[str] = []
+    username = req.target_role
+    dept = ""
+
+    if req.target_role in FALLBACK_INFO:
+        username, dept = FALLBACK_INFO[req.target_role]
+    elif _mysql_client is not None:
+        try:
+            rows = _mysql_client.list_roles()
+            existing_keys = [r["role_key"] for r in rows]
+            if req.target_role not in existing_keys:
+                raise HTTPException(status_code=400, detail=f"不支持的角色: {req.target_role}")
+        except HTTPException:
+            raise
+        except Exception:
+            pass
+    else:
+        raise HTTPException(status_code=400, detail=f"不支持的角色: {req.target_role}")
+
+    if _mysql_client is not None:
+        try:
+            perms = _mysql_client.get_role_permissions(req.target_role)
+            if isinstance(perms, list):
+                permissions = perms
+        except Exception:
+            pass
+        try:
+            conn = _mysql_client._get_conn()
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT username, dept FROM users WHERE role=%s AND status='active' LIMIT 1",
+                (req.target_role,),
+            )
+            result = cursor.fetchone()
+            cursor.close()
+            if result and isinstance(result, (tuple, list)) and len(result) >= 2:
+                username = str(result[0])
+                dept = str(result[1] or "")
+        except Exception:
+            pass
+
     token = create_token(
         username=username,
         role=req.target_role,
@@ -96,10 +122,11 @@ def impersonate(req: ImpersonateRequest, user: dict = Depends(require_role("supe
         impersonated_by=user["sub"],
     )
     logger.info(f"超管 {user['sub']} 模拟登录为 {req.target_role}")
-    try:
-        _mysql_client.insert_operation_log(user["sub"], "impersonate", "auth", 0, f"模拟登录为 {req.target_role}")
-    except Exception as e:
-        logger.warning(f"模拟登录操作日志写入失败: {e}")
+    if _mysql_client is not None:
+        try:
+            _mysql_client.insert_operation_log(user["sub"], "impersonate", "auth", 0, f"模拟登录为 {req.target_role}")
+        except Exception as e:
+            logger.warning(f"模拟登录操作日志写入失败: {e}")
     return ImpersonateResponse(
         access_token=token,
         role=req.target_role,

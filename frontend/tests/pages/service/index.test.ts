@@ -11,12 +11,14 @@ const {
   mockCreateWorkOrder,
   mockGetCategories,
   mockUseStreamingASR,
+  mockGetDeptList,
 } = vi.hoisted(() => ({
   mockElMessage: { success: vi.fn(), warning: vi.fn(), error: vi.fn(), info: vi.fn() },
   mockQueryQA: vi.fn(),
   mockGetAsrHealth: vi.fn(),
   mockCreateWorkOrder: vi.fn(),
   mockGetCategories: vi.fn(),
+  mockGetDeptList: vi.fn(),
   mockUseStreamingASR: vi.fn(() => ({
     isRecording: ref(false),
     isConnected: ref(false),
@@ -66,6 +68,10 @@ vi.mock('@/api/knowledge', () => ({
   getCategories: mockGetCategories,
 }))
 
+vi.mock('@/api/system', () => ({
+  getDeptList: mockGetDeptList,
+}))
+
 vi.mock('@/composables/useStreamingASR', () => ({
   useStreamingASR: mockUseStreamingASR,
 }))
@@ -102,6 +108,13 @@ describe('serviceIndex', () => {
       total_candidates: 0,
     })
     mockCreateWorkOrder.mockResolvedValue({ id: 1 })
+    mockGetDeptList.mockResolvedValue([
+      { dept_key: 'aftersale', dept_name: '售后处理部' },
+      { dept_key: 'tech', dept_name: '技术运维部' },
+      { dept_key: 'finance', dept_name: '财务部' },
+      { dept_key: 'market', dept_name: '市场部' },
+      { dept_key: 'hr', dept_name: '人事部' },
+    ])
   })
 
   it('渲染左栏标题 快捷话术 与 知识库分类', async () => {

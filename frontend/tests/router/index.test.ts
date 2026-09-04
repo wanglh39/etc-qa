@@ -29,36 +29,42 @@ describe('router/index', () => {
     it('returns /workbench/admin/account for superadmin', () => {
       const authStore = useAuthStore()
       authStore.setAuth('tok', 'superadmin', '')
+      authStore.setPermissions(['/workbench/admin/account', '/workbench/admin/role'])
       expect(getDefaultPath('superadmin')).toBe('/workbench/admin/account')
     })
 
     it('returns /workbench/admin/status for ops', () => {
       const authStore = useAuthStore()
       authStore.setAuth('tok', 'ops', '')
+      authStore.setPermissions(['/workbench/admin/status', '/workbench/admin/monitor'])
       expect(getDefaultPath('ops')).toBe('/workbench/admin/status')
     })
 
     it('returns /workbench/admin/dashboard for admin', () => {
       const authStore = useAuthStore()
       authStore.setAuth('tok', 'admin', '')
+      authStore.setPermissions(['/workbench/admin/dashboard', '/workbench/admin/knowledge'])
       expect(getDefaultPath('admin')).toBe('/workbench/admin/dashboard')
     })
 
     it('returns /service for service', () => {
       const authStore = useAuthStore()
       authStore.setAuth('tok', 'service', '')
+      authStore.setPermissions(['/service'])
       expect(getDefaultPath('service')).toBe('/service')
     })
 
     it('returns /dept/handle/aftersale for dept with aftersale dept', () => {
       const authStore = useAuthStore()
       authStore.setAuth('tok', 'dept', 'aftersale')
+      authStore.setPermissions(['/dept/handle/aftersale'])
       expect(getDefaultPath('dept')).toBe('/dept/handle/aftersale')
     })
 
     it('returns /dept/handle/finance for dept with finance dept', () => {
       const authStore = useAuthStore()
       authStore.setAuth('tok', 'dept', 'finance')
+      authStore.setPermissions(['/dept/handle/finance'])
       expect(getDefaultPath('dept')).toBe('/dept/handle/finance')
     })
 
@@ -68,11 +74,11 @@ describe('router/index', () => {
       expect(getDefaultPath('dept')).toBe('/dept/handle/aftersale')
     })
 
-    it('returns first permission for unknown role with permissions', () => {
+    it('returns first matching page for unknown role with permissions', () => {
       const authStore = useAuthStore()
       authStore.setAuth('tok', 'unknown', '')
-      authStore.setPermissions(['/custom/path', '/other/path'])
-      expect(getDefaultPath('unknown')).toBe('/custom/path')
+      authStore.setPermissions(['/workbench/admin/dashboard', '/custom/path'])
+      expect(getDefaultPath('unknown')).toBe('/workbench/admin/dashboard')
     })
 
     it('returns default admin path for unknown role without permissions', () => {

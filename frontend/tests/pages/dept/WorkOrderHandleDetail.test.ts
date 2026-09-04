@@ -4,14 +4,21 @@ import { setActivePinia, createPinia } from 'pinia'
 import { defineComponent, h } from 'vue'
 import { commonStubs, iconStubs } from '../../helpers/stubs'
 
-const { mockRouterBack, mockElMessage, mockGetWorkOrderDetail, mockReplyWorkOrder, mockQueryQA } =
-  vi.hoisted(() => ({
-    mockRouterBack: vi.fn(),
-    mockElMessage: { success: vi.fn(), warning: vi.fn(), error: vi.fn(), info: vi.fn() },
-    mockGetWorkOrderDetail: vi.fn(),
-    mockReplyWorkOrder: vi.fn(),
-    mockQueryQA: vi.fn(),
-  }))
+const {
+  mockRouterBack,
+  mockElMessage,
+  mockGetWorkOrderDetail,
+  mockReplyWorkOrder,
+  mockQueryQA,
+  mockGetDeptList,
+} = vi.hoisted(() => ({
+  mockRouterBack: vi.fn(),
+  mockElMessage: { success: vi.fn(), warning: vi.fn(), error: vi.fn(), info: vi.fn() },
+  mockGetWorkOrderDetail: vi.fn(),
+  mockReplyWorkOrder: vi.fn(),
+  mockQueryQA: vi.fn(),
+  mockGetDeptList: vi.fn(),
+}))
 
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: vi.fn(), back: mockRouterBack }),
@@ -37,6 +44,10 @@ vi.mock('@/api/workorder', () => ({
 
 vi.mock('@/api/workbench', () => ({
   queryQA: mockQueryQA,
+}))
+
+vi.mock('@/api/system', () => ({
+  getDeptList: mockGetDeptList,
 }))
 
 import WorkOrderHandleDetail from '@/pages/dept/WorkOrderHandleDetail.vue'
@@ -77,6 +88,13 @@ describe('workOrderHandleDetail', () => {
     mockGetWorkOrderDetail.mockResolvedValue(orderDetail)
     mockReplyWorkOrder.mockResolvedValue({})
     mockQueryQA.mockResolvedValue({ candidates: [], confidence: 'none' })
+    mockGetDeptList.mockResolvedValue([
+      { dept_key: 'aftersale', dept_name: '售后处理部' },
+      { dept_key: 'tech', dept_name: '技术运维部' },
+      { dept_key: 'finance', dept_name: '财务部' },
+      { dept_key: 'market', dept_name: '市场部' },
+      { dept_key: 'hr', dept_name: '人事部' },
+    ])
   })
 
   const mountDetail = () => mount(WorkOrderHandleDetail, { global: { stubs, directives } })

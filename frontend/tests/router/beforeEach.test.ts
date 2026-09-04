@@ -151,6 +151,7 @@ describe('router beforeEach guard', () => {
     const validToken = makeJWT(Math.floor(Date.now() / 1000) + 3600)
     const authStore = useAuthStore()
     authStore.setAuth(validToken, 'service', '')
+    authStore.setPermissions(['/service'])
     global.fetch = vi.fn().mockResolvedValue({ ok: true })
     const next = await runGuard('/workbench/admin/dashboard', { roleAuth: 'admin' })
     expect(next).toHaveBeenCalledWith('/service')

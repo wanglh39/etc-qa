@@ -14,6 +14,8 @@ const { mockRouterReplace, mockElMessage, mockImpersonate, mockGetRoleList } = v
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: vi.fn(), replace: mockRouterReplace }),
   useRoute: () => ({ path: '/' }),
+  createRouter: vi.fn(() => ({ beforeEach: vi.fn(), push: vi.fn() })),
+  createWebHistory: vi.fn(),
 }))
 
 vi.mock('element-plus', () => ({

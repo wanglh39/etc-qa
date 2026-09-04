@@ -11,6 +11,7 @@ const {
   mockGetWorkOrders,
   mockGetWorkOrderStats,
   mockReplyWorkOrder,
+  mockGetDeptList,
 } = vi.hoisted(() => ({
   mockRouterPush: vi.fn(),
   mockElMessage: { success: vi.fn(), warning: vi.fn(), error: vi.fn(), info: vi.fn() },
@@ -21,6 +22,7 @@ const {
   mockGetWorkOrders: vi.fn(),
   mockGetWorkOrderStats: vi.fn(),
   mockReplyWorkOrder: vi.fn(),
+  mockGetDeptList: vi.fn(),
 }))
 
 vi.mock('vue-router', () => ({
@@ -47,6 +49,10 @@ vi.mock('@/api/audit', () => ({
 
 vi.mock('@/api/workorder', () => ({
   replyWorkOrder: mockReplyWorkOrder,
+}))
+
+vi.mock('@/api/system', () => ({
+  getDeptList: mockGetDeptList,
 }))
 
 import WorkOrderHandle from '@/pages/dept/WorkOrderHandle.vue'
@@ -133,6 +139,13 @@ describe('workOrderHandle', () => {
     mockGetWorkOrders.mockResolvedValue(tableItems)
     mockGetWorkOrderStats.mockResolvedValue(statsData)
     mockReplyWorkOrder.mockResolvedValue({})
+    mockGetDeptList.mockResolvedValue([
+      { dept_key: 'aftersale', dept_name: '售后处理部' },
+      { dept_key: 'tech', dept_name: '技术运维部' },
+      { dept_key: 'finance', dept_name: '财务部' },
+      { dept_key: 'market', dept_name: '市场部' },
+      { dept_key: 'hr', dept_name: '人事部' },
+    ])
   })
 
   const mountHandle = () => mount(WorkOrderHandle, { global: { stubs, directives } })

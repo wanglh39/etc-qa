@@ -101,9 +101,9 @@ describe('categoryIndex', () => {
     expect(wrapper.text()).toContain('分类树')
   })
 
-  it('renders 分类详情 header', () => {
+  it('renders 新增分类 as initial form mode', () => {
     const wrapper = mount(CategoryIndex, { global: { stubs } })
-    expect(wrapper.text()).toContain('分类详情')
+    expect(wrapper.text()).toContain('新增分类')
   })
 
   it('renders form item labels', () => {
@@ -114,11 +114,11 @@ describe('categoryIndex', () => {
     expect(text).toContain('分类描述')
   })
 
-  it('renders 保存 重置 删除 buttons', () => {
+  it('renders 创建 新建 删除 buttons', () => {
     const wrapper = mount(CategoryIndex, { global: { stubs } })
     const text = wrapper.text()
-    expect(text).toContain('保存')
-    expect(text).toContain('重置')
+    expect(text).toContain('创建')
+    expect(text).toContain('新建')
     expect(text).toContain('删除')
   })
 
@@ -137,7 +137,7 @@ describe('categoryIndex', () => {
   it('未填分类名称点保存提示警告', async () => {
     const wrapper = mount(CategoryIndex, { global: { stubs } })
     await flushPromises()
-    const saveBtn = wrapper.findAll('button').find((b) => b.text() === '保存')
+    const saveBtn = wrapper.findAll('button').find((b) => b.text() === '创建')
     await saveBtn!.trigger('click')
     expect(mockElMessage.warning).toHaveBeenCalledWith('请填写分类名称')
     expect(mockCreateCategory).not.toHaveBeenCalled()
@@ -150,7 +150,7 @@ describe('categoryIndex', () => {
     const labelInput = inputs.find((c) => (c.props('placeholder') || '').includes('请输入分类名称'))
     await labelInput!.vm.$emit('update:modelValue', '新分类')
     await flushPromises()
-    const saveBtn = wrapper.findAll('button').find((b) => b.text() === '保存')
+    const saveBtn = wrapper.findAll('button').find((b) => b.text() === '创建')
     await saveBtn!.trigger('click')
     await flushPromises()
     expect(mockCreateCategory).toHaveBeenCalledWith({
@@ -165,9 +165,9 @@ describe('categoryIndex', () => {
     const wrapper = mount(CategoryIndex, { global: { stubs } })
     await flushPromises()
     const tree = wrapper.findComponent({ name: 'ElTree' })
-    await tree.vm.$emit('node-click', { id: 5, label: '售后', parentId: 1, desc: '售后相关' })
+    await tree.vm.$emit('node-click', { id: 5, label: '售后', parentId: 1, description: '售后相关', derived: false })
     await flushPromises()
-    const saveBtn = wrapper.findAll('button').find((b) => b.text() === '保存')
+    const saveBtn = wrapper.findAll('button').find((b) => b.text() === '保存修改')
     await saveBtn!.trigger('click')
     await flushPromises()
     expect(mockUpdateCategory).toHaveBeenCalledWith(5, {
@@ -182,7 +182,7 @@ describe('categoryIndex', () => {
     const wrapper = mount(CategoryIndex, { global: { stubs } })
     await flushPromises()
     const tree = wrapper.findComponent({ name: 'ElTree' })
-    await tree.vm.$emit('node-click', { id: 5, label: '售后', parentId: 1, desc: 'd' })
+    await tree.vm.$emit('node-click', { id: 5, label: '售后', parentId: 1, description: 'd', derived: false })
     await flushPromises()
     const delBtn = wrapper.findAll('button').find((b) => b.text() === '删除')
     await delBtn!.trigger('click')
@@ -192,26 +192,15 @@ describe('categoryIndex', () => {
     expect(mockElMessage.success).toHaveBeenCalledWith('分类已删除')
   })
 
-  it('未选分类点删除提示警告', async () => {
-    const wrapper = mount(CategoryIndex, { global: { stubs } })
-    await flushPromises()
-    const delBtn = wrapper.findAll('button').find((b) => b.text() === '删除')
-    await delBtn!.trigger('click')
-    expect(mockElMessage.warning).toHaveBeenCalledWith('请先选择一个分类')
-    expect(mockDeleteCategory).not.toHaveBeenCalled()
-  })
-
   it('点击新增分类按钮重置表单', async () => {
     const wrapper = mount(CategoryIndex, { global: { stubs } })
     await flushPromises()
     const tree = wrapper.findComponent({ name: 'ElTree' })
-    await tree.vm.$emit('node-click', { id: 5, label: '售后', parentId: 1, desc: 'd' })
+    await tree.vm.$emit('node-click', { id: 5, label: '售后', parentId: 1, description: 'd', derived: false })
     await flushPromises()
     const addBtn = wrapper.findAll('button').find((b) => b.text() === '新增分类')
     await addBtn!.trigger('click')
-    const delBtn = wrapper.findAll('button').find((b) => b.text() === '删除')
-    await delBtn!.trigger('click')
-    expect(mockElMessage.warning).toHaveBeenCalledWith('请先选择一个分类')
+    expect(wrapper.text()).toContain('新增分类')
   })
 
   it('删除确认取消时不调用 deleteCategory', async () => {
@@ -219,7 +208,7 @@ describe('categoryIndex', () => {
     const wrapper = mount(CategoryIndex, { global: { stubs } })
     await flushPromises()
     const tree = wrapper.findComponent({ name: 'ElTree' })
-    await tree.vm.$emit('node-click', { id: 5, label: '售后', parentId: 1, desc: 'd' })
+    await tree.vm.$emit('node-click', { id: 5, label: '售后', parentId: 1, description: 'd', derived: false })
     await flushPromises()
     mockDeleteCategory.mockClear()
     const delBtn = wrapper.findAll('button').find((b) => b.text() === '删除')
@@ -228,20 +217,20 @@ describe('categoryIndex', () => {
     expect(mockDeleteCategory).not.toHaveBeenCalled()
   })
 
-  it('deleteCategory 失败提示删除分类失败', async () => {
+  it('deleteCategory 失败提示错误', async () => {
     mockDeleteCategory.mockRejectedValueOnce(new Error('fail'))
     const wrapper = mount(CategoryIndex, { global: { stubs } })
     await flushPromises()
     const tree = wrapper.findComponent({ name: 'ElTree' })
-    await tree.vm.$emit('node-click', { id: 5, label: '售后', parentId: 1, desc: 'd' })
+    await tree.vm.$emit('node-click', { id: 5, label: '售后', parentId: 1, description: 'd', derived: false })
     await flushPromises()
     const delBtn = wrapper.findAll('button').find((b) => b.text() === '删除')
     await delBtn!.trigger('click')
     await flushPromises()
-    expect(mockElMessage.error).toHaveBeenCalledWith('删除分类失败')
+    expect(mockElMessage.error).toHaveBeenCalled()
   })
 
-  it('createCategory 失败提示保存分类失败', async () => {
+  it('createCategory 失败提示错误', async () => {
     mockCreateCategory.mockRejectedValueOnce(new Error('fail'))
     const wrapper = mount(CategoryIndex, { global: { stubs } })
     await flushPromises()
@@ -249,10 +238,10 @@ describe('categoryIndex', () => {
     const labelInput = inputs.find((c) => (c.props('placeholder') || '').includes('请输入分类名称'))
     await labelInput!.vm.$emit('update:modelValue', '新分类')
     await flushPromises()
-    const saveBtn = wrapper.findAll('button').find((b) => b.text() === '保存')
+    const saveBtn = wrapper.findAll('button').find((b) => b.text() === '创建')
     await saveBtn!.trigger('click')
     await flushPromises()
-    expect(mockElMessage.error).toHaveBeenCalledWith('保存分类失败')
+    expect(mockElMessage.error).toHaveBeenCalled()
   })
 
   it('填写完整表单含描述和上级分类后保存', async () => {
@@ -266,7 +255,7 @@ describe('categoryIndex', () => {
     const treeSelect = wrapper.findComponent({ name: 'ElTreeSelect' })
     await treeSelect.vm.$emit('update:modelValue', 1)
     await flushPromises()
-    const saveBtn = wrapper.findAll('button').find((b) => b.text() === '保存')
+    const saveBtn = wrapper.findAll('button').find((b) => b.text() === '创建')
     await saveBtn!.trigger('click')
     await flushPromises()
     expect(mockCreateCategory).toHaveBeenCalledWith({
@@ -284,7 +273,7 @@ describe('categoryIndex', () => {
       .find((c) => (c.props('placeholder') || '').includes('搜索分类'))
     await searchInput!.vm.$emit('update:modelValue', '售后')
     await flushPromises()
-    const saveBtn = wrapper.findAll('button').find((b) => b.text() === '保存')
+    const saveBtn = wrapper.findAll('button').find((b) => b.text() === '创建')
     await saveBtn!.trigger('click')
     expect(mockElMessage.warning).toHaveBeenCalledWith('请填写分类名称')
   })

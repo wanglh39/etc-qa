@@ -165,7 +165,13 @@ describe('categoryIndex', () => {
     const wrapper = mount(CategoryIndex, { global: { stubs } })
     await flushPromises()
     const tree = wrapper.findComponent({ name: 'ElTree' })
-    await tree.vm.$emit('node-click', { id: 5, label: '售后', parentId: 1, description: '售后相关', derived: false })
+    await tree.vm.$emit('node-click', {
+      id: 5,
+      label: '售后',
+      parentId: 1,
+      description: '售后相关',
+      derived: false,
+    })
     await flushPromises()
     const saveBtn = wrapper.findAll('button').find((b) => b.text() === '保存修改')
     await saveBtn!.trigger('click')
@@ -182,7 +188,13 @@ describe('categoryIndex', () => {
     const wrapper = mount(CategoryIndex, { global: { stubs } })
     await flushPromises()
     const tree = wrapper.findComponent({ name: 'ElTree' })
-    await tree.vm.$emit('node-click', { id: 5, label: '售后', parentId: 1, description: 'd', derived: false })
+    await tree.vm.$emit('node-click', {
+      id: 5,
+      label: '售后',
+      parentId: 1,
+      description: 'd',
+      derived: false,
+    })
     await flushPromises()
     const delBtn = wrapper.findAll('button').find((b) => b.text() === '删除')
     await delBtn!.trigger('click')
@@ -196,7 +208,13 @@ describe('categoryIndex', () => {
     const wrapper = mount(CategoryIndex, { global: { stubs } })
     await flushPromises()
     const tree = wrapper.findComponent({ name: 'ElTree' })
-    await tree.vm.$emit('node-click', { id: 5, label: '售后', parentId: 1, description: 'd', derived: false })
+    await tree.vm.$emit('node-click', {
+      id: 5,
+      label: '售后',
+      parentId: 1,
+      description: 'd',
+      derived: false,
+    })
     await flushPromises()
     const addBtn = wrapper.findAll('button').find((b) => b.text() === '新增分类')
     await addBtn!.trigger('click')
@@ -208,7 +226,13 @@ describe('categoryIndex', () => {
     const wrapper = mount(CategoryIndex, { global: { stubs } })
     await flushPromises()
     const tree = wrapper.findComponent({ name: 'ElTree' })
-    await tree.vm.$emit('node-click', { id: 5, label: '售后', parentId: 1, description: 'd', derived: false })
+    await tree.vm.$emit('node-click', {
+      id: 5,
+      label: '售后',
+      parentId: 1,
+      description: 'd',
+      derived: false,
+    })
     await flushPromises()
     mockDeleteCategory.mockClear()
     const delBtn = wrapper.findAll('button').find((b) => b.text() === '删除')
@@ -222,7 +246,13 @@ describe('categoryIndex', () => {
     const wrapper = mount(CategoryIndex, { global: { stubs } })
     await flushPromises()
     const tree = wrapper.findComponent({ name: 'ElTree' })
-    await tree.vm.$emit('node-click', { id: 5, label: '售后', parentId: 1, description: 'd', derived: false })
+    await tree.vm.$emit('node-click', {
+      id: 5,
+      label: '售后',
+      parentId: 1,
+      description: 'd',
+      derived: false,
+    })
     await flushPromises()
     const delBtn = wrapper.findAll('button').find((b) => b.text() === '删除')
     await delBtn!.trigger('click')

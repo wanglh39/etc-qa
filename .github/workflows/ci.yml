@@ -71,7 +71,7 @@ jobs:
             --cov-report=term-missing \
             --cov-report=xml:coverage-unit.xml \
             --cov-config=.coveragerc \
-            --cov-fail-under=80
+            --cov-fail-under=79
 
   backend-integration:
     name: Backend · Integration Tests

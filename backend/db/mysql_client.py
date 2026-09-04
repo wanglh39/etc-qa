@@ -135,6 +135,20 @@ class MySQLClient:
         except Exception:
             conn.rollback()
             self._reset_conn()
+
+    def work_order_exists(self, external_id: str) -> bool:
+        conn = self._get_conn()
+        try:
+            conn.commit()
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1 FROM work_orders WHERE external_id=%s LIMIT 1", (external_id,))
+            row = cursor.fetchone()
+            cursor.close()
+            conn.commit()
+            return row is not None
+        except Exception:
+            self._reset_conn()
+            return False
             raise
 
     def get_work_orders_by_status(self, status: str) -> list[dict]:
@@ -175,6 +189,33 @@ class MySQLClient:
             )
             conn.commit()
             cursor.close()
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def update_qa(
+        self,
+        qa_id: int,
+        question: str,
+        answer: str,
+        category_l1: str = "",
+        category_l2: str = "",
+        internal_process: str = "",
+        feedback_dept: str = "",
+    ) -> bool:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE qa_pairs SET question=%s, answer=%s, category_l1=%s, "
+                "category_l2=%s, internal_process=%s, feedback_dept=%s WHERE id=%s",
+                (question, answer, category_l1, category_l2, internal_process, feedback_dept, qa_id),
+            )
+            conn.commit()
+            affected = cursor.rowcount
+            cursor.close()
+            return affected > 0
         except Exception:
             conn.rollback()
             self._reset_conn()

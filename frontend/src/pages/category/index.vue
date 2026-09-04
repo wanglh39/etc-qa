@@ -92,7 +92,7 @@ const fillForm = (node: any) => {
   form.value.id = node.id
   form.value.label = node.label
   form.value.parentId = node.parentId || ''
-  form.value.desc = node.desc || ''
+  form.value.desc = node.description || ''
 }
 // 重置表单（新增）
 const resetForm = () => {

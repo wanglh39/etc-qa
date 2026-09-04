@@ -237,7 +237,7 @@
         >
           确认新增
         </el-button>
-        <el-button v-else type="primary" @click="handleEditNotSupported"> 确认编辑 </el-button>
+        <el-button v-else type="primary" :loading="submitting" @click="handleEdit"> 确认编辑 </el-button>
       </template>
     </el-dialog>
   </div>
@@ -251,6 +251,7 @@ import {
   searchQA,
   getQADetail,
   addQA,
+  updateQA,
   updateQAStatus,
   deleteQA,
   getCategories,
@@ -470,7 +471,7 @@ const openAddDialog = () => {
   formVisible.value = true
 }
 
-const openEditDialog = (row: QAListItem) => {
+const openEditDialog = async (row: QAListItem) => {
   formMode.value = 'edit'
   editingId.value = row.id
   formData.value = {
@@ -482,10 +483,41 @@ const openEditDialog = (row: QAListItem) => {
     feedback_dept: '',
   }
   formVisible.value = true
+  try {
+    const detail = await getQADetail(row.id)
+    formData.value.internal_process = detail.internal_process || ''
+    formData.value.feedback_dept = detail.feedback_dept || ''
+  } catch {
+    // ignore
+  }
 }
 
-const handleEditNotSupported = () => {
-  ElMessage.warning('编辑内容接口待后端支持（当前后端仅提供上下架/删除），暂不可用')
+const handleEdit = async () => {
+  if (!formData.value.question.trim() || !formData.value.answer.trim()) {
+    ElMessage.warning('问题内容和标准答案不能为空')
+    return
+  }
+  if (editingId.value === null) {
+    return
+  }
+  submitting.value = true
+  try {
+    await updateQA(editingId.value, {
+      question: formData.value.question.trim(),
+      answer: formData.value.answer.trim(),
+      category_l1: formData.value.category_l1 || undefined,
+      category_l2: formData.value.category_l2 || undefined,
+      internal_process: formData.value.internal_process || undefined,
+      feedback_dept: formData.value.feedback_dept || undefined,
+    })
+    ElMessage.success('编辑成功')
+    formVisible.value = false
+    loadData()
+  } catch {
+    ElMessage.error('编辑失败')
+  } finally {
+    submitting.value = false
+  }
 }
 
 const handleAdd = async () => {

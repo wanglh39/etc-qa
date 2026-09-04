@@ -40,6 +40,20 @@ class AddQAResponse(BaseModel):
     message: str
 
 
+class UpdateQARequest(BaseModel):
+    question: str = Field(..., max_length=500)
+    answer: str = Field(..., max_length=5000)
+    category_l1: str | None = Field(None, max_length=50)
+    category_l2: str | None = Field(None, max_length=50)
+    internal_process: str | None = Field(None, max_length=2000)
+    feedback_dept: str | None = Field(None, max_length=50)
+
+
+class UpdateQAResponse(BaseModel):
+    qa_id: int
+    message: str
+
+
 class AgentProcessRequest(BaseModel):
     question: str = Field(..., max_length=500)
     answer: str | None = Field("", max_length=5000)

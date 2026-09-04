@@ -99,8 +99,57 @@ class QAService:
         if not question:
             logger.warning(f"审核激活 qa_id={qa_id} 但无 question，跳过向量写入")
             return
+        if detail.get("status") == "active":
+            logger.info(f"qa_id={qa_id} 已是active，跳过Milvus写入")
+            self.invalidate_active_ids_cache()
+            return
         vector = self.recall.encode_query(question)
         self._insert_milvus_with_retry(qa_id, vector, detail.get("category_l1", ""))
+        try:
+            all_qa = self.mysql.get_all_questions()
+            self.recall.bm25.build(all_qa)
+        except Exception as e:
+            logger.warning(f"BM25索引重建失败(不影响已入库数据): {e}")
+        self.invalidate_active_ids_cache()
+
+    def deactivate_qa(self, qa_id: int) -> None:
+        try:
+            self.recall.milvus.delete(qa_id)
+        except Exception as e:
+            logger.warning(f"Milvus删除向量失败qa_id={qa_id}: {e}")
+        try:
+            all_qa = self.mysql.get_all_questions()
+            self.recall.bm25.build(all_qa)
+        except Exception as e:
+            logger.warning(f"BM25索引重建失败(不影响已入库数据): {e}")
+        self.invalidate_active_ids_cache()
+
+    def update_qa(self, qa_id: int, req) -> None:
+        detail = self.mysql.get_qa_detail(qa_id) or {}
+        if not detail:
+            raise ValueError(f"QA不存在: qa_id={qa_id}")
+        was_active = detail.get("status") == "active"
+        updated = self.mysql.update_qa(
+            qa_id,
+            question=req.question,
+            answer=req.answer,
+            category_l1=req.category_l1 or "",
+            category_l2=req.category_l2 or "",
+            internal_process=req.internal_process or "",
+            feedback_dept=req.feedback_dept or "",
+        )
+        if not updated:
+            raise ValueError(f"QA不存在: qa_id={qa_id}")
+        if was_active:
+            try:
+                self.recall.milvus.delete(qa_id)
+            except Exception as e:
+                logger.warning(f"Milvus删除旧向量失败qa_id={qa_id}: {e}")
+            try:
+                vector = self.recall.encode_query(req.question)
+                self._insert_milvus_with_retry(qa_id, vector, req.category_l1 or "")
+            except Exception as e:
+                logger.error(f"Milvus写入新向量失败qa_id={qa_id}: {e}")
         try:
             all_qa = self.mysql.get_all_questions()
             self.recall.bm25.build(all_qa)

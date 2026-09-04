@@ -73,6 +73,10 @@ export function updateQAStatus(qaId: number, status: string) {
   return request.put('/qa/status', { qa_id: qaId, status }).then((r) => r.data)
 }
 
+export function updateQA(qaId: number, data: AddQARequest) {
+  return request.put<{ qa_id: number; message: string }>(`/qa/${qaId}`, data).then((r) => r.data)
+}
+
 export function deleteQA(qaId: number) {
   return request.delete(`/qa/${qaId}`).then((r) => r.data)
 }

@@ -37,6 +37,8 @@ from models.schemas import (
     RoleUpdateRequest,
     StatsResponse,
     TrendResponse,
+    UpdateQARequest,
+    UpdateQAResponse,
     UpdateStatusRequest,
     UpdateStatusResponse,
     UserCreateRequest,
@@ -168,28 +170,37 @@ def _work_order_to_detail(row: dict) -> WorkOrderDetailResponse:
 def _build_category_tree() -> list[dict]:
     nodes: list[dict] = []
     rows = mysql_client.list_categories()
-    if rows:
-        for r in rows:
-            nodes.append(
-                {
-                    "id": r["id"],
-                    "label": r["label"],
-                    "parentId": r.get("parent_id"),
-                    "description": r.get("description") or "",
-                }
-            )
-    else:
-        derived = mysql_client.get_category_tree()
-        next_id = 1
-        for l1, l2_list in derived.items():
-            if not l1:
-                continue
+    existing_labels: set[str] = set()
+    for r in rows:
+        nodes.append(
+            {
+                "id": r["id"],
+                "label": r["label"],
+                "parentId": r.get("parent_id"),
+                "description": r.get("description") or "",
+            }
+        )
+        existing_labels.add(r["label"])
+
+    derived = mysql_client.get_category_tree()
+    next_id = 100000
+    label_to_id: dict[str, int] = {n["label"]: n["id"] for n in nodes}
+    for l1, l2_list in derived.items():
+        if not l1:
+            continue
+        if l1 not in label_to_id:
             parent_id = next_id
             next_id += 1
             nodes.append({"id": parent_id, "label": l1, "parentId": None, "description": ""})
-            for l2 in l2_list:
+            label_to_id[l1] = parent_id
+        else:
+            parent_id = label_to_id[l1]
+        existing_children = {n["label"] for n in nodes if n.get("parentId") == parent_id}
+        for l2 in l2_list:
+            if l2 and l2 not in existing_children:
                 nodes.append({"id": next_id, "label": l2, "parentId": parent_id, "description": ""})
                 next_id += 1
+                existing_children.add(l2)
 
     children_map: dict = {}
     for n in nodes:
@@ -256,11 +267,14 @@ def update_qa_status(req: UpdateStatusRequest, request: Request):
     valid_statuses = get_business_config("qa_statuses", ["active", "deprecated", "archived"])
     if req.status not in valid_statuses:
         raise HTTPException(status_code=400, detail=f"status必须是{valid_statuses}之一")
-    mysql_client.update_qa_status(req.qa_id, req.status)
     if req.status == "active" and service is not None:
         service.activate_qa(req.qa_id)
+        mysql_client.update_qa_status(req.qa_id, req.status)
     elif service is not None:
-        service.invalidate_active_ids_cache()
+        service.deactivate_qa(req.qa_id)
+        mysql_client.update_qa_status(req.qa_id, req.status)
+    else:
+        mysql_client.update_qa_status(req.qa_id, req.status)
     if req.status in ("active", "archived"):
         detail = mysql_client.get_qa_detail(req.qa_id) or {}
         mysql_client.insert_audit_log(
@@ -322,12 +336,23 @@ def get_qa_detail(qa_id: int):
 def delete_qa(qa_id: int):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
+    if service is not None:
+        service.deactivate_qa(qa_id)
     deleted = mysql_client.delete_qa(qa_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="QA不存在")
-    if service is not None:
-        service.invalidate_active_ids_cache()
     return {"qa_id": qa_id, "message": "已删除"}
+
+
+@router.put("/qa/{qa_id}", response_model=UpdateQAResponse, dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/knowledge"))])
+def update_qa(qa_id: int, req: UpdateQARequest):
+    if service is None or mysql_client is None:
+        raise HTTPException(status_code=500, detail="服务未初始化")
+    try:
+        service.update_qa(qa_id, req)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    return UpdateQAResponse(qa_id=qa_id, message="编辑成功")
 
 
 @router.post("/qa/search", response_model=QASearchResponse)

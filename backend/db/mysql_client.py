@@ -446,6 +446,7 @@ class MySQLClient:
             )
             row = cursor.fetchone()
             cursor.close()
+            conn.commit()
             return row
         except Exception:
             self._reset_conn()

@@ -490,7 +490,10 @@ const openEditDialog = async (row: QAListItem) => {
     formData.value.internal_process = detail.internal_process || ''
     formData.value.feedback_dept = detail.feedback_dept || ''
   } catch {
-    // ignore
+    ElMessage.error('该知识条目可能已被删除，请刷新列表')
+    formVisible.value = false
+    editingId.value = null
+    loadData()
   }
 }
 

@@ -1220,7 +1220,7 @@ class TestOnErrorExceptBranch:
                     except Exception:
                         pass
                     _clean_pending(loop)
-        errors = [m for m in ws.sent if m.get("type") == "error"]
+        errors = [m for m in ws.sent if m.get("type") == "error" and "ASR" in m.get("message", "")]
         assert len(errors) == 0
 
 

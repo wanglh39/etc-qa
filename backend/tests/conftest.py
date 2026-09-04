@@ -32,6 +32,9 @@ sys.modules["pymilvus"] = _pymilvus_mock
 _lc_openai_mock = MagicMock()
 sys.modules["langchain_openai"] = _lc_openai_mock
 
+_soundfile_mock = MagicMock()
+sys.modules["soundfile"] = _soundfile_mock
+
 
 from agent.state import AgentState
 

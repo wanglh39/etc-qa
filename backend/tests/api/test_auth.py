@@ -165,7 +165,7 @@ class TestImpersonateAuditLog:
 
 class TestLoginFlow:
     def test_login_success(self, client):
-        resp = client.post("/api/auth/login", json={"username": "admin", "password": "123456"})
+        resp = client.post("/api/auth/login", json={"username": "admin", "password": "test-admin-pass"})
         assert resp.status_code == 200
         data = resp.json()
         assert "access_token" in data
@@ -176,17 +176,17 @@ class TestLoginFlow:
         assert resp.status_code == 401
 
     def test_login_unknown_user(self, client):
-        resp = client.post("/api/auth/login", json={"username": "ghost", "password": "123456"})
+        resp = client.post("/api/auth/login", json={"username": "ghost", "password": "test-admin-pass"})
         assert resp.status_code == 401
 
     def test_login_returns_usable_token(self, client):
-        resp = client.post("/api/auth/login", json={"username": "service", "password": "123456"})
+        resp = client.post("/api/auth/login", json={"username": "service", "password": "test-service-pass"})
         token = resp.json()["access_token"]
         resp2 = client.get("/api/auth/verify", headers={"Authorization": f"Bearer {token}"})
         assert resp2.status_code == 200
         assert resp2.json()["role"] == "service"
 
     def test_login_dept_returns_dept_field(self, client):
-        resp = client.post("/api/auth/login", json={"username": "dept", "password": "123456"})
+        resp = client.post("/api/auth/login", json={"username": "dept", "password": "test-dept-pass"})
         assert resp.status_code == 200
         assert resp.json()["dept"] == "aftersale"

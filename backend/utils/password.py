@@ -41,13 +41,10 @@ def check_password_policy():
 
     for username, meta in USERS.items():
         stored = meta.get("password", "") or ""
+        if not stored:
+            print(f"[提示] 账号 {username} 未配置密码环境变量，无DB回退登录已禁用")
+            continue
         if needs_rehash(stored):
-            if stored == "123456":
-                print(
-                    f"[安全告警] 账号 {username} 密码为默认弱密码 123456（明文），"
-                    f"请运行 scripts/setup/gen_password_hash.py 生成强密码哈希"
-                )
-            else:
-                print(f"[安全告警] 账号 {username} 密码仍为明文，请运行 scripts/setup/gen_password_hash.py 迁移为哈希")
+            print(f"[安全告警] 账号 {username} 密码为明文，请用 pbkdf2_sha256 哈希配置")
         elif verify_password("123456", stored):
-            print(f"[安全告警] 账号 {username} 仍使用默认弱密码 123456（已哈希），请尽快修改")
+            print(f"[安全告警] 账号 {username} 仍使用弱密码 123456，请尽快修改")

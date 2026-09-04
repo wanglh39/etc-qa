@@ -70,12 +70,15 @@ class TestVerifyToken:
 
 
 class TestAuthenticate:
-    def test_superadmin_default_password_success(self):
-        result = authenticate("superadmin", "123456")
+    def setup_method(self):
+        set_mysql_client(None)
+
+    def test_superadmin_env_password_success(self):
+        result = authenticate("superadmin", "test-superadmin-pass")
         assert result == {"username": "superadmin", "role": "superadmin", "dept": ""}
 
-    def test_admin_default_password_success(self):
-        result = authenticate("admin", "123456")
+    def test_admin_env_password_success(self):
+        result = authenticate("admin", "test-admin-pass")
         assert result == {"username": "admin", "role": "admin", "dept": ""}
 
     def test_wrong_password_returns_none(self):
@@ -83,11 +86,11 @@ class TestAuthenticate:
         assert result is None
 
     def test_unknown_user_returns_none(self):
-        result = authenticate("nobody", "123456")
+        result = authenticate("nobody", "test-admin-pass")
         assert result is None
 
     def test_dept_user_success(self):
-        result = authenticate("dept", "123456")
+        result = authenticate("dept", "test-dept-pass")
         assert result == {"username": "dept", "role": "dept", "dept": "aftersale"}
 
 
@@ -112,7 +115,7 @@ class TestAuthenticateDB:
             result = authenticate("admin", "123456")
         assert result == {"username": "admin", "role": "admin", "dept": "ops"}
 
-    def test_db_disabled_user_falls_back_to_hardcoded(self):
+    def test_db_disabled_user_rejected(self):
         mock_db = MagicMock()
         mock_db.get_user_by_username.return_value = {
             "username": "admin",
@@ -123,23 +126,23 @@ class TestAuthenticateDB:
         }
         set_mysql_client(mock_db)
         result = authenticate("admin", "123456")
-        assert result == {"username": "admin", "role": "admin", "dept": ""}
+        assert result is None
 
-    def test_db_user_not_found_falls_back_to_hardcoded(self):
+    def test_db_user_not_found_rejected(self):
         mock_db = MagicMock()
         mock_db.get_user_by_username.return_value = None
         set_mysql_client(mock_db)
         result = authenticate("admin", "123456")
-        assert result == {"username": "admin", "role": "admin", "dept": ""}
+        assert result is None
 
-    def test_db_exception_falls_back_to_hardcoded(self):
+    def test_db_exception_rejected_fail_closed(self):
         mock_db = MagicMock()
         mock_db.get_user_by_username.side_effect = Exception("DB down")
         set_mysql_client(mock_db)
         result = authenticate("admin", "123456")
-        assert result == {"username": "admin", "role": "admin", "dept": ""}
+        assert result is None
 
-    def test_db_password_mismatch_falls_back_to_hardcoded(self):
+    def test_db_password_mismatch_rejected(self):
         mock_db = MagicMock()
         mock_db.get_user_by_username.return_value = {
             "username": "admin",
@@ -149,6 +152,6 @@ class TestAuthenticateDB:
             "status": "active",
         }
         set_mysql_client(mock_db)
-        with patch("utils.jwt_utils.verify_password", side_effect=[False, True]):
+        with patch("utils.jwt_utils.verify_password", return_value=False):
             result = authenticate("admin", "123456")
-        assert result == {"username": "admin", "role": "admin", "dept": ""}
+        assert result is None

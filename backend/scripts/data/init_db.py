@@ -261,7 +261,27 @@ def init_mysql():
 
     from utils.password import hash_password
 
-    default_pwd_hash = hash_password("123456")
+    def _seed_pwd(username: str, env_var: str) -> str:
+        raw = os.environ.get(env_var, "").strip()
+        if raw:
+            return raw if raw.startswith("pbkdf2_sha256$") else hash_password(raw)
+        if env == "prod":
+            raise SystemExit(
+                f"缺少内置账号 {username} 的初始密码：环境变量 {env_var} 未设置。\n"
+                "生产环境不再使用默认弱密码。请设置后重试，\n"
+                "支持明文（自动哈希）或 pbkdf2_sha256 哈希。生成哈希：\n"
+                '  python scripts/setup/gen_password_hash.py "你的明文密码"'
+            )
+        print(f"[警告] 非生产环境账号 {username} 未设置 {env_var}，使用开发默认密码 dev123456")
+        return hash_password("dev123456")
+
+    seed_users = [
+        ("superadmin", _seed_pwd("superadmin", "ETC_QA_SUPERADMIN_PASSWORD"), "superadmin", "", "active"),
+        ("admin", _seed_pwd("admin", "ETC_QA_ADMIN_PASSWORD"), "admin", "", "active"),
+        ("ops", _seed_pwd("ops", "ETC_QA_OPS_PASSWORD"), "ops", "", "active"),
+        ("service", _seed_pwd("service", "ETC_QA_SERVICE_PASSWORD"), "service", "", "active"),
+        ("dept", _seed_pwd("dept", "ETC_QA_DEPT_PASSWORD"), "dept", "aftersale", "active"),
+    ]
 
     import json
 
@@ -313,13 +333,7 @@ def init_mysql():
     conn.commit()
     cursor.executemany(
         "INSERT IGNORE INTO users (username, password_hash, role, dept, status) VALUES (%s, %s, %s, %s, %s)",
-        [
-            ("superadmin", default_pwd_hash, "superadmin", "", "active"),
-            ("admin", default_pwd_hash, "admin", "", "active"),
-            ("ops", default_pwd_hash, "ops", "", "active"),
-            ("service", default_pwd_hash, "service", "", "active"),
-            ("dept", default_pwd_hash, "dept", "aftersale", "active"),
-        ],
+        seed_users,
     )
     conn.commit()
 

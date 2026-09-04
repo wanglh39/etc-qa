@@ -3,6 +3,12 @@ import sys
 from unittest.mock import MagicMock
 
 os.environ.setdefault("ETC_QA_ENV", "test")
+os.environ.setdefault("ETC_QA_JWT_SECRET", "test-secret-key")
+os.environ.setdefault("ETC_QA_SUPERADMIN_PASSWORD", "test-superadmin-pass")
+os.environ.setdefault("ETC_QA_ADMIN_PASSWORD", "test-admin-pass")
+os.environ.setdefault("ETC_QA_SERVICE_PASSWORD", "test-service-pass")
+os.environ.setdefault("ETC_QA_DEPT_PASSWORD", "test-dept-pass")
+os.environ.setdefault("ETC_QA_OPS_PASSWORD", "test-ops-pass")
 
 
 def _noop_decorator(name=None, run_type=None):

@@ -1,3 +1,5 @@
+import os
+
 from locust import HttpUser, between, task
 
 
@@ -5,9 +7,11 @@ class EtcQaUser(HttpUser):
     wait_time = between(1, 3)
 
     def on_start(self):
+        username = os.environ.get("LOCUST_USERNAME", "admin")
+        password = os.environ.get("LOCUST_PASSWORD", "")
         response = self.client.post(
             "/api/auth/login",
-            json={"username": "admin", "password": "123456"},
+            json={"username": username, "password": password},
         )
         if response.status_code == 200:
             self.token = response.json().get("access_token", "")

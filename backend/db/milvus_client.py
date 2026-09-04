@@ -1,8 +1,11 @@
+import logging
 import threading
 
 from pymilvus import DataType, MilvusClient
 
 from utils.config import get_config
+
+logger = logging.getLogger(__name__)
 
 _GRPC_OPTIONS = {
     "grpc.keepalive_time_ms": 300000,

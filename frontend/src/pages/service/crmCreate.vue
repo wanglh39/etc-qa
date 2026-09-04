@@ -37,7 +37,12 @@
       <!-- 客服指定：流转给哪个业务部门处理 -->
       <el-form-item label="转交处理部门" prop="nextDept">
         <el-select v-model="formData.nextDept" placeholder="选择需要处理的部门" style="width: 100%">
-          <el-option v-for="d in depts" :key="d.dept_key" :label="d.dept_name" :value="d.dept_key" />
+          <el-option
+            v-for="d in depts"
+            :key="d.dept_key"
+            :label="d.dept_name"
+            :value="d.dept_key"
+          />
         </el-select>
       </el-form-item>
 

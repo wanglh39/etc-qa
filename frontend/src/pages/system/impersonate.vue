@@ -92,7 +92,6 @@ const roleDescs: Record<string, string> = {
   dept: '工单处理',
 }
 
-
 const targets = ref<
   {
     role: string
@@ -128,7 +127,13 @@ const doImpersonate = async (targetRole: string) => {
   loading.value = targetRole
   try {
     const res = await impersonate(targetRole)
-    authStore.startImpersonation(res.access_token, res.role, res.dept, res.username, res.permissions)
+    authStore.startImpersonation(
+      res.access_token,
+      res.role,
+      res.dept,
+      res.username,
+      res.permissions
+    )
     const target = targets.value.find((t) => t.role === targetRole)
     ElMessage.success(`已切换为${target?.label}身份`)
     router.replace(getDefaultPath(res.role))

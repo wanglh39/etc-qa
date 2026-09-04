@@ -237,7 +237,9 @@
         >
           确认新增
         </el-button>
-        <el-button v-else type="primary" :loading="submitting" @click="handleEdit"> 确认编辑 </el-button>
+        <el-button v-else type="primary" :loading="submitting" @click="handleEdit">
+          确认编辑
+        </el-button>
       </template>
     </el-dialog>
   </div>

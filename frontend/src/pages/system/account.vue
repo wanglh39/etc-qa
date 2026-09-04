@@ -129,7 +129,9 @@
           </el-table-column>
           <el-table-column prop="dept" label="部门" width="140" align="center">
             <template #default="{ row }">
-              <span v-if="row.dept">{{ deptOptions.find((d) => d.dept_key === row.dept)?.dept_name || row.dept }}</span>
+              <span v-if="row.dept">{{
+                deptOptions.find((d) => d.dept_key === row.dept)?.dept_name || row.dept
+              }}</span>
               <span v-else style="color: #94a3b8">-</span>
             </template>
           </el-table-column>

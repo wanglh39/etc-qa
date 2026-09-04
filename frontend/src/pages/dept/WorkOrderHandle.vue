@@ -41,7 +41,11 @@
           </div>
         </div>
       </el-card>
-      <el-card class="kpi-card" shadow="hover" @click="filterByStatus('processed,deduped,rejected')">
+      <el-card
+        class="kpi-card"
+        shadow="hover"
+        @click="filterByStatus('processed,deduped,rejected')"
+      >
         <div class="kpi-inner">
           <div class="kpi-icon done">
             <el-icon><CircleCheck /></el-icon>
@@ -102,7 +106,13 @@
         </el-tab-pane>
         <el-tab-pane name="processed,deduped,rejected">
           <template #label>
-            <span>已办结 <el-badge :value="(stats.processed || 0) + (stats.deduped || 0) + (stats.rejected || 0)" :max="999" type="primary" /></span>
+            <span
+              >已办结
+              <el-badge
+                :value="(stats.processed || 0) + (stats.deduped || 0) + (stats.rejected || 0)"
+                :max="999"
+                type="primary"
+            /></span>
           </template>
         </el-tab-pane>
       </el-tabs>

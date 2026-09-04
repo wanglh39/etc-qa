@@ -73,6 +73,7 @@ import { useAuthStore } from '@/stores/auth'
 import { roleColor } from '@/utils/roleColor'
 import { getRoleList, type RoleItem } from '@/api/system'
 import { getPageLabel } from '@/config/pages'
+import { getDefaultPath } from '@/router'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -90,12 +91,7 @@ const roleDescs: Record<string, string> = {
   service: '客服工作台',
   dept: '工单处理',
 }
-const roleHomes: Record<string, string> = {
-  admin: '/workbench/admin/dashboard',
-  ops: '/workbench/admin/status',
-  service: '/service',
-  dept: '/dept/handle/aftersale',
-}
+
 
 const targets = ref<
   {
@@ -118,7 +114,7 @@ const loadRoles = async () => {
         role: r.role_key,
         label: r.role_name,
         desc: r.description || roleDescs[r.role_key] || '',
-        home: roleHomes[r.role_key] || '/',
+        home: (r.permissions || [])[0] || '/',
         icon: roleIcons[r.role_key] || Setting,
         gradient: roleColor(r.role_key),
         permissions: (r.permissions || []).map((p) => getPageLabel(p)),
@@ -132,10 +128,10 @@ const doImpersonate = async (targetRole: string) => {
   loading.value = targetRole
   try {
     const res = await impersonate(targetRole)
-    authStore.startImpersonation(res.access_token, res.role, res.dept, res.username)
+    authStore.startImpersonation(res.access_token, res.role, res.dept, res.username, res.permissions)
     const target = targets.value.find((t) => t.role === targetRole)
     ElMessage.success(`已切换为${target?.label}身份`)
-    router.replace(target?.home ?? '/')
+    router.replace(getDefaultPath(res.role))
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.detail ?? '模拟登录失败')
   } finally {

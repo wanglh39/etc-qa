@@ -129,7 +129,7 @@
           </el-table-column>
           <el-table-column prop="dept" label="部门" width="140" align="center">
             <template #default="{ row }">
-              <span v-if="row.dept">{{ row.dept }}</span>
+              <span v-if="row.dept">{{ deptOptions.find((d) => d.dept_key === row.dept)?.dept_name || row.dept }}</span>
               <span v-else style="color: #94a3b8">-</span>
             </template>
           </el-table-column>
@@ -207,7 +207,14 @@
           </el-select>
         </el-form-item>
         <el-form-item label="部门">
-          <el-input v-model="formData.dept" placeholder="可选，如：aftersale" />
+          <el-select v-model="formData.dept" placeholder="可选" clearable style="width: 100%">
+            <el-option
+              v-for="d in deptOptions"
+              :key="d.dept_key"
+              :label="d.dept_name"
+              :value="d.dept_key"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="formData.status" style="width: 100%">
@@ -257,8 +264,10 @@ import {
   resetPassword,
   deleteUser,
   getRoleList,
+  getDeptList,
   type UserListItem,
   type RoleItem,
+  type DeptItem,
 } from '@/api/system'
 import { roleColor } from '@/utils/roleColor'
 
@@ -269,6 +278,7 @@ const pageSize = ref(10)
 const tableData = ref<UserListItem[]>([])
 const total = ref(0)
 const roleOptions = ref<RoleItem[]>([])
+const deptOptions = ref<DeptItem[]>([])
 
 const formVisible = ref(false)
 const formMode = ref<'add' | 'edit'>('add')
@@ -311,6 +321,14 @@ const loadRoles = async () => {
     roleOptions.value = await getRoleList()
   } catch {
     ElMessage.error('加载角色列表失败')
+  }
+}
+
+const loadDepts = async () => {
+  try {
+    deptOptions.value = await getDeptList()
+  } catch {
+    // ignore
   }
 }
 
@@ -438,6 +456,7 @@ const handleResetPassword = async () => {
 
 onMounted(() => {
   loadRoles()
+  loadDepts()
   loadData()
 })
 </script>

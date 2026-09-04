@@ -18,6 +18,7 @@ export interface ImpersonateResult {
   role: string
   dept: string
   username: string
+  permissions: string[]
 }
 
 export function login(params: LoginParams): Promise<LoginResult> {

@@ -434,9 +434,7 @@ def update_category(cat_id: int, req: CategoryUpdateRequest):
     old = mysql_client.get_category_by_id(cat_id)
     if not old:
         raise HTTPException(status_code=404, detail="分类不存在")
-    updated = mysql_client.update_category(cat_id, req.label, req.parent_id, req.description)
-    if not updated:
-        raise HTTPException(status_code=404, detail="分类不存在")
+    mysql_client.update_category(cat_id, req.label, req.parent_id, req.description)
     old_label = old["label"]
     is_l1 = old.get("parent_id") is None
     if old_label != req.label:

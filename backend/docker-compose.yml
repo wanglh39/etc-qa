@@ -33,11 +33,6 @@ services:
       ETC_QA_ENV: prod
       ETC_QA_MYSQL_PASSWORD: ${ETC_QA_MYSQL_PASSWORD:?required}
       ETC_QA_JWT_SECRET: ${ETC_QA_JWT_SECRET:?required}
-      ETC_QA_SUPERADMIN_PASSWORD: ${ETC_QA_SUPERADMIN_PASSWORD:?required}
-      ETC_QA_ADMIN_PASSWORD: ${ETC_QA_ADMIN_PASSWORD:?required}
-      ETC_QA_SERVICE_PASSWORD: ${ETC_QA_SERVICE_PASSWORD:?required}
-      ETC_QA_DEPT_PASSWORD: ${ETC_QA_DEPT_PASSWORD:?required}
-      ETC_QA_OPS_PASSWORD: ${ETC_QA_OPS_PASSWORD:?required}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
       SILICONFLOW_API_KEYS: ${SILICONFLOW_API_KEYS:?required}
       ALICLOUD_ASR_APP_KEY: ${ALICLOUD_ASR_APP_KEY:?required}
@@ -45,7 +40,7 @@ services:
       ALICLOUD_ASR_ACCESS_KEY_SECRET: ${ALICLOUD_ASR_ACCESS_KEY_SECRET:?required}
       ALICLOUD_ASR_HOTWORDS_ID: ${ALICLOUD_ASR_HOTWORDS_ID}
     env_file:
-      - .env
+      - .env.secrets
     volumes:
       - milvus_data:/app/data/milvus
     command: >

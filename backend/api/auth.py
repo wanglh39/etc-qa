@@ -11,7 +11,6 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 logger = get_logger("api.auth")
 
 
-
 class LoginRequest(BaseModel):
     username: str
     password: str

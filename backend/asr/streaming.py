@@ -270,7 +270,6 @@ class AliCloudStreamingBackend(StreamingBackend):
         self._token_expire = 0
         self._connected = threading.Event()
 
-
     def _get_token(self) -> str:
         import json as _json
 
@@ -341,7 +340,6 @@ class AliCloudStreamingBackend(StreamingBackend):
             logger.info(f"使用热词表: {self._hotwords_id}")
         ws.send(json.dumps(msg))
         self._connected.set()
-
 
     def send_audio(self, chunk: bytes):
 

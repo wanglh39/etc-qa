@@ -63,9 +63,7 @@ def sync_and_ingest_task():
                 state = AgentState(
                     raw_question=raw.get("detail_desc", "") or raw.get("question", ""),
                     raw_answer=raw.get("handle_remark", "") or raw.get("answer", ""),
-                    work_order_context=(
-                        f"工单类型={raw.get('problem_type', '')}，流转至={raw.get('next_dept', '')}"
-                    ),
+                    work_order_context=(f"工单类型={raw.get('problem_type', '')}，流转至={raw.get('next_dept', '')}"),
                 )
                 result = ingest_agent.invoke(state.model_dump())
                 raw.update(result)

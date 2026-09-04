@@ -221,7 +221,11 @@ def query_qa(req: QueryRequest, user: dict = Depends(get_current_user)):
     return result
 
 
-@router.post("/add", response_model=AddQAResponse, dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/knowledge"))])
+@router.post(
+    "/add",
+    response_model=AddQAResponse,
+    dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/knowledge"))],
+)
 def add_qa(req: AddQARequest):
     if service is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -259,7 +263,9 @@ def agent_process(req: AgentProcessRequest, user: dict = Depends(get_current_use
 
 
 @router.put(
-    "/qa/status", response_model=UpdateStatusResponse, dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/knowledge"))]
+    "/qa/status",
+    response_model=UpdateStatusResponse,
+    dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/knowledge"))],
 )
 def update_qa_status(req: UpdateStatusRequest, request: Request):
     if mysql_client is None:
@@ -287,7 +293,9 @@ def update_qa_status(req: UpdateStatusRequest, request: Request):
     return UpdateStatusResponse(qa_id=req.qa_id, status=req.status, message=f"状态已更新为{req.status}")
 
 
-@router.put("/config/{key}", dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/config"))])
+@router.put(
+    "/config/{key}", dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/config"))]
+)
 def update_config(key: str, value: dict):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -296,13 +304,17 @@ def update_config(key: str, value: dict):
     return {"key": key, "message": "配置已更新，缓存已刷新"}
 
 
-@router.get("/config/{key}", dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/config"))])
+@router.get(
+    "/config/{key}", dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/config"))]
+)
 def get_config_value(key: str):
     result = get_business_config(key)
     return {"key": key, "value": _redact_secrets(result)}
 
 
-@router.post("/config/reload", dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/config"))])
+@router.post(
+    "/config/reload", dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/config"))]
+)
 def reload_config():
     invalidate_cache()
     return {"message": "所有配置缓存已刷新，将从DB重新加载"}
@@ -332,7 +344,9 @@ def get_qa_detail(qa_id: int):
     return QADetailResponse(**_serialize_row(row))
 
 
-@router.delete("/qa/{qa_id}", dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/knowledge"))])
+@router.delete(
+    "/qa/{qa_id}", dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/knowledge"))]
+)
 def delete_qa(qa_id: int):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -344,7 +358,11 @@ def delete_qa(qa_id: int):
     return {"qa_id": qa_id, "message": "已删除"}
 
 
-@router.put("/qa/{qa_id}", response_model=UpdateQAResponse, dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/knowledge"))])
+@router.put(
+    "/qa/{qa_id}",
+    response_model=UpdateQAResponse,
+    dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/knowledge"))],
+)
 def update_qa(qa_id: int, req: UpdateQARequest):
     if service is None or mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -366,7 +384,11 @@ def search_qa(req: QASearchRequest):
     return QASearchResponse(items=items, total=result["total"], page=result["page"], page_size=result["page_size"])
 
 
-@router.get("/stats", response_model=StatsResponse, dependencies=[Depends(require_role("admin", "superadmin", "ops", page="/workbench/admin/dashboard"))])
+@router.get(
+    "/stats",
+    response_model=StatsResponse,
+    dependencies=[Depends(require_role("admin", "superadmin", "ops", page="/workbench/admin/dashboard"))],
+)
 def get_stats():
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -392,7 +414,9 @@ def get_categories():
     return {"categories": _build_category_tree()}
 
 
-@router.post("/categories", dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/category"))])
+@router.post(
+    "/categories", dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/category"))]
+)
 def create_category(req: CategoryCreateRequest):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -400,7 +424,10 @@ def create_category(req: CategoryCreateRequest):
     return {"id": cat_id, "message": "分类已创建"}
 
 
-@router.put("/categories/{cat_id}", dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/category"))])
+@router.put(
+    "/categories/{cat_id}",
+    dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/category"))],
+)
 def update_category(cat_id: int, req: CategoryUpdateRequest):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -423,7 +450,10 @@ def update_category(cat_id: int, req: CategoryUpdateRequest):
     return {"id": cat_id, "message": "分类已更新"}
 
 
-@router.delete("/categories/{cat_id}", dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/category"))])
+@router.delete(
+    "/categories/{cat_id}",
+    dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/category"))],
+)
 def delete_category(cat_id: int):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -442,7 +472,9 @@ def delete_category(cat_id: int):
 
 
 @router.get(
-    "/audit/history", response_model=AuditLogListResponse, dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/auditHistory"))]
+    "/audit/history",
+    response_model=AuditLogListResponse,
+    dependencies=[Depends(require_role("admin", "superadmin", page="/workbench/admin/auditHistory"))],
 )
 def audit_history(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100)):
     if mysql_client is None:
@@ -453,7 +485,9 @@ def audit_history(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, l
 
 
 @router.get(
-    "/stats/trend", response_model=TrendResponse, dependencies=[Depends(require_role("admin", "superadmin", "ops", page="/workbench/admin/dashboard"))]
+    "/stats/trend",
+    response_model=TrendResponse,
+    dependencies=[Depends(require_role("admin", "superadmin", "ops", page="/workbench/admin/dashboard"))],
 )
 def stats_trend(days: int = Query(7, ge=1, le=90)):
     if mysql_client is None:
@@ -637,7 +671,11 @@ async def asr_query(
         os.unlink(tmp_path)
 
 
-@router.get("/users", response_model=UserListResponse, dependencies=[Depends(require_role("superadmin", page="/workbench/admin/account"))])
+@router.get(
+    "/users",
+    response_model=UserListResponse,
+    dependencies=[Depends(require_role("superadmin", page="/workbench/admin/account"))],
+)
 def list_users(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=999),
@@ -652,7 +690,9 @@ def list_users(
 
 
 @router.post("/users")
-def create_user(req: UserCreateRequest, user: dict = Depends(require_role("superadmin", page="/workbench/admin/account"))):
+def create_user(
+    req: UserCreateRequest, user: dict = Depends(require_role("superadmin", page="/workbench/admin/account"))
+):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
     existing = mysql_client.get_user_by_username(req.username)
@@ -669,7 +709,11 @@ def create_user(req: UserCreateRequest, user: dict = Depends(require_role("super
 
 
 @router.put("/users/{user_id}")
-def update_user(user_id: int, req: UserUpdateRequest, user: dict = Depends(require_role("superadmin", page="/workbench/admin/account"))):
+def update_user(
+    user_id: int,
+    req: UserUpdateRequest,
+    user: dict = Depends(require_role("superadmin", page="/workbench/admin/account")),
+):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
     ok = mysql_client.update_user(user_id, role=req.role, dept=req.dept, status=req.status)
@@ -682,7 +726,11 @@ def update_user(user_id: int, req: UserUpdateRequest, user: dict = Depends(requi
 
 
 @router.put("/users/{user_id}/password")
-def reset_password(user_id: int, req: ResetPasswordRequest, user: dict = Depends(require_role("superadmin", page="/workbench/admin/account"))):
+def reset_password(
+    user_id: int,
+    req: ResetPasswordRequest,
+    user: dict = Depends(require_role("superadmin", page="/workbench/admin/account")),
+):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
     if user_id != req.user_id:
@@ -721,7 +769,11 @@ def get_my_permissions(user: dict = Depends(get_current_user)):
     return {"permissions": []}
 
 
-@router.get("/roles", response_model=list[RoleItem], dependencies=[Depends(require_role("superadmin", page="/workbench/admin/role"))])
+@router.get(
+    "/roles",
+    response_model=list[RoleItem],
+    dependencies=[Depends(require_role("superadmin", page="/workbench/admin/role"))],
+)
 def list_roles():
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -742,7 +794,9 @@ def create_role(req: RoleCreateRequest, user: dict = Depends(require_role("super
 
 
 @router.put("/roles/{role_id}")
-def update_role(role_id: int, req: RoleUpdateRequest, user: dict = Depends(require_role("superadmin", page="/workbench/admin/role"))):
+def update_role(
+    role_id: int, req: RoleUpdateRequest, user: dict = Depends(require_role("superadmin", page="/workbench/admin/role"))
+):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
     ok = mysql_client.update_role(
@@ -765,7 +819,11 @@ def delete_role(role_id: int, user: dict = Depends(require_role("superadmin", pa
     return {"role_id": role_id, "message": "角色已删除"}
 
 
-@router.get("/operations", response_model=OperationLogListResponse, dependencies=[Depends(require_role("superadmin", page="/workbench/admin/operationLog"))])
+@router.get(
+    "/operations",
+    response_model=OperationLogListResponse,
+    dependencies=[Depends(require_role("superadmin", page="/workbench/admin/operationLog"))],
+)
 def list_operations(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
@@ -781,14 +839,20 @@ def list_operations(
     )
 
 
-@router.get("/scheduler/status", dependencies=[Depends(require_role("admin", "superadmin", "ops", page="/workbench/admin/scheduler"))])
+@router.get(
+    "/scheduler/status",
+    dependencies=[Depends(require_role("admin", "superadmin", "ops", page="/workbench/admin/scheduler"))],
+)
 def get_scheduler_status():
     if scheduler_manager is None:
         raise HTTPException(status_code=500, detail="调度器未初始化")
     return scheduler_manager.get_status()
 
 
-@router.post("/scheduler/trigger/{job_id}", dependencies=[Depends(require_role("admin", "superadmin", "ops", page="/workbench/admin/scheduler"))])
+@router.post(
+    "/scheduler/trigger/{job_id}",
+    dependencies=[Depends(require_role("admin", "superadmin", "ops", page="/workbench/admin/scheduler"))],
+)
 def trigger_scheduler_job(job_id: str):
     if scheduler_manager is None:
         raise HTTPException(status_code=500, detail="调度器未初始化")
@@ -798,7 +862,9 @@ def trigger_scheduler_job(job_id: str):
     return result
 
 
-@router.put("/scheduler/config", dependencies=[Depends(require_role("superadmin", "ops", page="/workbench/admin/scheduler"))])
+@router.put(
+    "/scheduler/config", dependencies=[Depends(require_role("superadmin", "ops", page="/workbench/admin/scheduler"))]
+)
 def update_scheduler_config(job_id: str = Query(...), hours: int = Query(None, ge=1), minutes: int = Query(None, ge=1)):
     if scheduler_manager is None:
         raise HTTPException(status_code=500, detail="调度器未初始化")
@@ -808,7 +874,10 @@ def update_scheduler_config(job_id: str = Query(...), hours: int = Query(None, g
     return result
 
 
-@router.get("/scheduler/logs", dependencies=[Depends(require_role("admin", "superadmin", "ops", page="/workbench/admin/scheduler"))])
+@router.get(
+    "/scheduler/logs",
+    dependencies=[Depends(require_role("admin", "superadmin", "ops", page="/workbench/admin/scheduler"))],
+)
 def get_scheduler_logs(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100)):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -821,7 +890,9 @@ def get_scheduler_logs(page: int = Query(1, ge=1), page_size: int = Query(20, ge
     }
 
 
-@router.get("/alerts", dependencies=[Depends(require_role("admin", "superadmin", "ops", page="/workbench/admin/alert"))])
+@router.get(
+    "/alerts", dependencies=[Depends(require_role("admin", "superadmin", "ops", page="/workbench/admin/alert"))]
+)
 def list_alerts(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
@@ -839,7 +910,10 @@ def list_alerts(
     }
 
 
-@router.put("/alerts/{alert_id}/ack", dependencies=[Depends(require_role("admin", "superadmin", "ops", page="/workbench/admin/alert"))])
+@router.put(
+    "/alerts/{alert_id}/ack",
+    dependencies=[Depends(require_role("admin", "superadmin", "ops", page="/workbench/admin/alert"))],
+)
 def ack_alert(alert_id: int, request: Request):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
@@ -859,7 +933,10 @@ def ack_alert(alert_id: int, request: Request):
     return {"message": "告警已确认", "alert_id": alert_id}
 
 
-@router.get("/alerts/metrics", dependencies=[Depends(require_role("admin", "superadmin", "ops", page="/workbench/admin/monitor"))])
+@router.get(
+    "/alerts/metrics",
+    dependencies=[Depends(require_role("admin", "superadmin", "ops", page="/workbench/admin/monitor"))],
+)
 def get_alert_metrics():
     from alert.monitor import get_all_metrics
 

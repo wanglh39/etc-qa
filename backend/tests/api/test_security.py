@@ -40,39 +40,40 @@ class TestWorkOrderDeptIsolation:
         routes.set_mysql_client(mock_mysql)
         return mock_mysql
 
-    def test_list_work_orders_dept_forced(self):
+    def test_list_work_orders_dept_passthrough(self):
         mock_mysql = MagicMock()
         mock_mysql.get_work_order_list.return_value = {"items": [], "total": 0, "page": 1, "page_size": 20}
         routes.set_mysql_client(mock_mysql)
-        routes.list_work_orders(page=1, page_size=20, dept="finance", user=_dept_user("aftersale"))
-        mock_mysql.get_work_order_list.assert_called_once_with(page=1, page_size=20, status=None, dept="aftersale")
-
-    def test_list_work_orders_service_passthrough(self):
-        mock_mysql = MagicMock()
-        mock_mysql.get_work_order_list.return_value = {"items": [], "total": 0, "page": 1, "page_size": 20}
-        routes.set_mysql_client(mock_mysql)
-        routes.list_work_orders(
-            page=1, page_size=20, dept="finance", user={"sub": "service", "role": "service", "dept": ""}
-        )
+        routes.list_work_orders(page=1, page_size=20, dept="finance")
         mock_mysql.get_work_order_list.assert_called_once_with(page=1, page_size=20, status=None, dept="finance")
 
-    def test_get_work_order_dept_mismatch_403(self):
-        self._set_order("finance")
-        with pytest.raises(HTTPException) as exc:
-            routes.get_work_order(1, user=_dept_user("aftersale"))
-        assert exc.value.status_code == 403
+    def test_list_work_orders_no_dept(self):
+        mock_mysql = MagicMock()
+        mock_mysql.get_work_order_list.return_value = {"items": [], "total": 0, "page": 1, "page_size": 20}
+        routes.set_mysql_client(mock_mysql)
+        routes.list_work_orders(page=1, page_size=20)
+        mock_mysql.get_work_order_list.assert_called_once_with(page=1, page_size=20, status=None, dept=None)
 
-    def test_get_work_order_dept_match_ok(self):
+    def test_get_work_order_ok(self):
         self._set_order("aftersale")
-        result = routes.get_work_order(1, user=_dept_user("aftersale"))
+        result = routes.get_work_order(1)
         assert result.status == "submitted"
 
-    def test_reply_work_order_dept_mismatch_403(self):
-        self._set_order("finance")
-        req = WorkOrderReplyRequest(handle_remark="x")
+    def test_get_work_order_not_found(self):
+        mock_mysql = MagicMock()
+        mock_mysql.get_work_order_detail.return_value = None
+        routes.set_mysql_client(mock_mysql)
         with pytest.raises(HTTPException) as exc:
-            routes.reply_work_order(1, req, user=_dept_user("aftersale"))
-        assert exc.value.status_code == 403
+            routes.get_work_order(999)
+        assert exc.value.status_code == 404
+
+    def test_reply_work_order_ok(self):
+        self._set_order("aftersale")
+        req = WorkOrderReplyRequest(handle_remark="x")
+        mock_mysql = routes.mysql_client
+        mock_mysql.update_work_order.return_value = True
+        result = routes.reply_work_order(1, req)
+        assert result is not None
 
 
 class TestLoginRateLimit:

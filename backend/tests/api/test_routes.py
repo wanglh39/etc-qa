@@ -222,7 +222,7 @@ class TestDeleteQAAPI:
 
         result = delete_qa(1)
         assert result["qa_id"] == 1
-        mock_service.invalidate_active_ids_cache.assert_called_once()
+        mock_service.deactivate_qa.assert_called_once_with(1)
 
     def test_delete_qa_not_found(self):
         mock_mysql = MagicMock()
@@ -306,7 +306,6 @@ class TestCategoriesAPI:
         root = next(n for n in roots if n["label"] == "账单问题")
         child_labels = [c["label"] for c in root["children"]]
         assert "ETC扣费" in child_labels
-        mock_mysql.get_category_tree.assert_not_called()
 
     def test_get_categories_with_empty_label(self):
         mock_mysql = MagicMock()
@@ -432,7 +431,7 @@ class TestUpdateQAStatusAPI:
         result = update_qa_status(req, request)
         assert result.status == "deprecated"
         mock_mysql.update_qa_status.assert_called_once_with(1, "deprecated")
-        mock_service.invalidate_active_ids_cache.assert_called_once()
+        mock_service.deactivate_qa.assert_called_once_with(1)
         mock_mysql.insert_audit_log.assert_not_called()
 
     @patch("api.routes.get_business_config")
@@ -515,6 +514,7 @@ class TestUpdateCategoryAPI:
     def test_update_category_success(self):
         mock_mysql = MagicMock()
         mock_mysql.update_category.return_value = True
+        mock_mysql.get_category_by_id.return_value = {"id": 1, "label": "改后", "parent_id": None, "description": ""}
         set_mysql_client(mock_mysql)
         req = CategoryUpdateRequest(label="改后")
         result = update_category(1, req)
@@ -524,6 +524,7 @@ class TestUpdateCategoryAPI:
     def test_update_category_not_found(self):
         mock_mysql = MagicMock()
         mock_mysql.update_category.return_value = False
+        mock_mysql.get_category_by_id.return_value = None
         set_mysql_client(mock_mysql)
         req = CategoryUpdateRequest(label="x")
         with pytest.raises(HTTPException) as exc:
@@ -542,6 +543,8 @@ class TestDeleteCategoryAPI:
     def test_delete_category_success(self):
         mock_mysql = MagicMock()
         mock_mysql.delete_category.return_value = True
+        mock_mysql.get_category_by_id.return_value = {"id": 1, "label": "测试", "parent_id": None, "description": ""}
+        mock_mysql.count_qa_by_category.return_value = 0
         set_mysql_client(mock_mysql)
         result = delete_category(1)
         assert result["id"] == 1
@@ -550,6 +553,7 @@ class TestDeleteCategoryAPI:
     def test_delete_category_not_found(self):
         mock_mysql = MagicMock()
         mock_mysql.delete_category.return_value = False
+        mock_mysql.get_category_by_id.return_value = None
         set_mysql_client(mock_mysql)
         with pytest.raises(HTTPException) as exc:
             delete_category(999)

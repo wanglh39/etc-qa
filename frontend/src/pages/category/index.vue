@@ -2,7 +2,7 @@
   <PageLayout page-title="分类管理">
     <!-- 右上角按钮 -->
     <template #actions>
-      <el-button type="primary" @click="resetForm"> 新增分类 </el-button>
+      <el-button type="primary" @click="handleAdd"> 新增分类 </el-button>
     </template>
 
     <el-row :gutter="20" align="stretch">
@@ -38,6 +38,8 @@
                 :props="{ label: 'label', value: 'id' }"
                 placeholder="无则为一级分类"
                 clearable
+                check-strictly
+                :render-after-expand="false"
               />
             </el-form-item>
             <el-form-item label="分类描述">
@@ -97,6 +99,10 @@ const fillForm = (node: any) => {
 // 重置表单（新增）
 const resetForm = () => {
   form.value = { id: '', label: '', parentId: '', desc: '' }
+}
+const handleAdd = () => {
+  resetForm()
+  ElMessage.info('请在右侧填写分类信息后点击保存')
 }
 // 保存分类（新增或更新）
 const save = async () => {

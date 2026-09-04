@@ -143,10 +143,12 @@ Husky pre-commit 钩子会自动执行 lint-staged（ESLint + Prettier）。
 
 ## 角色账号（开发环境）
 
-| 账号 | 密码 | 角色 | 默认页面 |
-|------|------|------|---------|
-| superadmin | 123456 | 超级管理员 | /workbench/admin/account |
-| admin | 123456 | 业务管理员 | /workbench/admin/dashboard |
-| ops | 123456 | 运维工程师 | /workbench/admin/status |
-| service | 123456 | 客服 | /service |
-| dept | 123456 | 部门处理员 | /dept/handle/{dept} |
+| 账号 | 角色 | 默认页面 |
+|------|------|---------|
+| superadmin | 超级管理员 | /workbench/admin/account |
+| admin | 业务管理员 | /workbench/admin/dashboard |
+| ops | 运维工程师 | /workbench/admin/status |
+| service | 客服 | /service |
+| dept | 部门处理员 | /dept/handle/{dept} |
+
+> 初始密码由 `.env` 的 `ETC_QA_*_PASSWORD` 配置（开发环境默认 `dev123456`）。

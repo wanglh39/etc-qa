@@ -161,11 +161,13 @@
 
 | 角色 | 定位 | 默认账号 | 默认首页 |
 |------|------|---------|---------|
-| superadmin | 系统管理 | superadmin/123456 | /workbench/admin/account |
-| ops | 运维工程师 | ops/123456 | /workbench/admin/status |
-| admin | 业务管理 | admin/123456 | /workbench/admin/dashboard |
-| service | 客服 | service/123456 | /service |
-| dept | 部门处理员 | dept/123456 | /dept/handle/{dept} |
+| superadmin | 系统管理 | superadmin | /workbench/admin/account |
+| ops | 运维工程师 | ops | /workbench/admin/status |
+| admin | 业务管理 | admin | /workbench/admin/dashboard |
+| service | 客服 | service | /service |
+| dept | 部门处理员 | dept | /dept/handle/{dept} |
+
+> 初始密码由 `.env` 的 `ETC_QA_*_PASSWORD` 配置（开发环境默认 `dev123456`，生产环境必须显式配置）。
 
 ---
 

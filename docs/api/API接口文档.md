@@ -16,7 +16,7 @@
 
 ```json
 // Request
-{ "username": "admin", "password": "123456" }
+{ "username": "admin", "password": "dev123456" }
 
 // Response
 { "access_token": "eyJ...", "token_type": "bearer", "role": "admin", "dept": "" }
@@ -348,7 +348,7 @@ Response: { "text": "识别结果", "confidence": 0.95, "duration_ms": 3200, "mo
 
 ```json
 // Request
-{ "username": "newuser", "password": "123456", "role": "service", "dept": "aftersale" }
+{ "username": "newuser", "password": "your_password", "role": "service", "dept": "aftersale" }
 ```
 
 ### PUT /api/users/{user_id} — 更新用户

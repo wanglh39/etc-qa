@@ -64,11 +64,13 @@ etc-qa/
 
 | 角色 | 定位 | 默认账号 | 默认首页 |
 |------|------|---------|---------|
-| superadmin | 超级管理员（账号/角色/日志） | superadmin / 123456 | /workbench/admin/account |
-| admin | 业务管理员（内容+审核+配置） | admin / 123456 | /workbench/admin/dashboard |
-| ops | 运维工程师（监控+调度+告警） | ops / 123456 | /workbench/admin/status |
-| service | 客服（一线问答） | service / 123456 | /service |
-| dept | 部门处理员（工单处理） | dept / 123456 | /dept/handle/{dept} |
+| superadmin | 超级管理员（账号/角色/日志） | superadmin | /workbench/admin/account |
+| admin | 业务管理员（内容+审核+配置） | admin | /workbench/admin/dashboard |
+| ops | 运维工程师（监控+调度+告警） | ops | /workbench/admin/status |
+| service | 客服（一线问答） | service | /service |
+| dept | 部门处理员（工单处理） | dept | /dept/handle/{dept} |
+
+> 初始密码通过 `.env` 的 `ETC_QA_*_PASSWORD` 配置（开发环境默认 `dev123456`，生产环境必须显式配置）。
 
 ---
 

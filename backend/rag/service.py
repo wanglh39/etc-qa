@@ -129,7 +129,7 @@ class QAService:
         if not detail:
             raise ValueError(f"QA不存在: qa_id={qa_id}")
         was_active = detail.get("status") == "active"
-        updated = self.mysql.update_qa(
+        self.mysql.update_qa(
             qa_id,
             question=req.question,
             answer=req.answer,
@@ -138,8 +138,6 @@ class QAService:
             internal_process=req.internal_process or "",
             feedback_dept=req.feedback_dept or "",
         )
-        if not updated:
-            raise ValueError(f"QA不存在: qa_id={qa_id}")
         if was_active:
             try:
                 self.recall.milvus.delete(qa_id)

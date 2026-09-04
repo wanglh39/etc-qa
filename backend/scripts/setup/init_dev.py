@@ -18,7 +18,7 @@ PROJECT_ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 
 def check_env_file():
     env_path = os.path.join(PROJECT_ROOT, ".env")
-    template_path = os.path.join(PROJECT_ROOT, ".env.template")
+    template_path = os.path.join(PROJECT_ROOT, ".env.example")
 
     if not os.path.exists(env_path):
         if os.path.exists(template_path):
@@ -30,7 +30,7 @@ def check_env_file():
             print(f"  路径: {env_path}")
             return False
         else:
-            print("❌ 未找到 .env 和 .env.template，请手动创建 .env")
+            print("❌ 未找到 .env 和 .env.example，请手动创建 .env")
             return False
 
     with open(env_path, encoding="utf-8") as f:

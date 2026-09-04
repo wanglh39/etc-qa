@@ -22,16 +22,16 @@ echo "✓ Docker 已安装"
 
 # 创建.env
 if [ ! -f .env ]; then
-    if [ -f .env.template ]; then
+    if [ -f .env.example ]; then
         echo "📋 从模板创建 .env 文件..."
-        cp .env.template .env
+        cp .env.example .env
         echo
         echo "⚠️  请编辑 .env 填入你的 DEEPSEEK_API_KEY"
         echo "   路径: $(pwd)/.env"
         echo
         ${EDITOR:-nano} .env
     else
-        echo "❌ 未找到 .env.template"
+        echo "❌ 未找到 .env.example"
         exit 1
     fi
 else

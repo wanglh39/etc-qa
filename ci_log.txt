@@ -1,9 +1,0 @@
-﻿gh : Sandbox Network Error: hit restricted [127.0.0.1:443]
-所在位置 行:1 字符: 1
-+ gh run view 32976683067 --log 2>&1 | Out-File -FilePath ci_log.txt -E ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (Sandbox Network...[127.0.0.1:443]:String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 
-failed to get run: Get "https://api.github.com/repos/wanglh39/etc-qa/actions/runs/32976683067?exclude_pull_requests=tru
-e": dial tcp 127.0.0.1:443: connectex: A socket operation was attempted to an unreachable network.

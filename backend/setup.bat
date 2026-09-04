@@ -26,9 +26,9 @@ echo ✓ Docker 已安装
 
 :: 创建.env（如果不存在）
 if not exist .env (
-    if exist .env.template (
+    if exist .env.example (
         echo 📋 从模板创建 .env 文件...
-        copy .env.template .env >nul
+        copy .env.example .env >nul
         echo.
         echo ⚠️  请编辑 .env 填入你的 DEEPSEEK_API_KEY
         echo    路径: %CD%\.env
@@ -38,7 +38,7 @@ if not exist .env (
         pause
         exit /b 1
     ) else (
-        echo ❌ 未找到 .env.template
+        echo ❌ 未找到 .env.example
         pause
         exit /b 1
     )

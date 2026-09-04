@@ -50,7 +50,7 @@ uv pip install -r requirements.txt -p etc_qa/Scripts/python.exe
 
 2. 配置环境变量
 ```bash
-cp .env.template .env
+cp .env.example .env
 # 编辑 .env，填入 DeepSeek API Key 和 SiliconFlow API Keys
 ```
 
@@ -124,7 +124,7 @@ etc_qa/
 ├── docker-compose.dev.yml  # 开发环境
 ├── docker-compose.yml      # 生产环境
 ├── setup.bat / setup.sh    # 一键搭建脚本
-└── .env.template           # 环境变量模板
+└── .env.example           # 环境变量模板
 ```
 
 ## 文档
@@ -140,5 +140,3 @@ etc_qa/
 | [数据库设计文档.md](../docs/database/数据库设计文档.md) | 表结构 + 字段说明 |
 | [开发规范.md](../docs/standards/开发规范.md) | 代码规范、提交规范 |
 | [交接清单.md](../docs/guides/交接清单.md) | 已完成/待开发/注意事项 |
-| [开发规范.md](../docs/开发规范.md) | 代码规范、提交规范 |
-| [交接清单.md](../docs/交接清单.md) | 已完成/待开发/注意事项 |

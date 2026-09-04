@@ -46,9 +46,7 @@ def sync_and_ingest_task():
         logger.info(f"拉取到 {len(processed)} 条已处理工单")
 
         for wo in processed:
-            existing = mysql.get_work_orders_by_status("submitted")
-            matched = [e for e in existing if e["external_id"] == wo["external_id"]]
-            if matched:
+            if mysql.work_order_exists(wo["external_id"]):
                 mysql.update_work_order(wo["external_id"], json.dumps(wo, ensure_ascii=False), "answered")
             else:
                 mysql.insert_work_order(wo["external_id"], json.dumps(wo, ensure_ascii=False))

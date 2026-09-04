@@ -262,6 +262,7 @@ class AliCloudStreamingBackend(StreamingBackend):
         self._hotwords_id = hotwords_id
         self._callback = None
         self._running = False
+
         self._ws = None
         self._ws_thread = None
         self._task_id = ""
@@ -295,6 +296,7 @@ class AliCloudStreamingBackend(StreamingBackend):
     def start(self, callback: StreamingCallback):
         self._callback = callback
         self._running = True
+
         self._task_id = __import__("uuid").uuid4().hex
         self._connected.clear()
 
@@ -342,10 +344,12 @@ class AliCloudStreamingBackend(StreamingBackend):
 
 
     def send_audio(self, chunk: bytes):
+
         if not self._running and self._callback:
             logger.info("阿里云ASR连接断开，自动重连")
             self._reconnect()
-            return
+            if not self._connected.wait(timeout=3):
+                return
         if not self._ws:
             return
         try:
@@ -357,6 +361,11 @@ class AliCloudStreamingBackend(StreamingBackend):
             logger.error(f"阿里云ASR发送音频失败: {e}")
 
     def _reconnect(self):
+        if self._ws:
+            try:
+                self._ws.close()
+            except Exception:
+                pass
         self._running = True
         self._task_id = __import__("uuid").uuid4().hex
         self._connected.clear()
@@ -426,6 +435,7 @@ class AliCloudStreamingBackend(StreamingBackend):
 
     def stop(self):
         self._running = False
+
         if self._ws:
             msg = {
                 "header": {

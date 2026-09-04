@@ -356,7 +356,7 @@ async def asr_stream(websocket: WebSocket):
                     audio_data = _extract_channel(audio_data, channel_customer_side)
 
                 audio_chunks.append(audio_data)
-                service.send_audio(audio_data)
+                await loop.run_in_executor(None, service.send_audio, audio_data)
 
                 if accumulate_mode == "accumulate" and not vad_trigger_enabled:
                     ready = accumulator.check_timeout()

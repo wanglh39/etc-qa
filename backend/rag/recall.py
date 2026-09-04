@@ -21,7 +21,7 @@ except ImportError:
 
 
 class RecallEngine:
-    _executor = ThreadPoolExecutor(max_workers=2)
+    _executor = ThreadPoolExecutor(max_workers=4)
     atexit.register(_executor.shutdown, wait=False)
 
     _RECALL_TIMEOUT = 30
@@ -96,11 +96,13 @@ class RecallEngine:
             vec_results = vec_future.result(timeout=self._RECALL_TIMEOUT)
         except FutureTimeout:
             logger.warning(f"向量召回超时({self._RECALL_TIMEOUT}s)，降级返回空 query='{query_text[:30]}'")
+            vec_future.cancel()
             vec_results = []
         try:
             bm25_results = bm25_future.result(timeout=self._RECALL_TIMEOUT)
         except FutureTimeout:
             logger.warning(f"BM25召回超时({self._RECALL_TIMEOUT}s)，降级返回空 query='{query_text[:30]}'")
+            bm25_future.cancel()
             bm25_results = []
         logger.info(f"并行召回完成: vector={len(vec_results)}条 bm25={len(bm25_results)}条 query='{query_text[:30]}'")
 

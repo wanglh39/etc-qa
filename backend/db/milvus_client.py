@@ -171,6 +171,13 @@ class MilvusQA:
             raw = [(qid, score) for qid, score in raw if qid in active_set]
         return raw[:top_k]
 
+    def delete(self, qa_id: int):
+        self.init_collection()
+        try:
+            self.client.delete(collection_name=self.collection_name, filter=f"qa_id == {qa_id}")
+        except Exception as e:
+            logger.warning(f"Milvus删除qa_id={qa_id}失败(可能不存在): {e}")
+
     def close(self):
         if self._client:
             self._client.close()

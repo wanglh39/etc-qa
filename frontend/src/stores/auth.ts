@@ -48,21 +48,23 @@ export const useAuthStore = defineStore('auth', () => {
     impersonatorToken.value = token.value
     sessionStorage.setItem('impersonator_token', token.value)
     sessionStorage.setItem('impersonator_role', role.value)
+    sessionStorage.setItem('impersonator_username', username.value)
+    sessionStorage.setItem('impersonator_dept', dept.value)
     setAuth(newToken, newRole, newDept, newUsername)
   }
 
   function exitImpersonation() {
     const origToken = impersonatorToken.value
     const origRole = sessionStorage.getItem('impersonator_role') ?? 'superadmin'
+    const origUsername = sessionStorage.getItem('impersonator_username') ?? ''
+    const origDept = sessionStorage.getItem('impersonator_dept') ?? ''
     if (origToken) {
       impersonatorToken.value = ''
       sessionStorage.removeItem('impersonator_token')
       sessionStorage.removeItem('impersonator_role')
-      token.value = origToken
-      role.value = origRole
-      dept.value = ''
-      sessionStorage.setItem('token', origToken)
-      sessionStorage.setItem('userRole', origRole)
+      sessionStorage.removeItem('impersonator_username')
+      sessionStorage.removeItem('impersonator_dept')
+      setAuth(origToken, origRole, origDept, origUsername)
     }
   }
 
@@ -84,6 +86,8 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.removeItem('userName')
     sessionStorage.removeItem('impersonator_token')
     sessionStorage.removeItem('impersonator_role')
+    sessionStorage.removeItem('impersonator_username')
+    sessionStorage.removeItem('impersonator_dept')
     sessionStorage.removeItem('permissions')
   }
 

@@ -95,6 +95,9 @@ service.interceptors.response.use(
   (err) => {
     const status = err.response?.status
     const detail = err.response?.data?.detail
+    if (err.config?.url?.includes('/auth/login')) {
+      return Promise.reject(err)
+    }
     if (status === 401) {
       const authStore = useAuthStore()
       authStore.clearAuth()

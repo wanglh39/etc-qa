@@ -107,6 +107,8 @@ const handleLogin = async () => {
     }, 300)
   } catch (err: any) {
     loading.value = false
+    const detail = err?.response?.data?.detail
+    ElMessage.error(typeof detail === 'string' ? detail : '登录失败，请检查账号密码')
   }
 }
 </script>

@@ -1,11 +1,10 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
+import { ALL_PAGES } from '@/config/pages'
 
 const Layout = () => import('@/components/layout/Layout.vue')
 
-// 区分角色默认首页
-const DEFAULT_SERVICE_PATH = '/service'
 const DEFAULT_ADMIN_PATH = '/workbench/admin/dashboard'
 
 const routes: RouteRecordRaw[] = [
@@ -21,7 +20,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: Layout,
-    redirect: DEFAULT_SERVICE_PATH,
+    redirect: () => getDefaultPath(useAuthStore().role || ''),
     children: [
       // 管理员菜单页面
       {
@@ -206,25 +205,18 @@ const router = createRouter({
   routes,
 })
 
-// 角色 → 默认首页
 export function getDefaultPath(role: string): string {
   const authStore = useAuthStore()
+  const perms = authStore.permissions || []
+  if (perms.length > 0) {
+    const firstPage = ALL_PAGES.find((p) => perms.includes(p.path))
+    if (firstPage) return firstPage.path
+  }
   switch (role) {
-    case 'superadmin':
-      return '/workbench/admin/account'
-    case 'ops':
-      return '/workbench/admin/status'
-    case 'admin':
-      return DEFAULT_ADMIN_PATH
-    case 'service':
-      return DEFAULT_SERVICE_PATH
     case 'dept':
       return `/dept/handle/${authStore.dept || 'aftersale'}`
-    default: {
-      const perms = authStore.permissions || []
-      if (perms.length > 0) return perms[0]
+    default:
       return DEFAULT_ADMIN_PATH
-    }
   }
 }
 

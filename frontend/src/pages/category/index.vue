@@ -98,12 +98,18 @@ const loadTree = async () => {
 onMounted(loadTree)
 
 const fillForm = (node: any) => {
-  formMode.value = 'edit'
-  editingLabel.value = node.label
   form.value.id = node.id
   form.value.label = node.label
   form.value.parentId = node.parentId || ''
   form.value.desc = node.description || ''
+  if (node.derived) {
+    formMode.value = 'add'
+    editingLabel.value = ''
+    ElMessage.info('该分类来自知识条目派生，保存后将创建为正式分类')
+  } else {
+    formMode.value = 'edit'
+    editingLabel.value = node.label
+  }
 }
 
 const handleAdd = () => {

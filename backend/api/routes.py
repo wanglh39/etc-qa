@@ -178,6 +178,7 @@ def _build_category_tree() -> list[dict]:
                 "label": r["label"],
                 "parentId": r.get("parent_id"),
                 "description": r.get("description") or "",
+                "derived": False,
             }
         )
         existing_labels.add(r["label"])
@@ -191,14 +192,14 @@ def _build_category_tree() -> list[dict]:
         if l1 not in label_to_id:
             parent_id = next_id
             next_id += 1
-            nodes.append({"id": parent_id, "label": l1, "parentId": None, "description": ""})
+            nodes.append({"id": parent_id, "label": l1, "parentId": None, "description": "", "derived": True})
             label_to_id[l1] = parent_id
         else:
             parent_id = label_to_id[l1]
         existing_children = {n["label"] for n in nodes if n.get("parentId") == parent_id}
         for l2 in l2_list:
             if l2 and l2 not in existing_children:
-                nodes.append({"id": next_id, "label": l2, "parentId": parent_id, "description": ""})
+                nodes.append({"id": next_id, "label": l2, "parentId": parent_id, "description": "", "derived": True})
                 next_id += 1
                 existing_children.add(l2)
 

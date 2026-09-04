@@ -97,24 +97,22 @@ const loadTree = async () => {
 
 onMounted(loadTree)
 
+const isDerived = ref(false)
+
 const fillForm = (node: any) => {
   form.value.id = node.id
   form.value.label = node.label
   form.value.parentId = node.parentId || ''
   form.value.desc = node.description || ''
-  if (node.derived) {
-    formMode.value = 'add'
-    editingLabel.value = ''
-    ElMessage.info('该分类来自知识条目派生，保存后将创建为正式分类')
-  } else {
-    formMode.value = 'edit'
-    editingLabel.value = node.label
-  }
+  isDerived.value = !!node.derived
+  formMode.value = 'edit'
+  editingLabel.value = node.label
 }
 
 const handleAdd = () => {
   formMode.value = 'add'
   editingLabel.value = ''
+  isDerived.value = false
   form.value = { id: '', label: '', parentId: '', desc: '' }
 }
 
@@ -126,7 +124,7 @@ const save = async () => {
     description: form.value.desc,
   }
   try {
-    if (formMode.value === 'edit' && form.value.id) {
+    if (formMode.value === 'edit' && form.value.id && !isDerived.value) {
       await updateCategory(form.value.id, payload)
       ElMessage.success('分类已更新')
     } else {

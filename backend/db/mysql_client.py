@@ -654,6 +654,71 @@ class MySQLClient:
             self._reset_conn()
             raise
 
+    def get_category_by_id(self, cat_id: int) -> dict | None:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            cursor.execute("SELECT id, label, parent_id, description FROM categories WHERE id=%s", (cat_id,))
+            row = cursor.fetchone()
+            cursor.close()
+            return row
+        except Exception:
+            self._reset_conn()
+            raise
+
+    def rename_category_in_qa(self, old_label: str, new_label: str, is_l1: bool) -> int:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            if is_l1:
+                cursor.execute(
+                    "UPDATE qa_pairs SET category_l1=%s WHERE category_l1=%s",
+                    (new_label, old_label),
+                )
+            else:
+                cursor.execute(
+                    "UPDATE qa_pairs SET category_l2=%s WHERE category_l2=%s",
+                    (new_label, old_label),
+                )
+            affected = cursor.rowcount
+            conn.commit()
+            cursor.close()
+            return affected
+        except Exception:
+            conn.rollback()
+            self._reset_conn()
+            raise
+
+    def count_qa_by_category(self, label: str, is_l1: bool) -> int:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            if is_l1:
+                cursor.execute("SELECT COUNT(*) FROM qa_pairs WHERE category_l1=%s", (label,))
+            else:
+                cursor.execute("SELECT COUNT(*) FROM qa_pairs WHERE category_l2=%s", (label,))
+            count = cursor.fetchone()[0]
+            cursor.close()
+            return count
+        except Exception:
+            self._reset_conn()
+            raise
+
+    def get_active_qa_by_category_l1(self, label: str) -> list[dict]:
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            cursor.execute(
+                "SELECT id, question, category_l1 FROM qa_pairs WHERE category_l1=%s AND status='active'",
+                (label,),
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            return rows
+        except Exception:
+            self._reset_conn()
+            raise
+
     def get_trend(self, days: int = 7) -> dict:
         conn = self._get_conn()
         try:

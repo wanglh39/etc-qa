@@ -157,6 +157,24 @@ class QAService:
             logger.warning(f"BM25索引重建失败(不影响已入库数据): {e}")
         self.invalidate_active_ids_cache()
 
+    def rename_category_milvus(self, old_label: str, new_label: str) -> int:
+        affected = self.mysql.get_active_qa_by_category_l1(old_label)
+        if not affected:
+            return 0
+        for row in affected:
+            qa_id = row["id"]
+            try:
+                self.recall.milvus.delete(qa_id)
+            except Exception as e:
+                logger.warning(f"Milvus删除旧向量失败qa_id={qa_id}: {e}")
+            try:
+                vector = self.recall.encode_query(row["question"])
+                self._insert_milvus_with_retry(qa_id, vector, new_label)
+            except Exception as e:
+                logger.error(f"Milvus写入新向量失败qa_id={qa_id}: {e}")
+        self.invalidate_active_ids_cache()
+        return len(affected)
+
     def _insert_milvus_with_retry(self, qa_id: int, vector: list[float], category_l1: str, max_retries: int = 2):
         for attempt in range(max_retries + 1):
             try:

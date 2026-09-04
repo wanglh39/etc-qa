@@ -137,8 +137,9 @@ const remove = async () => {
     ElMessage.success('分类已删除')
     resetForm()
     loadTree()
-  } catch {
-    ElMessage.error('删除分类失败')
+  } catch (e: any) {
+    const detail = e?.response?.data?.detail
+    ElMessage.error(detail || '删除分类失败')
   }
 }
 </script>

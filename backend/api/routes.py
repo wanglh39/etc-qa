@@ -404,9 +404,22 @@ def create_category(req: CategoryCreateRequest):
 def update_category(cat_id: int, req: CategoryUpdateRequest):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
+    old = mysql_client.get_category_by_id(cat_id)
+    if not old:
+        raise HTTPException(status_code=404, detail="分类不存在")
     updated = mysql_client.update_category(cat_id, req.label, req.parent_id, req.description)
     if not updated:
         raise HTTPException(status_code=404, detail="分类不存在")
+    old_label = old["label"]
+    is_l1 = old.get("parent_id") is None
+    if old_label != req.label:
+        qa_affected = mysql_client.rename_category_in_qa(old_label, req.label, is_l1)
+        if is_l1 and service is not None and qa_affected > 0:
+            try:
+                service.rename_category_milvus(old_label, req.label)
+            except Exception as e:
+                logger.warning(f"Milvus分类重命名同步失败: {e}")
+        return {"id": cat_id, "message": f"分类已更新，{qa_affected}条知识同步重命名"}
     return {"id": cat_id, "message": "分类已更新"}
 
 
@@ -414,6 +427,14 @@ def update_category(cat_id: int, req: CategoryUpdateRequest):
 def delete_category(cat_id: int):
     if mysql_client is None:
         raise HTTPException(status_code=500, detail="服务未初始化")
+    cat = mysql_client.get_category_by_id(cat_id)
+    if not cat:
+        raise HTTPException(status_code=404, detail="分类不存在")
+
+    is_l1 = cat.get("parent_id") is None
+    ref_count = mysql_client.count_qa_by_category(cat["label"], is_l1)
+    if ref_count > 0:
+        raise HTTPException(status_code=409, detail=f"该分类被{ref_count}条知识引用，请先修改或删除相关知识")
     deleted = mysql_client.delete_category(cat_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="分类不存在")

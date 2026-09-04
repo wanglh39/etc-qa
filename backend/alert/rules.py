@@ -30,9 +30,9 @@ ALERT_RULES: list[AlertRule] = [
         metric="rag_query",
         check_type="p95_latency",
         window=300,
-        threshold=3.0,
+        threshold=5.0,
         severity="P0",
-        description="5分钟内RAG检索P95延迟超过3秒",
+        description="5分钟内RAG检索P95延迟超过5秒",
     ),
     AlertRule(
         id="llm_failure_count",

@@ -662,6 +662,7 @@ class MySQLClient:
             cursor.execute("SELECT id, label, parent_id, description FROM categories WHERE id=%s", (cat_id,))
             row = cursor.fetchone()
             cursor.close()
+            conn.commit()
             return row
         except Exception:
             self._reset_conn()
